@@ -42,21 +42,21 @@ void Write::write_branch(std::ofstream& stream, const Result<Branch, std::string
     if(maybe_branch.is_ok()){
         Branch branch = maybe_branch.get_ok();
 
-        std::vector<Node> nodes = branch.get_coll();
+        std::vector<Term> nodes = branch.get_coll();
 
-        for(const Node& node : branch.get_coll()){
-            if (node.is_syntax()){
-                std::string syn = node.get_syntax();
+        for(const Term& term : branch.get_coll()){
+            if (term.is_syntax()){
+                std::string syn = term.get_syntax();
 
                 if(syn == "\\n"){
                     stream << "\n";
                 } else {
-                    stream << node.get_syntax();
+                    stream << term.get_syntax();
                 }
 
 
             } else {
-                std::shared_ptr<Rule> next_rule = node.get_rule();
+                std::shared_ptr<Rule> next_rule = term.get_rule();
 
                 write_branch(stream, pick_branch(next_rule)); // randomly pick a branch from next rule to continue from        
             }
@@ -77,4 +77,6 @@ void Write::emit(){
     std::shared_ptr<Rule> entry = grammar.get_rule_pointer(entry_point);
 
     write_branch(stream, pick_branch(entry)); // pick branch randomly to be written from entry point
+
+    std::cout << "Written to " << output_path.string() << std::endl;
 }

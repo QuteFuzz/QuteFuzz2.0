@@ -51,18 +51,17 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
     }
 }
 
-
 void Grammar::build_branch(Branch& branch, const Token& token){
-    Node node(token.value);
+    Term term(token.value);
     std::shared_ptr<Rule> ptr;
     
     if(token.kind == T_SYNTAX){
-        node.set_syntax(token.value);
+        term.set_syntax(token.value);
     } else {
-        node.set_pointer(get_rule_pointer(token.value));
+        term.set_pointer(get_rule_pointer(token.value));
     }
 
-    branch.add(node);
+    branch.add(term);
 }
 
 bool Grammar::is_rule_end(){
@@ -152,12 +151,18 @@ void Grammar::build_grammar(){
     }
 }
 
-void Grammar::print_grammar(){
+void Grammar::print_grammar() const {
 
     for(const auto& p : rule_pointers){
         std::cout << p.first << " = ";
         p.second->print(std::cout);
         std::cout << ";" << std::endl;
+    }
+}
+
+void Grammar::print_rules() const {
+    for(const auto& p : rule_pointers){
+        std::cout << p.first << " ";
     }
 }
 

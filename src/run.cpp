@@ -24,10 +24,55 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
 }
 
-void Run::run(){
-    write.set_grammar(grammars["postal"], "postal-address");
-    write.emit();
+void Run::set_grammar(){
 
+    std::string grammar_name = tokens[0], entry_name = tokens[1];
+
+    if(is_grammar(grammar_name)){
+        write.set_grammar(grammars[grammar_name], entry_name);
+    } else {
+        std::cout << grammar_name << " is not a known grammar!" << std::endl;
+    }
+}
+
+void Run::tokenise(const std::string& command){
+
+    std::stringstream ss(command);
+    std::string token;
+
+    tokens.clear();
+
+    while(std::getline(ss, token, ' ')){
+        tokens.push_back(token);
+    }
+}
+
+void Run::loop(){
+    //write.set_grammar(grammars["postal"], "postal-address");
+    //write.emit();
+
+    std::string current_command;
+
+    while(run){
+        std::cout << "> ";
+
+        std::getline(std::cin, current_command);
+
+        if(current_command == "quit"){
+            run = false;
+        } else if (current_command == ""){
+            write.emit();
+        } else if (current_command == "h"){
+            help();
+        
+        } else {
+            tokenise(current_command);
+
+            if(tokens.size() == 2){
+                set_grammar();
+            }
+        }
+    }
 }
 
 

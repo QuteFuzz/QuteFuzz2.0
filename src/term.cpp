@@ -1,4 +1,4 @@
-#include "../include/node.h"
+#include "../include/term.h"
 
 template<>
 void Branch::print(std::ostream& os) const {
@@ -44,8 +44,8 @@ template<>
 void Branch::set_recursive_flag(std::shared_ptr<Rule> parent_rule){
     recursive = false;
 
-    for(const Node& node : coll){
-        if (node.name_matches(parent_rule->get_name())){
+    for(const Term& term : coll){
+        if (term.name_matches(parent_rule->get_name())){
             recursive = true;
             parent_rule->set_recursive_flag(nullptr);
             break;

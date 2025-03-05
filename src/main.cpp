@@ -4,8 +4,11 @@
 
 int main(int argc, char** argv){
 
-    Write write(fs::path("../examples/postal.bnf"), "postal-address");
-    write.emit();
+    //Write write(fs::path("../examples/postal.bnf"), "postal-address");
+    //write.emit();
+
+    Run run("../examples");
+    run.loop();
 
     return 0;
 }

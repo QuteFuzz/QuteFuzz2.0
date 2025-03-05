@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <math.h>
 #include <unordered_map>
-#include "node.h"
+#include "term.h"
 
 class Grammar{
 
@@ -34,7 +34,9 @@ class Grammar{
 
         void build_grammar();
 
-        void print_grammar();
+        void print_grammar() const;
+
+        void print_rules() const;
 
         inline std::string get_name(){return name;}
 

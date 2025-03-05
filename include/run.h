@@ -14,31 +14,31 @@ class Run{
             return grammars.find(name) != grammars.end();
         }
 
-        void set_grammar(const std::string& command){
+        void help(){
+            std::cout << "-> Type enter to write to a file" << std::endl;
+            std::cout << "-> \"grammar_name grammar_entry\" : command to set grammar " << std::endl;
+            std::cout << "  These are the known grammar rules: " << std::endl;
 
-            std::stringstream ss(command);
-            std::string token, grammar = "math", entry = "expr";
-
-            while(std::getline(ss, token, ' ')){
-                if(is_grammar(token)) grammar = token;
+            for(const auto& g : grammars){
+                std::cout << "  . " << g.first << ": ";
+                g.second.print_rules();
+                std::cout << std::endl;
             }
-
         }
 
-        int get_input(){
-            std::cin >> current_command;
-        
-            return 1;
-        }
+        void set_grammar();
 
-        void run();
+        void tokenise(const std::string& command);
+
+        void loop();
 
     private:
         fs::path grammars_dir;
         std::unordered_map<std::string, Grammar> grammars;
         Write write;
+        std::vector<std::string> tokens;
 
-        std::string current_command;
+        bool run = true;
 
 };
 

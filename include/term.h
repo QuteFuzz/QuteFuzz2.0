@@ -1,45 +1,45 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef TERM_H
+#define TERM_H
 
 #include "utils.h"
 
 typedef enum {
-    NK_SYNTAX,
-    NK_POINTER
-} Node_kind;
+    TK_SYNTAX,
+    TK_POINTER
+} Term_kind;
 
-class Node;
+class Term;
 template<typename T> class Collection;
 
-using Branch = Collection<Node>;
+using Branch = Collection<Term>;
 using Rule = Collection<Branch>;
 
-class Node {
+class Term {
     public:
-        Node(const std::string& name) :_name(name){}
-        ~Node() = default;
+        Term(const std::string& name) :_name(name){}
+        ~Term() = default;
 
-        void set_pointer(std::shared_ptr<Rule> node){
-            value = node;
-            kind = NK_POINTER;
+        void set_pointer(std::shared_ptr<Rule> term){
+            value = term;
+            kind = TK_POINTER;
         }
 
         void set_syntax(std::string syntax){
             value = syntax;
-            kind = NK_SYNTAX;
+            kind = TK_SYNTAX;
         }
 
         std::shared_ptr<Rule> get_rule() const {
-            if(kind == NK_POINTER){return std::get<std::shared_ptr<Rule>>(value);}
+            if(kind == TK_POINTER){return std::get<std::shared_ptr<Rule>>(value);}
             else {
-                throw std::runtime_error("get_node called on syntax!");
+                throw std::runtime_error("get_term called on syntax!");
             }
         }
 
         std::string get_syntax() const {
-            if(kind == NK_SYNTAX){return std::get<std::string>(value);}
+            if(kind == TK_SYNTAX){return std::get<std::string>(value);}
             else {
-                throw std::runtime_error("get_syntax called on node!");
+                throw std::runtime_error("get_syntax called on term!");
             }
         }
 
@@ -48,29 +48,29 @@ class Node {
         }
 
         bool is_syntax() const {
-            return is(NK_SYNTAX);
+            return is(TK_SYNTAX);
         }
 
         bool is_pointer() const {
-            return is(NK_POINTER);
+            return is(TK_POINTER);
         }
 
-        friend std::ostream& operator<<(std::ostream& stream, Node node){
-            if(node.kind == NK_SYNTAX){
-                stream << "\"" << node.get_syntax() << "\"";
+        friend std::ostream& operator<<(std::ostream& stream, Term term){
+            if(term.kind == TK_SYNTAX){
+                stream << "\"" << term.get_syntax() << "\"";
             } else {
-                stream << node._name;
+                stream << term._name;
             }
 
             return stream;
         }
 
     protected:
-        bool is(Node_kind nk) const {
+        bool is(Term_kind nk) const {
             return kind == nk;
         }
 
-        Node_kind kind;
+        Term_kind kind;
         std::variant<std::shared_ptr<Rule>, std::string> value;
         std::string _name;
 };
