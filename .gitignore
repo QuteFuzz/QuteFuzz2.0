@@ -1,0 +1,4 @@
+gp
+.vscode
+*.o
+build
