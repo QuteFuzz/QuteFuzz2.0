@@ -16,6 +16,7 @@ using Rule = Collection<Branch>;
 
 class Term {
     public:
+        Term(){}
         Term(const std::string& name) :_name(name){}
         ~Term() = default;
 
@@ -89,6 +90,14 @@ class Collection{
             coll.push_back(elem);
         }
 
+        T& at(size_t i){
+            if(i < coll.size()){
+                return coll[i];
+            } else {
+                throw std::runtime_error("Index out of range!");
+            }
+        }
+
         size_t size(){
             return coll.size();
         }
@@ -104,6 +113,8 @@ class Collection{
         std::vector<T> get_coll() const {return coll;}
 
         bool is_empty() const;
+
+        void clear(){coll.clear();}
 
         void print(std::ostream& os) const;
 

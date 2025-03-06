@@ -1,11 +1,12 @@
 #include "../include/grammar.h"
 
 Grammar::Grammar(const fs::path& filename): lexer(filename.string()), name(filename.stem()), path(filename) {
-    lexer.lex();
+    // lexer.print_tokens();
 
     tokens = lexer.get_tokens();
-
     num_tokens = tokens.size();
+
+    consume(0);
 }
 
 void Grammar::consume(int n){
@@ -15,7 +16,6 @@ void Grammar::consume(int n){
     if(token_pointer == num_tokens){
         curr_token.set_error("Out of tokens!");
     } else {
-
         curr_token.set_ok(tokens[token_pointer]);
     }
 }
@@ -38,14 +38,9 @@ void Grammar::peek(){
 
 }
 
-void Grammar::previous(){
-    if(token_pointer == 0){
-        prev_token.set_error("Cannot find previous token from here!");
-    } else {
-        prev_token.set_ok(tokens[token_pointer - 1]);
-    }
-}
-
+/// @brief If rule_name hasn't been initialsed, this adds a rule pointer for it and returns that pointer
+/// @param rule_name 
+/// @return 
 std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
 
     if(rule_pointers.find(rule_name) != rule_pointers.end()){
@@ -59,32 +54,32 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
     }
 }
 
-void Grammar::build_branch(Branch& branch, const Token& token){
-    Term term(token.value);
-    std::shared_ptr<Rule> ptr;
-    
-    if(token.kind == TOKEN_SYNTAX){
-        term.set_syntax(token.value);
-    } else {
-        term.set_pointer(get_rule_pointer(token.value));
-    }
-
-    branch.add(term);
-}
-
-bool Grammar::is_rule_end(){
+/// @brief Using the given syntax or rule token, create a term and add it to the current branch
+/// @param token 
+void Grammar::build_branch(const Token& token, Branch& branch){
     peek();
 
-    if(next_token.is_error()){
-        return true;
+    if(next_token.is_ok() && next_token.get_ok().kind == TOKEN_RULE_START){
+        // still before RULE_START TOKEN, set this as the current rule
+
+        if(current_rule != nullptr){
+            complete_rule();
+        }
+        current_rule = get_rule_pointer(token.value);
     } else {
-        return (next_token.get_ok().kind == TOKEN_RULE_START);
+
+        Term term(token.value);
+        
+        if(token.kind == TOKEN_SYNTAX){
+            term.set_syntax(token.value);
+        } else if (token.kind == TOKEN_RULE){
+            term.set_pointer(get_rule_pointer(token.value));
+        } else {
+            throw std::runtime_error("Build branch should only be called on syntax or rule tokens!");
+        }
+
+        branch.add(term);
     }
-}
-
-bool Grammar::is_grammar_end(){
-
-    return (curr_token.get_ok().kind == TOKEN_EOF);
 }
 
 void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to){
@@ -100,9 +95,9 @@ void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from
         to_char = to_val[0];
 
         for(char i = from_char; i <= to_char; ++i){
-            Branch branch;
-            build_branch(branch, Token{.kind = TOKEN_SYNTAX, .value = std::string(1, i)});
-            current_rule->add(branch);
+            current_branch = Branch();
+            build_branch(Token{.kind = TOKEN_SYNTAX, .value = std::string(1, i)}, current_branch);
+            current_rule->add(current_branch);
         }
 
     } else {
@@ -111,9 +106,9 @@ void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from
         to_int = std::stoi(to_val);
 
         for(int i = from_int; i <= to_int; ++i){
-            Branch branch;
-            build_branch(branch, Token{.kind = TOKEN_SYNTAX, .value = std::to_string(i)});
-            current_rule->add(branch);
+            current_branch = Branch();
+            build_branch(Token{.kind = TOKEN_SYNTAX, .value = std::to_string(i)}, current_branch);
+            current_rule->add(current_branch);
         }
     }
 }
@@ -122,83 +117,170 @@ bool Grammar::is_alpha(const std::string& str){
     return std::all_of(str.begin(), str.end(), ::isalpha);
 }
 
-void Grammar::build_rule(std::shared_ptr<Rule> current_rule){
-    Branch b;
-    Token token;
+void Grammar::add_n_branches(int n){
 
-    while(curr_token.is_ok() && !is_rule_end()){
-        token = curr_token.get_ok();
+    for(Expansion_option& opt : expansion_tokens){
+        Branch child = current_branch;
 
-        if(token.kind == TOKEN_SEPARATOR){
-            // need to create new branch
-            b.set_recursive_flag(current_rule); // set whether or not this branch is non-recursive
-            current_rule->add(b);
-
-            b = Branch();
-        } else if (token.kind == TOKEN_PROB){
-            // set this branch's probability
-            b.assign_prob(std::stof(token.value));
-          
-        } else if (token.kind == TOKEN_RANGE){
-            previous();
-            peek();
-
-            if(prev_token.is_error()){
-                std::cout << prev_token.get_error() << std::endl;
-            } else if (next_token.is_error()){
-                std::cout << prev_token.get_error() << std::endl;
-            } else {
-                expand_range(current_rule, prev_token.get_ok(), next_token.get_ok());
-                consume(1);
-
-                b = Branch();
+        for(int i = 0; i < n; ++i){
+            for(Token& token : opt){
+                build_branch(token, child);
             }
-
-        } else {
-            build_branch(b, token);
+            // child.print(std::cout);
+            current_rule->add(child);
         }
-
-        consume(1);
-    }
-
-    if(curr_token.is_error()){
-        std::cout << "[ERROR] " << curr_token.get_error() << std::endl;
-    } else if (is_rule_end() && (!b.is_empty())){
-        b.set_recursive_flag(current_rule); // set whether or not this branch is non-recursive
-        current_rule->add(b);
     }
 }
 
+void Grammar::expand_group(){
+    peek();
+
+    if(next_token.is_ok()){
+        Token token = next_token.get_ok();
+
+        if(token.kind == TOKEN_OPTIONAL){
+            // add current branch as well as new expansions to the rule 
+            current_rule->add(current_branch);
+            add_n_branches(1);
+
+        } else if (token.kind == TOKEN_ONE_OR_MORE){
+            // add only (new expansions to the rule) * max 
+            add_n_branches(wildcard_max);
+
+        } else if (token.kind == TOKEN_ZERO_OR_MORE){
+            // add current branch as well as (new expansions to the rule) * max 
+            current_rule->add(current_branch);
+            add_n_branches(wildcard_max);
+
+        } else {
+            // add just the new expasions to the rule
+            add_n_branches(1);
+        }
+
+        current_branch = Branch();
+
+    } else {
+        throw std::runtime_error(next_token.get_error());
+    }
+}
+
+bool Grammar::in_variant_grouping(const Token& current_token){
+    peek();
+
+    if(next_token.is_ok()){
+        Token token = next_token.get_ok();
+
+        return ((token.kind == TOKEN_SEPARATOR) || (prev_token.kind == TOKEN_SEPARATOR) || (current_token.kind == TOKEN_SEPARATOR)) && in_grouping;
+    } else {
+        throw std::runtime_error(next_token.get_error());
+    }
+
+    return false;
+}
+
 void Grammar::build_grammar(){
-    consume(0);
 
-    if(curr_token.is_ok() && (curr_token.get_ok().kind == TOKEN_PROB_SET_FLAG)){
-        assign_equal_probs = true;
+    if(curr_token.is_ok()){
+        Token token = curr_token.get_ok();
+
+        switch(token.kind){
+            case TOKEN_RULE : case TOKEN_SYNTAX: {
+
+                if(in_variant_grouping(token)){
+                    Expansion_option option;
+                    option.push_back(token);
+                    expansion_tokens.push_back(option);
+                } else if (just_finished_grouping) {
+                    // and this term to all children branches
+                    for(Expansion_option& opt : expansion_tokens){
+                        opt.push_back(token);
+                    }
+                } else {
+                    build_branch(token, current_branch);
+
+                }
+
+                break;
+            }
+
+            case TOKEN_RULE_START: 
+                // set the current branch pointer to prepare for rules after this token
+                current_branch = Branch(); 
+                break;
+
+            case TOKEN_EOF: 
+
+                complete_rule();
+                
+                return;
+
+            case TOKEN_OPEN_BRACKET: in_grouping += 1; break;
+
+            case TOKEN_CLOSED_BRACKET: {
+                in_grouping -= 1;
+                
+                // collect all child branches, delete all expansion branches
+                if(in_grouping == 0){
+                    just_finished_grouping = false;
+                    expand_group();
+                    expansion_tokens.clear();
+                } else {
+                    just_finished_grouping = true;
+                }
+                        
+                break;
+            }
+
+            case TOKEN_SEPARATOR: {
+
+                if(!in_grouping){
+                    // need to create new branch
+                    current_branch.set_recursive_flag(current_rule); // set whether or not this branch is non-recursive
+                    current_rule->add(current_branch);
+                    current_branch = Branch();
+                }
+                break;
+            }
+
+            case TOKEN_PROB: current_branch.assign_prob(std::stof(token.value)); break;
+
+            case TOKEN_RANGE: {
+                peek();
+
+                if (next_token.is_error()){
+                    std::cout << next_token.get_error() << std::endl;
+                } else {
+                    expand_range(current_rule, prev_token, next_token.get_ok());
+                    consume(1);
+
+                    current_branch = Branch();
+                }
+
+                break;
+            }
+
+            case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
+
+            case TOKEN_OPTIONAL: {
+                break;
+            }
+
+            case TOKEN_ONE_OR_MORE: break;
+
+            case TOKEN_ZERO_OR_MORE: break;
+            
+            default:
+                throw std::runtime_error("[ERROR] Unknown token!"); 
+            
+        }
+
+        prev_token = token;
+
         consume(1);
-    }
+        build_grammar();
 
-    Token token;
-
-    while(curr_token.is_ok() && !is_grammar_end()){
-        token = curr_token.get_ok();
-
-        rule_pointers[token.value] = get_rule_pointer(token.value);
-
-        consume(1);
-
-        if(curr_token.get_ok().kind == TOKEN_EOF){break;}
-
-        consume(TOKEN_RULE_START);
-
-        build_rule(rule_pointers[token.value]);
-    }
-
-    if(curr_token.is_error()){
-        std::cout << "[ERROR] " << curr_token.get_error() << std::endl;
-    }
-
-    if(assign_equal_probs){ 
-        assign_equal_probabilities();
+    } else {
+        throw std::runtime_error(curr_token.get_error());
     }
 }
 
@@ -217,17 +299,11 @@ void Grammar::print_rules() const {
     }
 }
 
+/// @brief Assigns all branches in the current rule equal probabilites
 void Grammar::assign_equal_probabilities(){
+    float prob = 1.0 / (float)current_rule->size();
 
-    std::shared_ptr<Rule> ptr;
+    // std::cout << current_rule->get_name() << " " << prob << std::endl;
 
-    for(const auto& p : rule_pointers){
-        ptr = p.second;
-    
-        float prob = 1.0 / (float)ptr->size();
-
-        ptr->assign_prob(prob);
-    }
+    current_rule->assign_prob(prob);
 }
-
-

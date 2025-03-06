@@ -12,15 +12,36 @@ void Lexer::lex(){
         
         std::sregex_iterator begin(input.begin(), input.end(), full_pattern);
 
-        for(std::sregex_iterator i = begin; i != end; ++i){
+        for(std::sregex_iterator i = begin; (i != end) && (ignore == false); ++i){
             std::smatch match = *i;
             matched_string = match.str();
 
-            if (string_is(matched_string, PROB_SET_FLAG)){
+            if (string_is(matched_string, MULTI_COMMENT)){
+                ignore = !ignore;
+                
+            } else if (string_is(matched_string, COMMENT)){
+                break;
+
+            } else if (string_is(matched_string, PROB_SET_FLAG)){
                 tokens.push_back(Token{.kind = TOKEN_PROB_SET_FLAG, .value = matched_string});
 
             } else if (string_is(matched_string, RANGE)){
                 tokens.push_back(Token{.kind = TOKEN_RANGE, .value = matched_string});
+                
+            } else if (string_is(matched_string, OPEN_BRACKET)){
+                tokens.push_back(Token{.kind = TOKEN_OPEN_BRACKET, .value = matched_string});
+                
+            } else if (string_is(matched_string, CLOSED_BRACKET)){
+                tokens.push_back(Token{.kind = TOKEN_CLOSED_BRACKET, .value = matched_string});
+                
+            } else if (string_is(matched_string, ONE_OR_MORE)){
+                tokens.push_back(Token{.kind = TOKEN_ONE_OR_MORE, .value = matched_string});
+                
+            } else if (string_is(matched_string, ZERO_OR_MORE)){
+                tokens.push_back(Token{.kind = TOKEN_ZERO_OR_MORE, .value = matched_string});
+                
+            } else if (string_is(matched_string, OPTIONAL)){
+                tokens.push_back(Token{.kind = TOKEN_OPTIONAL, .value = matched_string});
                 
             } else if(string_is(matched_string, ANGLE_RULE)){
                 tokens.push_back(Token{.kind = TOKEN_RULE, .value = remove_decorators(matched_string)});
@@ -39,9 +60,6 @@ void Lexer::lex(){
 
             } else if (string_is(matched_string, PROB)){
                 tokens.push_back(Token{.kind = TOKEN_PROB, .value = remove_decorators(matched_string)});
-
-            } else if (string_is(matched_string, COMMENT)){
-                break;
             } 
 
         }

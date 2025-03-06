@@ -2,7 +2,7 @@
 #include "../include/write.h"
 #include "../include/run.h"
 
-int main(int argc, char** argv){
+int main(){
     fs::path file("../examples/openqasm.bnf");
 
     // testing the lexer

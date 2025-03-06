@@ -9,6 +9,9 @@
 #include <cctype>
 #include <algorithm>
 
+using Expansion_option = std::vector<Token>;
+using Expansions = std::vector<Expansion_option>;
+
 class Grammar{
 
     public:
@@ -22,21 +25,30 @@ class Grammar{
 
         void peek();
 
-        void previous();
-
         bool is_alpha(const std::string& str);
-
-        bool is_rule_end();
-
-        bool is_grammar_end();
 
         std::shared_ptr<Rule> get_rule_pointer(const std::string& rule_name);
 
         void assign_equal_probabilities();
 
+        bool in_variant_grouping(const Token& current_token);
+
         void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
 
-        void build_branch(Branch& branch, const Token& token);
+        void add_n_branches(int n);
+
+        void expand_group();
+         
+        /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
+        void complete_rule(){
+            if(!current_branch.is_empty()) {
+                current_rule->add(current_branch); 
+                current_branch.set_recursive_flag(current_rule);
+            }
+            assign_equal_probabilities();
+        }
+
+        void build_branch(const Token& token, Branch& branch);
 
         void build_rule(std::shared_ptr<Rule> current_rule);
 
@@ -52,11 +64,20 @@ class Grammar{
 
     private:
         std::vector<Token> tokens;
-        size_t num_tokens;
+        size_t num_tokens = 0;
         size_t token_pointer = 0;
         Result<Token, std::string> curr_token;
         Result<Token, std::string> next_token;
-        Result<Token, std::string> prev_token;
+        Token prev_token;
+
+        Branch current_branch;
+        std::shared_ptr<Rule> current_rule = nullptr;
+
+        // * ? + expansion stores
+        unsigned int in_grouping = 0;
+        Expansions expansion_tokens;
+        int wildcard_max = 2;
+        bool just_finished_grouping = false;
 
         bool assign_equal_probs = false;
 

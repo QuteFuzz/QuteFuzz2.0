@@ -1,4 +1,20 @@
-expr = term "+" expr [0.2] | term "-" expr [0.5] | term [0.3] ;
-term = factor "*" term [0.1] | factor "/" term [0.4] | factor [0.5] ;
-factor = integer [0.7] | "(" expr ")" [0.3] ;
-integer = "1" [0.3] | "2" [0.4] | "3" [0.2] | "4" [0.1]
+expr = term (("+" | "-") expr) ; term "+" expr | term "-" expr | term ;
+term = factor "*" term | factor "/" term | factor ;
+factor = integer | "(" expr ")" ;
+integer = "1" | "2" | "3" | "4"
+
+program         ::= header statement_list
+header          ::= "OPENQASM" float ";"
+
+;;
+
+expr = term ("+" | "-") expr ->  expr = term "+" expr | term "-" expr
+
+expr = term (("+" | "-" | "/" | "*") expr)?
+
+simpler:
+expr = term "+" expr | term ;
+
+becomes
+expr = term ("+" expr)?
+

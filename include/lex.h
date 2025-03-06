@@ -20,10 +20,19 @@
 #define PROB "[" FLOAT "]" 
 #define PROB_SET_FLAG R"(equal_prob)"
 #define COMMENT R"(;)"
+#define MULTI_COMMENT R"(;;)"
 #define RANGE R"(\-)"
+#define OPEN_BRACKET R"(\()"
+#define CLOSED_BRACKET R"(\))"
+#define ZERO_OR_MORE R"(\*)"
+#define OPTIONAL R"(\?)"
+#define ONE_OR_MORE R"(\+)"
 
-#define FULL_REGEX ("(" PROB_SET_FLAG "|" RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" RULE_DEF "|" RULE_ENTRY "|" PROB "|" COMMENT "|" RANGE ")") 
-
+#define FULL_REGEX "(" PROB_SET_FLAG "|" RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" \
+        RULE_DEF "|" RULE_ENTRY "|" PROB "|" MULTI_COMMENT "|" COMMENT "|" RANGE "|" OPEN_BRACKET "|" CLOSED_BRACKET "|" \
+        ZERO_OR_MORE "|" OPTIONAL "|" ONE_OR_MORE \
+        ")"
+        
 typedef enum {
     TOKEN_EOF = 0,
     TOKEN_RULE,
@@ -32,7 +41,12 @@ typedef enum {
     TOKEN_SYNTAX,
     TOKEN_PROB,
     TOKEN_PROB_SET_FLAG,
-    TOKEN_RANGE
+    TOKEN_RANGE,
+    TOKEN_OPEN_BRACKET,
+    TOKEN_CLOSED_BRACKET,
+    TOKEN_ZERO_OR_MORE,
+    TOKEN_ONE_OR_MORE,
+    TOKEN_OPTIONAL
 } Token_kind;
 
 struct Token{
@@ -48,7 +62,7 @@ struct Token{
             case TOKEN_RULE_START:
                 stream << "RULE START "; break;
             case TOKEN_SEPARATOR:
-                stream << "RULE SEPARATOR "; break;
+                stream << "SEPARATOR "; break;
             case TOKEN_SYNTAX:
                 stream << "SYNTAX "; break;
             case TOKEN_PROB:
@@ -57,6 +71,16 @@ struct Token{
                 stream << "PROB SET FLAG "; break;
             case TOKEN_RANGE:
                 stream << "RANGE "; break;
+            case TOKEN_OPEN_BRACKET:
+                stream << "OPEN BRACKET "; break;
+            case TOKEN_CLOSED_BRACKET:
+                stream << "CLOSED BRACKET "; break;
+            case TOKEN_ZERO_OR_MORE:
+                stream << "ZERO OR MORE "; break;
+            case TOKEN_ONE_OR_MORE:
+                stream << "ONE OR MORE "; break;
+            case TOKEN_OPTIONAL:
+                stream << "OPTIONAL "; break;
             default:
                 std::cerr << "Unknown token kind" << std::endl;
         }
@@ -93,6 +117,7 @@ class Lexer{
     private:
         Result<std::vector<Token>, std::string> result;
         std::string _filename = "bnf.bnf"; 
+        bool ignore = false;
         
 };
 
