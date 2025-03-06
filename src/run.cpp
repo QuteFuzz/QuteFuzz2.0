@@ -5,10 +5,10 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
     try{
 
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
-            for(auto& entry : fs::directory_iterator(grammars_dir)){
+            for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(entry.is_regular_file() && (entry.path().extension() == ".bnf")){
-                    Grammar grammar(entry);
+                if(file.is_regular_file() && (file.path().extension() == ".bnf")){
+                    Grammar grammar(file);
                     grammar.build_grammar();
 
                     std::cout << "Building " << grammar.get_name() << std::endl;
@@ -48,8 +48,6 @@ void Run::tokenise(const std::string& command){
 }
 
 void Run::loop(){
-    //write.set_grammar(grammars["postal"], "postal-address");
-    //write.emit();
 
     std::string current_command;
 

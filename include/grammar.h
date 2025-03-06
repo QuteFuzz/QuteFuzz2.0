@@ -6,6 +6,8 @@
 #include <math.h>
 #include <unordered_map>
 #include "term.h"
+#include <cctype>
+#include <algorithm>
 
 class Grammar{
 
@@ -20,6 +22,10 @@ class Grammar{
 
         void peek();
 
+        void previous();
+
+        bool is_alpha(const std::string& str);
+
         bool is_rule_end();
 
         bool is_grammar_end();
@@ -27,6 +33,8 @@ class Grammar{
         std::shared_ptr<Rule> get_rule_pointer(const std::string& rule_name);
 
         void assign_equal_probabilities();
+
+        void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
 
         void build_branch(Branch& branch, const Token& token);
 
@@ -48,15 +56,15 @@ class Grammar{
         size_t token_pointer = 0;
         Result<Token, std::string> curr_token;
         Result<Token, std::string> next_token;
-
-        std::string name;
-        fs::path path;
+        Result<Token, std::string> prev_token;
 
         bool assign_equal_probs = false;
 
         std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
 
         Lexer lexer;
+        std::string name;
+        fs::path path;
 };
 
 

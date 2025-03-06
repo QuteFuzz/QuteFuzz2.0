@@ -19,11 +19,10 @@ cmake ..
 make
 ```
 
-Run with `./fuzzer`
-
-At the moment, this outputs random postal addresses. 
+Run with `./fuzzer`, and type `h` for help.
 
 ## Ideas for the future
 - [ ] QSS grammar definition
 - [ ] Writing relevant parsers
 - [ ] Thinking about what cool techniques we could use if we have an AST of the circuit
+- [ ] Extend lexer, for instance we want to be able to parse (expr)?, (expr)*
