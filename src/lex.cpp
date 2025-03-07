@@ -16,9 +16,12 @@ void Lexer::lex(){
             std::smatch match = *i;
             matched_string = match.str();
 
-            if (string_is(matched_string, MULTI_COMMENT)){
-                ignore = !ignore;
+            if (string_is(matched_string, MULTI_COMMENT_START)){
+                ignore = true;
                 
+            } else if (string_is(matched_string, MULTI_COMMENT_END)){
+                ignore = false;
+
             } else if (string_is(matched_string, COMMENT)){
                 break;
 
@@ -54,6 +57,9 @@ void Lexer::lex(){
 
             } else if (string_is(matched_string, RULE_ENTRY_0) || string_is(matched_string, RULE_ENTRY_1) || string_is(matched_string, RULE_ENTRY_2)){
                 tokens.push_back(Token{.kind = TOKEN_RULE_START, .value = matched_string});
+
+            } else if (string_is(matched_string, RULE_END)){
+                tokens.push_back(Token{.kind = TOKEN_RULE_END, .value = matched_string});
 
             } else if (string_is(matched_string, SEPARATOR)){
                 tokens.push_back(Token{.kind = TOKEN_SEPARATOR, .value = matched_string});

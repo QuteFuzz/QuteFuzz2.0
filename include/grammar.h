@@ -35,18 +35,37 @@ class Grammar{
 
         void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
 
-        void add_n_branches(int n);
-         
+        void add_n_branches(const Token& next);
+
+        void reset_current_branches(){
+            current_branches = {Branch()};
+        }
+        
+        void lazily_add_branches_to_rule(){
+            // add all current branches to current rule, reset current branches
+            for(const Branch& current_branch : current_branches){
+                // std::cout << "Lazily adding ";
+                // current_branch.print(std::cout);
+                // std::cout << std::endl;
+
+                current_rule->add(current_branch);
+            }
+
+        }
+
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
         void complete_rule(){
-            if(!current_branch.is_empty()) {
-                current_branch.set_recursive_flag(current_rule);
-                current_rule->add(current_branch); 
-            }
+            lazily_add_branches_to_rule();
             assign_equal_probabilities();
         }
 
-        void build_branch(const Token& token, Branch& branch);
+        void build_branches(const Token& token);
+
+        void add_terms_to_current_branches(const std::vector<Token>& tokens);
+
+        void add_term_to_branch(const Token& token, Branch& branch);
+
+        void add_terms_to_branch(const std::vector<Token>& tokens, Branch& branch);
 
         void build_rule(std::shared_ptr<Rule> current_rule);
 
@@ -68,13 +87,14 @@ class Grammar{
         Result<Token, std::string> next_token;
         Token prev_token;
 
-        Branch current_branch;
+        std::vector<Branch> current_branches = {Branch()}; // when performing expansions, there may be more than one branch to continue building ((expr)+, (expr)*)
         std::shared_ptr<Rule> current_rule = nullptr;
+        size_t expanded_branches_head = 0;
 
         // * ? + expansion stores
         unsigned int in_grouping = 0;
         Expansions expansion_tokens;
-        int wildcard_max = 2;
+        int wildcard_max = 5;
         bool just_finished_grouping = false;
 
         bool assign_equal_probs = false;

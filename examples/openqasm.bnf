@@ -20,7 +20,7 @@ RBRACE: "}"
 
 
 
-program: (version)? (statementOrScope)*;
+program: (version)+ ; (statementOrScope)*;
 version: OPENQASM VersionSpecifier SEMICOLON;
 
 statement:

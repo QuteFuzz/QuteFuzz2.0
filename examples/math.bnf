@@ -1,9 +1,9 @@
-expr = term (("+" | "-") expr)? ; term "+" expr | term "-" expr | term ;
-term = factor "*" term | factor "/" term | factor ;
-factor = integer | "(" expr ")" ;
-integer = "1" | "2" | "3" | "4"
+expr = term (("+" | "-") expr)+ | "a" - "c"; 
+// term = factor "*" term | factor "/" term | factor ;
+// factor = integer | "(" expr ")" ;
+// integer = "1" | "2" | "3" | "4" ;
 
-;;
+/*
 
 expr = term ("+" | "-") expr ->  expr = term "+" expr | term "-" expr
 
@@ -15,3 +15,4 @@ expr = term "+" expr | term ;
 becomes
 expr = term ("+" expr)?
 
+*/

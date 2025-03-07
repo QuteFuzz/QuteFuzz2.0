@@ -10,17 +10,17 @@ int main(){
     //lexer.print_tokens();
 
     // testing grammar builder
-    //Grammar grammar(file);
-    //grammar.build_grammar();
-    //grammar.print_grammar();
+    Grammar grammar(file);
+    grammar.build_grammar();
+    grammar.print_grammar();
 
     // testing the writer
     //Write write(file, "qreg_declaration");
     //write.emit();
 
     // run entire application
-    Run run("../examples");
-    run.loop();
+    //Run run("../examples");
+    //run.loop();
 
     return 0;
 }

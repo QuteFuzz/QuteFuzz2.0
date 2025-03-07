@@ -20,8 +20,10 @@
 #define SEPARATOR R"(\|)"
 #define PROB "[" FLOAT "]" 
 #define PROB_SET_FLAG R"(equal_prob)"
-#define COMMENT R"(;)"
-#define MULTI_COMMENT R"(;;)"
+#define COMMENT R"(//)"
+#define MULTI_COMMENT_START R"(/\*)"
+#define MULTI_COMMENT_END R"(\*/)"
+#define RULE_END R"(;)"
 #define RANGE R"(\-)"
 #define OPEN_BRACKET R"(\()"
 #define CLOSED_BRACKET R"(\))"
@@ -30,8 +32,9 @@
 #define ONE_OR_MORE R"(\+)"
 
 #define FULL_REGEX "(" PROB_SET_FLAG "|" RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" \
-        RULE_ENTRY_0 "|" RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" PROB "|" MULTI_COMMENT "|" COMMENT "|" RANGE "|" OPEN_BRACKET "|" CLOSED_BRACKET "|" \
-        ZERO_OR_MORE "|" OPTIONAL "|" ONE_OR_MORE \
+        RULE_ENTRY_0 "|" RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" PROB "|" COMMENT "|" MULTI_COMMENT_START "|" \
+        MULTI_COMMENT_END "|" RULE_END "|" RANGE "|" OPEN_BRACKET "|" CLOSED_BRACKET "|" ZERO_OR_MORE "|" \
+        OPTIONAL "|" ONE_OR_MORE \
         ")"
         
 typedef enum {
@@ -39,6 +42,7 @@ typedef enum {
     TOKEN_RULE,
     TOKEN_SEPARATOR,
     TOKEN_RULE_START,
+    TOKEN_RULE_END,
     TOKEN_SYNTAX,
     TOKEN_PROB,
     TOKEN_PROB_SET_FLAG,
@@ -62,6 +66,8 @@ struct Token{
                 stream << "RULE "; break;
             case TOKEN_RULE_START:
                 stream << "RULE START "; break;
+            case TOKEN_RULE_END:
+                stream << "RULE END "; break;
             case TOKEN_SEPARATOR:
                 stream << "SEPARATOR "; break;
             case TOKEN_SYNTAX:
@@ -108,7 +114,7 @@ class Lexer{
 
         inline bool string_is(const std::string& string, const std::string& pattern){
 
-            return std::regex_match(string, std::regex(pattern)) && ((ignore == false) || (pattern == MULTI_COMMENT));
+            return std::regex_match(string, std::regex(pattern)) && ((ignore == false) || (pattern == MULTI_COMMENT_END));
         }
 
         void lex();
