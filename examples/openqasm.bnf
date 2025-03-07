@@ -1,33 +1,57 @@
 equal_prob
 
-SEMICOLON : ";"
-INCLUDE : "include "
-BREAK: "break "
-CONTINUE: "continue "
-END: "end "
-FOR: "for "
-IF : "if "
-RETURN: "return "
-WHILE: "while "
-SWITCH: "switch "
-CASE: "case "
-LPAREN: "("
-RPAREN: ")"
-LBRACKET: "["
-RBRACKET: "]"
-LBRACE: "{"
-RBRACE: "}"
+/*
+    https://openqasm.com/grammar/index.html for full grammar, I added some here to test the parser and see how well it handles complex cases
+*/
 
+// OpenQASM tokens
+SEMICOLON : ";";
+INCLUDE : "include ";
+BREAK: "break ";
+CONTINUE: "continue ";
+END: "end ";
+FOR: "for ";
+IF : "if ";
+ELSE: "else ";
+RETURN: "return ";
+WHILE: "while ";
+SWITCH: "switch ";
+CASE: "case ";
+LPAREN: "(";
+RPAREN: ")";
+LBRACKET: "[";
+RBRACKET: "]";
+LBRACE: "{";
+RBRACE: "}";
+OPENQASM: "openqasm ";
+PRAGMA: "pragma ";
 
+AnnotationKeyword: '@' Identifier ('.' Identifier)*;
 
-program: (version)+ ; (statementOrScope)*;
+program: (version)? ; (statementOrScope)*;
 version: OPENQASM VersionSpecifier SEMICOLON;
+pragma: PRAGMA;
+
+statementOrScope: statement | scope;
 
 statement:
-    (
+    pragma
+    // All the actual statements of the language.
+    | (annotation)* (
+        | ifStatement
         | includeStatement
-        | switchStatement
     )
+;
 
+annotation: AnnotationKeyword;
+scope: LBRACE (statementOrScope)* RBRACE;
+
+expression: Identifier;
+
+ifStatement: IF LPAREN expression RPAREN statementOrScope (ELSE statementOrScope)?;
 includeStatement: INCLUDE StringLiteral SEMICOLON;
-switchStatement: SWITCH LPAREN expression RPAREN LBRACE (switchCaseItem)* RBRACE;
+
+// Test
+Identifier : "variable";
+VersionSpecifier: "3.0";
+StringLiteral: "some library";

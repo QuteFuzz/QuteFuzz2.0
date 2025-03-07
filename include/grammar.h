@@ -59,6 +59,12 @@ class Grammar{
             assign_equal_probabilities();
         }
 
+        void drop_heads(){
+            // std::cout << expanded_branches_head << std::endl;
+
+            current_branches = std::vector<Branch>(current_branches.begin() + expanded_branches_head, current_branches.end());
+        }
+
         void build_branches(const Token& token);
 
         void add_terms_to_current_branches(const std::vector<Token>& tokens);
@@ -94,7 +100,7 @@ class Grammar{
         // * ? + expansion stores
         unsigned int in_grouping = 0;
         Expansions expansion_tokens;
-        int wildcard_max = 5;
+        int wildcard_max = 2;
         bool just_finished_grouping = false;
 
         bool assign_equal_probs = false;

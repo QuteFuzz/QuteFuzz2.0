@@ -129,16 +129,18 @@ bool Grammar::is_alpha(const std::string& str){
 /// @param n 
 void Grammar::add_n_branches(const Token& next){
 
+    std::vector<Branch> heads = current_branches;
+    expanded_branches_head = heads.size();
+
     int n = 1; // also the default if there's no wildcard token after grouping
 
     if(next.kind == TOKEN_OPTIONAL){
         n = 1;
     } else if ((next.kind == TOKEN_ONE_OR_MORE) | (next.kind == TOKEN_ZERO_OR_MORE)){
         n = wildcard_max;
+    } else {
+        drop_heads();
     }
-
-    std::vector<Branch> heads = current_branches;
-    expanded_branches_head = heads.size();
 
     for(Expansion_option& opt : expansion_tokens){
 
@@ -266,15 +268,8 @@ void Grammar::build_grammar(){
 
             case TOKEN_ONE_OR_MORE:
 
-                // for(Branch b : current_branches){
-                //     b.print(std::cout);
-                //     std::cout << std::endl;
-                // }
-
-                // std::cout << expanded_branches_head << std::endl;
-
                 // drop current heads
-                current_branches = std::vector<Branch>(current_branches.begin() + expanded_branches_head, current_branches.end());
+                drop_heads();
 
                 break;
 

@@ -10,7 +10,7 @@
 #include <random>
 #include <filesystem>
 
-#define DEPTH_LIMIT 5
+#define DEPTH_LIMIT 2
 
 namespace fs = std::filesystem;
 
