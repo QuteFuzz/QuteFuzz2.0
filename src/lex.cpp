@@ -12,7 +12,7 @@ void Lexer::lex(){
         
         std::sregex_iterator begin(input.begin(), input.end(), full_pattern);
 
-        for(std::sregex_iterator i = begin; (i != end) && (ignore == false); ++i){
+        for(std::sregex_iterator i = begin; (i != end); ++i){
             std::smatch match = *i;
             matched_string = match.str();
 
@@ -52,7 +52,7 @@ void Lexer::lex(){
             } else if (string_is(matched_string, SYNTAX)){
                 tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = remove_decorators(matched_string)});
 
-            } else if (string_is(matched_string, RULE_DEF) || string_is(matched_string, RULE_ENTRY)){
+            } else if (string_is(matched_string, RULE_ENTRY_0) || string_is(matched_string, RULE_ENTRY_1) || string_is(matched_string, RULE_ENTRY_2)){
                 tokens.push_back(Token{.kind = TOKEN_RULE_START, .value = matched_string});
 
             } else if (string_is(matched_string, SEPARATOR)){

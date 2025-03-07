@@ -27,7 +27,7 @@ Result<Branch, std::string> Write::pick_branch(std::shared_ptr<Rule> rule){
         if(choice <= cummulative){
             result.set_ok(b);
 
-            if(b.get_recursive_flag()) depth_limit -= 1;
+            depth_limit -= 1;
 
             return result;
         }
@@ -70,7 +70,8 @@ void Write::write_branch(std::ofstream& stream, const Result<Branch, std::string
 void Write::emit(){
 
     fs::path output_path = grammar.get_path();
-    output_path.replace_extension(".txt");
+
+    output_path.replace_filename("output.txt");
 
     std::ofstream stream(output_path.string());
 
@@ -79,4 +80,6 @@ void Write::emit(){
     write_branch(stream, pick_branch(entry)); // pick branch randomly to be written from entry point
 
     std::cout << "Written to " << output_path.string() << std::endl;
+
+    depth_limit = DEPTH_LIMIT;
 }

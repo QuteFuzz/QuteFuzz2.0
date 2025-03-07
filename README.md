@@ -25,4 +25,5 @@ Run with `./fuzzer`, and type `h` for help.
 - [ ] QSS grammar definition
 - [ ] Writing relevant parsers
 - [ ] Thinking about what cool techniques we could use if we have an AST of the circuit
-- [ ] Extend lexer, for instance we want to be able to parse (expr)?, (expr)*
+- [*] Extend lexer, for instance we want to be able to parse (expr)?, (expr)*
+- [ ] Making `current_branch` a set of possible branches being built

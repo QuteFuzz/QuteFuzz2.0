@@ -35,7 +35,9 @@ class Run{
     private:
         fs::path grammars_dir;
         std::unordered_map<std::string, Grammar> grammars;
+        Grammar* current_grammar = NULL;
         Write write;
+
         std::vector<std::string> tokens;
 
         bool run = true;

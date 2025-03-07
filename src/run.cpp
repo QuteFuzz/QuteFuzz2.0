@@ -29,6 +29,7 @@ void Run::set_grammar(){
     std::string grammar_name = tokens[0], entry_name = tokens[1];
 
     if(is_grammar(grammar_name)){
+        current_grammar = &grammars[grammar_name];
         write.set_grammar(grammars[grammar_name], entry_name);
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
@@ -62,7 +63,8 @@ void Run::loop(){
             write.emit();
         } else if (current_command == "h"){
             help();
-        
+        } else if ((current_command == "print") && (current_grammar != NULL)){
+            current_grammar->print_grammar();
         } else {
             tokenise(current_command);
 

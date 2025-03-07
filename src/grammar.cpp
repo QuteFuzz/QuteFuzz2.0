@@ -127,41 +127,13 @@ void Grammar::add_n_branches(int n){
                 build_branch(token, child);
             }
             // child.print(std::cout);
+            child.set_recursive_flag(current_rule);
             current_rule->add(child);
         }
     }
-}
 
-void Grammar::expand_group(){
-    peek();
-
-    if(next_token.is_ok()){
-        Token token = next_token.get_ok();
-
-        if(token.kind == TOKEN_OPTIONAL){
-            // add current branch as well as new expansions to the rule 
-            current_rule->add(current_branch);
-            add_n_branches(1);
-
-        } else if (token.kind == TOKEN_ONE_OR_MORE){
-            // add only (new expansions to the rule) * max 
-            add_n_branches(wildcard_max);
-
-        } else if (token.kind == TOKEN_ZERO_OR_MORE){
-            // add current branch as well as (new expansions to the rule) * max 
-            current_rule->add(current_branch);
-            add_n_branches(wildcard_max);
-
-        } else {
-            // add just the new expasions to the rule
-            add_n_branches(1);
-        }
-
-        current_branch = Branch();
-
-    } else {
-        throw std::runtime_error(next_token.get_error());
-    }
+    expansion_tokens.clear();
+    current_branch = Branch();
 }
 
 bool Grammar::in_variant_grouping(const Token& current_token){
@@ -190,7 +162,11 @@ void Grammar::build_grammar(){
                     Expansion_option option;
                     option.push_back(token);
                     expansion_tokens.push_back(option);
-                } else if (just_finished_grouping) {
+                } else if (just_finished_grouping || in_grouping) {
+                    if(in_grouping && (expansion_tokens.size() == 0)){
+                        expansion_tokens.push_back({});
+                    }
+
                     // and this term to all children branches
                     for(Expansion_option& opt : expansion_tokens){
                         opt.push_back(token);
@@ -222,8 +198,17 @@ void Grammar::build_grammar(){
                 // collect all child branches, delete all expansion branches
                 if(in_grouping == 0){
                     just_finished_grouping = false;
-                    expand_group();
-                    expansion_tokens.clear();
+
+                    peek();
+
+                    if(next_token.is_ok()){
+                        Token token = next_token.get_ok();
+
+                        if((token.kind != TOKEN_ONE_OR_MORE) && (token.kind != TOKEN_ZERO_OR_MORE) && (token.kind != TOKEN_OPTIONAL)){
+                            add_n_branches(1);
+                        }
+                    }
+
                 } else {
                     just_finished_grouping = true;
                 }
@@ -261,14 +246,34 @@ void Grammar::build_grammar(){
 
             case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
 
-            case TOKEN_OPTIONAL: {
+            case TOKEN_OPTIONAL:
+                // add current branch as well as new expansions to the rule 
+                // current_branch.print(std::cout);
+
+                current_rule->add(current_branch);
+                add_n_branches(1);
+
                 break;
-            }
-
-            case TOKEN_ONE_OR_MORE: break;
-
-            case TOKEN_ZERO_OR_MORE: break;
             
+            case TOKEN_ONE_OR_MORE:
+                // add only (new expansions to the rule) * max 
+                add_n_branches(wildcard_max);
+                break;
+
+            case TOKEN_ZERO_OR_MORE:
+                // add current branch as well as (new expansions to the rule) * max 
+                current_rule->add(current_branch);
+                add_n_branches(wildcard_max);
+
+                break;
+
+            //case TOKEN_ONE_OR_MORE: case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: {
+            //    expand_group();
+            //    expansion_tokens.clear();
+            //
+            //    break;
+            //}
+            //
             default:
                 throw std::runtime_error("[ERROR] Unknown token!"); 
             

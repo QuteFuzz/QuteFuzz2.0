@@ -2,6 +2,10 @@ equal_prob
 
 <postal-address> = <name-part> <street-address> <zip-part> "\n" ; comments after ';' are ignored
 
+;;
+Can even write multiline comments. Everything after ";;" is ignored until another ";;" is seen
+;;
+
 <name-part> ::= <personal-part> " " <last-name> " " <opt-suffix-part> "\n" | <personal-part> " " <name-part> 
 <personal-part> ::= <initial> "." | <first-name> 
 <street-address> ::= <house-num> " " <street-name> " " <opt-apt-num> "\n" 
@@ -14,7 +18,7 @@ equal_prob
 <apt-num> ::= <numbers>
 <roman-numeral> ::= "I" | "II" | "III" | "IV" | "V" | "VI"
 <first-name> ::= "John" | "Benny" | "Ilan" | "Klondike" | "Totalitarius" | "John" | "Imaan" | "Danny" | "Robert"
-<initial> ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<initial> ::= "A" - "Z"
 <last-name> ::= "Wickerson" | "Liu" | "Iwumbwe" | "Riptide" | "Gomez" | "Oppenheimer" | "JJ" | "Thomas"
 <house-num> ::= <numbers>
 <street-name> ::= "EXHIBITION ROAD" | "OXFORD STREET" | "DOWNING STREET" | "BOOTH LANE" | "CLOAK LANE" | "KEATS PLACE" | "NUN COURT" | "OCTAGON ARCADE" | "LILYPANE STREET"

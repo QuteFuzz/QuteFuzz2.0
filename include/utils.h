@@ -10,6 +10,8 @@
 #include <random>
 #include <filesystem>
 
+#define DEPTH_LIMIT 5
+
 namespace fs = std::filesystem;
 
 typedef enum{
@@ -65,10 +67,6 @@ struct Result{
         Result_kind kind;
         std::variant<A, B> as;
 };
-
-inline bool string_is(const std::string& string, const std::string& pattern){
-    return std::regex_match(string, std::regex(pattern));
-}
 
 #endif
 

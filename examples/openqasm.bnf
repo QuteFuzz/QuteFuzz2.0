@@ -1,51 +1,33 @@
 equal_prob
 
-program         ::= header statement_list
-header          ::= "OPENQASM" float ";"
-statement_list  ::= (statement)*
-statement       ::= gate_declaration "\n"
-                | opaque_declaration "\n"
-                | qreg_declaration "\n"
-                | creg_declaration "\n"
-                | quantum_instruction "\n"
-                | classical_assignment "\n"
-                | barrier "\n"
-                | reset "\n"
-                | measure "\n"
-                | if_statement "\n"
-                | include "\n"
-                | expression ";"
+SEMICOLON : ";"
+INCLUDE : "include "
+BREAK: "break "
+CONTINUE: "continue "
+END: "end "
+FOR: "for "
+IF : "if "
+RETURN: "return "
+WHILE: "while "
+SWITCH: "switch "
+CASE: "case "
+LPAREN: "("
+RPAREN: ")"
+LBRACKET: "["
+RBRACKET: "]"
+LBRACE: "{"
+RBRACE: "}"
 
-include         ::= "include " string ";"
 
-qreg_declaration ::= "qreg " identifier "[" int "]" ";"
-creg_declaration ::= "creg " identifier "[" int "]" ";"
 
-gate_declaration  ::= "gate" identifier id_list "{" statement_list "}"
-opaque_declaration ::= "opaque" identifier id_list ";"
-id_list         ::= (identifier)*
+program: (version)? (statementOrScope)*;
+version: OPENQASM VersionSpecifier SEMICOLON;
 
-quantum_instruction ::= identifier (argument_list)? qubit_list ";"
-qubit_list      ::= qubit ("," qubit)*
-qubit           ::= identifier "[" int "]"
+statement:
+    (
+        | includeStatement
+        | switchStatement
+    )
 
-classical_assignment ::= identifier "=" expression ";"
-
-barrier        ::= "barrier" qubit_list ";"
-reset          ::= "reset" qubit ";"
-measure        ::= "measure" qubit "->" identifier ";"
-
-if_statement   ::= "if" "(" identifier "==" int ")" statement
-
-expression     ::= term (("+" | "-") term)*
-term           ::= factor (("*" | "/") factor)*
-factor         ::= int | float | identifier | "(" expression ")"
-
-identifier     ::= letter | letter digit | identifier
-letter         ::= "a"-"z" | "A"-"Z" | "_"
-digit          ::= "0"-"9"
-
-; Test data
-int ::= "1" | "2"
-float ::= "3.0"
-string ::= "test string"
+includeStatement: INCLUDE StringLiteral SEMICOLON;
+switchStatement: SWITCH LPAREN expression RPAREN LBRACE (switchCaseItem)* RBRACE;

@@ -1,10 +1,7 @@
-expr = term (("+" | "-") expr) ; term "+" expr | term "-" expr | term ;
+expr = term (("+" | "-") expr)? ; term "+" expr | term "-" expr | term ;
 term = factor "*" term | factor "/" term | factor ;
 factor = integer | "(" expr ")" ;
 integer = "1" | "2" | "3" | "4"
-
-program         ::= header statement_list
-header          ::= "OPENQASM" float ";"
 
 ;;
 

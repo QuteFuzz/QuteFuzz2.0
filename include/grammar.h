@@ -36,14 +36,12 @@ class Grammar{
         void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
 
         void add_n_branches(int n);
-
-        void expand_group();
          
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
         void complete_rule(){
             if(!current_branch.is_empty()) {
-                current_rule->add(current_branch); 
                 current_branch.set_recursive_flag(current_rule);
+                current_rule->add(current_branch); 
             }
             assign_equal_probabilities();
         }

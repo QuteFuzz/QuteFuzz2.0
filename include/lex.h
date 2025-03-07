@@ -14,8 +14,9 @@
 #define FLOAT DIGIT "(." DIGIT ")?"
 #define SYNTAX R"(["'].*?["'])"
 #define ANGLE_RULE R"([\<].*?[\>])"
-#define RULE_DEF R"(::=)"
-#define RULE_ENTRY R"(=)"
+#define RULE_ENTRY_0 R"(::=)"
+#define RULE_ENTRY_1 R"(=)"
+#define RULE_ENTRY_2 R"(:)"
 #define SEPARATOR R"(\|)"
 #define PROB "[" FLOAT "]" 
 #define PROB_SET_FLAG R"(equal_prob)"
@@ -29,7 +30,7 @@
 #define ONE_OR_MORE R"(\+)"
 
 #define FULL_REGEX "(" PROB_SET_FLAG "|" RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" \
-        RULE_DEF "|" RULE_ENTRY "|" PROB "|" MULTI_COMMENT "|" COMMENT "|" RANGE "|" OPEN_BRACKET "|" CLOSED_BRACKET "|" \
+        RULE_ENTRY_0 "|" RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" PROB "|" MULTI_COMMENT "|" COMMENT "|" RANGE "|" OPEN_BRACKET "|" CLOSED_BRACKET "|" \
         ZERO_OR_MORE "|" OPTIONAL "|" ONE_OR_MORE \
         ")"
         
@@ -103,6 +104,11 @@ class Lexer{
 
         std::string remove_decorators(const std::string& token){
             return token.substr(1, token.size()-2);
+        }
+
+        inline bool string_is(const std::string& string, const std::string& pattern){
+
+            return std::regex_match(string, std::regex(pattern)) && ((ignore == false) || (pattern == MULTI_COMMENT));
         }
 
         void lex();
