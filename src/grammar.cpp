@@ -71,26 +71,15 @@ void Grammar::add_term_to_branch(const Token& token, Branch& branch){
     branch.add(term);
 }
 
-/// @brief Convert each token into a term and add it to the given branch
+/// @brief The token into a term and add it to all current branches
 /// @param tokens 
-/// @param branch 
-void Grammar::add_terms_to_branch(const std::vector<Token>& tokens, Branch& branch){
-
-    for(size_t i = 0; i < tokens.size(); ++i){
-        add_term_to_branch(tokens[i], branch);
-    }
-}
-
-/// @brief Convert each token into a term and add it to all current branches
-/// @param tokens 
-void Grammar::add_terms_to_current_branches(const std::vector<Token>& tokens){
+void Grammar::add_term_to_current_branches(const Token& token){
     for(Branch& current_branch : current_branches){
-        add_terms_to_branch(tokens, current_branch);
+        add_term_to_branch(token, current_branch);
     }
 }
 
 void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to){
-    // std::cout << "alpha: " << from.value << is_alpha(from.value) << std::endl;
 
     std::string from_val = from.value, to_val = to.value;
 
@@ -148,7 +137,11 @@ void Grammar::add_n_branches(const Token& next){
             Branch head = heads[j];
 
             for(int i = 0; i < n; ++i){
-                add_terms_to_branch(opt, head);
+
+                for(const Token& token : opt){
+                    add_term_to_branch(token, head);
+                }
+
                 head.set_recursive_flag(current_rule);
                 current_branches.push_back(head);
             }
@@ -164,7 +157,10 @@ bool Grammar::in_variant_grouping(const Token& current_token){
     if(next_token.is_ok()){
         Token token = next_token.get_ok();
 
-        return ((token.kind == TOKEN_SEPARATOR) || (prev_token.kind == TOKEN_SEPARATOR) || (current_token.kind == TOKEN_SEPARATOR)) && in_grouping;
+        return ((token.kind == TOKEN_SEPARATOR) 
+                || (prev_token.kind == TOKEN_SEPARATOR) 
+                || (current_token.kind == TOKEN_SEPARATOR)) 
+                && in_grouping;
     } else {
         throw std::runtime_error(next_token.get_error());
     }
@@ -196,7 +192,7 @@ void Grammar::build_grammar(){
                     }
 
                 } else {
-                    add_terms_to_current_branches({token});
+                    add_term_to_current_branches(token);
 
                 }
 
@@ -267,10 +263,8 @@ void Grammar::build_grammar(){
             case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: break;
 
             case TOKEN_ONE_OR_MORE:
-
                 // drop current heads
                 drop_heads();
-
                 break;
 
             default:

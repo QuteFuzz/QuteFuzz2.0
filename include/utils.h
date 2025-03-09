@@ -10,7 +10,7 @@
 #include <random>
 #include <filesystem>
 
-#define DEPTH_LIMIT 2
+#define WILDCARD_MAX 10
 
 namespace fs = std::filesystem;
 

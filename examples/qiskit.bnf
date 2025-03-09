@@ -27,7 +27,7 @@ equal_prob
 <ParameterList> ::= <Parameter> ( "," <Parameter> )*;
 <Parameter> ::= <Float> | "pi" | <Symbol>;
 
-<ControlFlow> ::= "with " <CircuitName> ".if_test (" <Condition> "):" "\n" <Statement>;
+<ControlFlow> ::= "with " <CircuitName> ".if_test(" <Condition> "):" "\n" <Statement>;
 <Condition> ::= "(" <Clbit> "," <Integer> ")";
 
 <Integer> ::= "1" - "10";

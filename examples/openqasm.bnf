@@ -1,57 +1,121 @@
 equal_prob
 
 /*
-    https://openqasm.com/grammar/index.html for full grammar, I added some here to test the parser and see how well it handles complex cases
+    https://openqasm.com/grammar/index.html for full grammar.
 */
 
-// OpenQASM tokens
-SEMICOLON : ";";
-INCLUDE : "include ";
-BREAK: "break ";
-CONTINUE: "continue ";
-END: "end ";
-FOR: "for ";
-IF : "if ";
-ELSE: "else ";
-RETURN: "return ";
-WHILE: "while ";
-SWITCH: "switch ";
-CASE: "case ";
+/* Keywords */
+INCLUDE : "include";
+BREAK: "break";
+CONTINUE: "continue";
+END: "end";
+FOR: "for";
+IF : "if";
+ELSE: "else";
+RETURN: "return";
+WHILE: "while";
+SWITCH: "switch";
+CASE: "case";
+OPENQASM: "OPENQASM";
+PRAGMA: ("#")? "pragma";
+DEF: 'def';
+GATE: 'gate';
+EXTERN: 'extern';
+BOX: 'box';
+LET: 'let';
+
+/* Builtin identifiers and operations */
+GPHASE: 'gphase';
+INV: 'inv';
+POW: 'pow';
+CTRL: 'ctrl';
+NEGCTRL: 'negctrl';
+DIM: '#dim';
+DURATIONOF: 'durationof';
+DELAY: 'delay';
+RESET: 'reset';
+MEASURE: 'measure';
+BARRIER: 'barrier';
+BooleanLiteral: 'true' | 'false';
+
+/* Symbols */
 LPAREN: "(";
 RPAREN: ")";
 LBRACKET: "[";
 RBRACKET: "]";
 LBRACE: "{";
 RBRACE: "}";
-OPENQASM: "openqasm ";
-PRAGMA: "pragma ";
 
-AnnotationKeyword: '@' Identifier ('.' Identifier)*;
+SEMICOLON : ";";
+COLON: ":";
+DOT: ".";
+COMMA: ",";
+EQUALS: '=';
+ARROW: '->';
+PLUS: '+';
+DOUBLE_PLUS: '++';
+MINUS: '-';
+ASTERISK: '*';
+DOUBLE_ASTERISK: '**';
+SLASH: '/';
+PERCENT: '%';
+PIPE: '|';
+DOUBLE_PIPE: '||';
+AMPERSAND: '&';
+DOUBLE_AMPERSAND: '&&';
+CARET: '^';
+AT: '@';
+TILDE: '~';
+EXCLAMATION_POINT: '!';
 
-program: (version)? ; (statementOrScope)*;
+EqualityOperator: '==' | '!=';
+CompoundAssignmentOperator: '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '~=' | '^=' | '<<=' | '>>=' | '%=' | '**=';
+ComparisonOperator: '>' | '<' | '>=' | '<=';
+BitshiftOperator: '>>' | '<<';
+
+NEWLINE: "\n";
+
+/* Types. */
+INPUT: 'input';
+OUTPUT: 'output';
+CONST: 'const';
+READONLY: 'readonly';
+MUTABLE: 'mutable';
+QREG: 'qreg';
+QUBIT: 'qubit';
+CREG: 'creg';
+BOOL: 'bool';
+BIT: 'bit';
+INT: 'int';
+UINT: 'uint';
+FLOAT: 'float';
+ANGLE: 'angle';
+COMPLEX: 'complex';
+ARRAY: 'array';
+VOID: 'void';
+DURATION:  'duration';
+STRETCH: 'stretch';
+
+Letter: "a" - "z" | "A" - "Z";
+FirstIdCharacter: '_' | Letter;
+GeneralIdCharacter: FirstIdCharacter | '0'-'9';
+
+Identifier: FirstIdCharacter (GeneralIdCharacter)*;
+
+program: (version)? (includeStatement NEWLINE)* (statementOrScope)*;
 version: OPENQASM VersionSpecifier SEMICOLON;
+VersionSpecifier: "3.0";
 pragma: PRAGMA;
 
 statementOrScope: statement | scope;
 
 statement:
-    pragma
-    // All the actual statements of the language.
-    | (annotation)* (
+    pragma NEWLINE
+    | (
         | ifStatement
-        | includeStatement
-    )
+    ) NEWLINE
 ;
 
-annotation: AnnotationKeyword;
 scope: LBRACE (statementOrScope)* RBRACE;
 
-expression: Identifier;
-
-ifStatement: IF LPAREN expression RPAREN statementOrScope (ELSE statementOrScope)?;
 includeStatement: INCLUDE StringLiteral SEMICOLON;
-
-// Test
-Identifier : "variable";
-VersionSpecifier: "3.0";
-StringLiteral: "some library";

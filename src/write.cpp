@@ -54,7 +54,6 @@ void Write::write_branch(std::ofstream& stream, const Result<Branch, std::string
                     stream << term.get_syntax();
                 }
 
-
             } else {
                 std::shared_ptr<Rule> next_rule = term.get_rule();
 
@@ -81,5 +80,5 @@ void Write::emit(){
 
     std::cout << "Written to " << output_path.string() << std::endl;
 
-    depth_limit = DEPTH_LIMIT;
+    depth_limit = 10;
 }

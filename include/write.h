@@ -32,7 +32,7 @@ class Write{
         Grammar grammar;
 
         std::string entry_point;
-        int depth_limit = DEPTH_LIMIT;
+        int depth_limit = 10;
 
         std::random_device rd;
         std::mt19937 gen;

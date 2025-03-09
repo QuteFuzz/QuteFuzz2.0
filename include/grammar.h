@@ -50,7 +50,6 @@ class Grammar{
 
                 current_rule->add(current_branch);
             }
-
         }
 
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
@@ -61,19 +60,12 @@ class Grammar{
 
         void drop_heads(){
             // std::cout << expanded_branches_head << std::endl;
-
             current_branches = std::vector<Branch>(current_branches.begin() + expanded_branches_head, current_branches.end());
         }
 
-        void build_branches(const Token& token);
-
-        void add_terms_to_current_branches(const std::vector<Token>& tokens);
+        void add_term_to_current_branches(const Token& tokens);
 
         void add_term_to_branch(const Token& token, Branch& branch);
-
-        void add_terms_to_branch(const std::vector<Token>& tokens, Branch& branch);
-
-        void build_rule(std::shared_ptr<Rule> current_rule);
 
         void build_grammar();
 
@@ -100,7 +92,7 @@ class Grammar{
         // * ? + expansion stores
         unsigned int in_grouping = 0;
         Expansions expansion_tokens;
-        int wildcard_max = 2;
+        int wildcard_max = WILDCARD_MAX;
         bool just_finished_grouping = false;
 
         bool assign_equal_probs = false;
