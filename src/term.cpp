@@ -6,7 +6,7 @@ void Branch::print(std::ostream& os) const {
         os << elem << " ";
     }
 
-    os << "[" << _prob << "]";
+    os << "[" << _prob << "] rec: " << recursive;
 }
 
 template<>
@@ -35,22 +35,13 @@ void Rule::assign_prob(const float prob){
     }
 }
 
+/// @brief need to have this check and store pointers to recursive branches separately
+/// @param branch 
 template<>
-void Rule::set_recursive_flag(std::shared_ptr<Rule> current_rule){
-    recursive = true;
-}
+void Rule::add(const Branch& branch){
+    //if(branch.get_recursive_flag()){
+    //    recursive_branches.push_back(branch);
+    //}
 
-template<>
-void Branch::set_recursive_flag(std::shared_ptr<Rule> parent_rule){
-    recursive = false;
-
-    for(const Term& term : coll){
-        if (term.name_matches(parent_rule->get_name())){
-            recursive = true;
-            parent_rule->set_recursive_flag(nullptr);
-            break;
-        }
-    }
-
-    // std::cout << "Branch " << _name << "flag " << recursive << std::endl; 
+    coll.push_back(branch);
 }

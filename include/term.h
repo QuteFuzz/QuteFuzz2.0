@@ -102,7 +102,7 @@ class Collection{
             return coll.size();
         }
 
-        void set_recursive_flag(std::shared_ptr<Rule> parent_rule);
+        inline void set_recursive_flag(){recursive = true;};
 
         bool get_recursive_flag() const {return recursive;}
 
@@ -120,6 +120,7 @@ class Collection{
 
     private:
         std::vector<T> coll;
+        std::vector<Branch*> recursive_branches;
         std::string _name;
         float _prob = 0.0;
         bool recursive = false;

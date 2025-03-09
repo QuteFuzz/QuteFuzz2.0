@@ -6,15 +6,20 @@
 class Write{
 
     public:
-        Write() : gen(rd()), dist(0.0, 1.0) {}
+        Write() : gen(rd()), float_dist(0.0, 1.0) {}
 
-        Write(const fs::path& filename, const std::string& _entry_point) : grammar(filename), entry_point(_entry_point), gen(rd()), dist(0.0, 1.0) {
+        Write(const fs::path& filename, const std::string& _entry_point) : grammar(filename), entry_point(_entry_point), gen(rd()), float_dist(0.0, 1.0) {
             grammar.build_grammar();
             grammar.print_grammar();
         }
 
         inline float random_float(){
-            return dist(gen);
+            return float_dist(gen);
+        }
+
+        inline int random_int(int maximum_index){
+            std::uniform_real_distribution<> int_dist(0, maximum_index);
+            return int_dist(gen);
         }
 
         void set_grammar(const Grammar& _grammar, const std::string& _entry_point){
@@ -36,7 +41,7 @@ class Write{
 
         std::random_device rd;
         std::mt19937 gen;
-        std::uniform_real_distribution<float> dist;
+        std::uniform_real_distribution<float> float_dist;
 };
 
 #endif

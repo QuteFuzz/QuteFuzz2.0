@@ -69,6 +69,10 @@ void Grammar::add_term_to_branch(const Token& token, Branch& branch){
     }
 
     branch.add(term);
+
+    if((current_rule != nullptr) && (token.value == current_rule->get_name())){
+        branch.set_recursive_flag();
+    }
 }
 
 /// @brief The token into a term and add it to all current branches
@@ -79,7 +83,7 @@ void Grammar::add_term_to_current_branches(const Token& token){
     }
 }
 
-void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to){
+void Grammar::expand_range(const Token& from, const Token& to){
 
     std::string from_val = from.value, to_val = to.value;
 
@@ -113,8 +117,7 @@ bool Grammar::is_alpha(const std::string& str){
     return std::all_of(str.begin(), str.end(), ::isalpha);
 }
 
-/// @brief Collect all new expansions, create branches for them, and add these branches to the current rule
-/// make current branch a new branch
+/// @brief Collect all new expansions, create branches for them, and add these branches to the set of current branches
 /// @param n 
 void Grammar::add_n_branches(const Token& next){
 
@@ -142,13 +145,12 @@ void Grammar::add_n_branches(const Token& next){
                     add_term_to_branch(token, head);
                 }
 
-                head.set_recursive_flag(current_rule);
                 current_branches.push_back(head);
             }
         }
     }
 
-    expansion_tokens.clear();
+    expansion_tokens = {{}}; // return to initial state to prepare for new branch
 }
 
 bool Grammar::in_variant_grouping(const Token& current_token){
@@ -158,9 +160,9 @@ bool Grammar::in_variant_grouping(const Token& current_token){
         Token token = next_token.get_ok();
 
         return ((token.kind == TOKEN_SEPARATOR) 
-                || (prev_token.kind == TOKEN_SEPARATOR) 
-                || (current_token.kind == TOKEN_SEPARATOR)) 
-                && in_grouping;
+            || (prev_token.kind == TOKEN_SEPARATOR) 
+            || (current_token.kind == TOKEN_SEPARATOR)) 
+            && in_grouping;
     } else {
         throw std::runtime_error(next_token.get_error());
     }
@@ -182,10 +184,6 @@ void Grammar::build_grammar(){
                     expansion_tokens.push_back(option);
 
                 } else if (just_finished_grouping || in_grouping) {
-                    if(in_grouping && (expansion_tokens.size() == 0)){
-                        expansion_tokens.push_back({});
-                    }
-
                     // and this term to all children branches
                     for(Expansion_option& opt : expansion_tokens){
                         opt.push_back(token);
@@ -250,7 +248,7 @@ void Grammar::build_grammar(){
                 if (next_token.is_error()){
                     std::cout << next_token.get_error() << std::endl;
                 } else {
-                    expand_range(current_rule, prev_token, next_token.get_ok());
+                    expand_range(prev_token, next_token.get_ok());
                     consume(1);
 
                 }

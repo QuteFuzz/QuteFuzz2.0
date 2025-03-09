@@ -33,7 +33,7 @@ class Grammar{
 
         bool in_variant_grouping(const Token& current_token);
 
-        void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
+        void expand_range(const Token& from, const Token& to);
 
         void add_n_branches(const Token& next);
 
@@ -43,12 +43,17 @@ class Grammar{
         
         void lazily_add_branches_to_rule(){
             // add all current branches to current rule, reset current branches
-            for(const Branch& current_branch : current_branches){
+            for(Branch& current_branch : current_branches){
                 // std::cout << "Lazily adding ";
                 // current_branch.print(std::cout);
                 // std::cout << std::endl;
 
                 current_rule->add(current_branch);
+
+                if(current_rule->get_name() == "expression"){
+                    current_branch.print(std::cout);
+                    std::cout << std::endl;
+                }
             }
         }
 
@@ -91,7 +96,7 @@ class Grammar{
 
         // * ? + expansion stores
         unsigned int in_grouping = 0;
-        Expansions expansion_tokens;
+        Expansions expansion_tokens = {{}};
         int wildcard_max = WILDCARD_MAX;
         bool just_finished_grouping = false;
 
