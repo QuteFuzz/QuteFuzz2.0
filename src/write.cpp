@@ -5,7 +5,7 @@ Result<Branch, std::string> Write::pick_branch(std::shared_ptr<Rule> rule){
     float cummulative = 0.0;
     Result<Branch, std::string> result;
 
-    std::vector<Branch> branches = rule->get_coll();
+    std::vector<Branch> branches = rule->get_branches();
 
     if(branches.empty()){
         result.set_ok(Branch());
@@ -13,12 +13,8 @@ Result<Branch, std::string> Write::pick_branch(std::shared_ptr<Rule> rule){
     }
     
     if ((depth_limit <= 0) && rule->get_recursive_flag()){
-        for(const Branch& b : branches){    
-            if(!b.get_recursive_flag()){
-                result.set_ok(b);
-                return result;
-            }
-        }
+        result.set_ok(rule->pick_non_recursive_branch());   
+        return result;
     }
 
     for(const Branch& b : branches){
@@ -42,16 +38,14 @@ void Write::write_branch(std::ofstream& stream, const Result<Branch, std::string
     if(maybe_branch.is_ok()){
         Branch branch = maybe_branch.get_ok();
 
-        std::vector<Term> nodes = branch.get_coll();
-
-        for(const Term& term : branch.get_coll()){
+        for(const Term& term : branch.get_terms()){
             if (term.is_syntax()){
                 std::string syn = term.get_syntax();
 
                 if(syn == "\\n"){
                     stream << "\n";
                 } else {
-                    stream << term.get_syntax();
+                    stream << syn;
                 }
 
             } else {

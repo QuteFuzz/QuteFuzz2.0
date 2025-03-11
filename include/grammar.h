@@ -48,12 +48,7 @@ class Grammar{
                 // current_branch.print(std::cout);
                 // std::cout << std::endl;
 
-                current_rule->add(current_branch);
-
-                if(current_rule->get_name() == "expression"){
-                    current_branch.print(std::cout);
-                    std::cout << std::endl;
-                }
+                current_rule->add(current_branch);   
             }
         }
 

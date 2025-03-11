@@ -8,11 +8,7 @@ typedef enum {
     TK_POINTER
 } Term_kind;
 
-class Term;
-template<typename T> class Collection;
-
-using Branch = Collection<Term>;
-using Rule = Collection<Branch>;
+class Rule;
 
 class Term {
     public:
@@ -76,57 +72,86 @@ class Term {
         std::string _name;
 };
 
-template<typename T>
 class Collection{
 
     public:
         Collection(){}
-        Collection(const std::string& name) :_name(name){}
+        Collection(const std::string& name) :_name(name) {}
         ~Collection(){}
 
         std::string get_name(){return _name;}
 
-        void add(const T& elem){
-            coll.push_back(elem);
-        }
-
-        T& at(size_t i){
-            if(i < coll.size()){
-                return coll[i];
-            } else {
-                throw std::runtime_error("Index out of range!");
-            }
-        }
-
-        size_t size(){
-            return coll.size();
-        }
-
-        inline void set_recursive_flag(){recursive = true;};
-
         bool get_recursive_flag() const {return recursive;}
 
-        void assign_prob(const float prob);
+        virtual size_t size() = 0;
 
-        float get_prob() const {return _prob;}
+        virtual bool is_empty() = 0;
 
-        std::vector<T> get_coll() const {return coll;}
+        virtual void print(std::ostream& os) const = 0;
 
-        bool is_empty() const;
+    protected:
+        std::string _name;
+        bool recursive = false;
+};
 
-        void clear(){coll.clear();}
+class Branch : public Collection {
+
+    public:
+        using Collection::Collection;
+
+        inline void set_recursive_flag(){recursive = true;}
+
+        void assign_prob(const float _prob){prob = _prob;}
+
+        float get_prob() const {return prob;}
+
+        void add(const Term& term);
+
+        size_t size(){return terms.size();}
+
+        bool is_empty(){return terms.empty();}
+
+        std::vector<Term> get_terms(){return terms;} 
 
         void print(std::ostream& os) const;
 
     private:
-        std::vector<T> coll;
-        std::vector<Branch*> recursive_branches;
-        std::string _name;
-        float _prob = 0.0;
-        bool recursive = false;
-
+        std::vector<Term> terms;
+        float prob;
 };
 
+class Rule : public Collection {
+
+    public:
+        Rule(){}
+        Rule(const std::string& _name) : Collection(_name), gen(rd()) {}
+        ~Rule(){}
+        
+        void print(std::ostream& os) const;
+        
+        std::vector<Branch> get_branches(){return branches;}
+
+        void add(const Branch& b);
+
+        size_t size(){return branches.size();}
+
+        bool is_empty(){return branches.empty();}
+
+        void assign_prob(const float _prob);
+
+        inline int random_int(int maximum_index){
+            std::uniform_int_distribution<int> int_dist(0, maximum_index);
+            return int_dist(gen);
+        }
+
+        Branch pick_non_recursive_branch();
+
+    private:
+        std::vector<Branch> branches;
+        std::vector<std::shared_ptr<Branch>> non_recursive_branches;
+        std::random_device rd;
+        std::mt19937 gen;
+};
 
 #endif
 

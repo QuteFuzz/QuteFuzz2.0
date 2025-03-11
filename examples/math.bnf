@@ -1,4 +1,4 @@
-expr = term (("+" | "-") expr)* (factor)?; (* policies are great *)
+expr = term (("+" | "-") expr)*; (* policies are great *)
 term = factor "*" term | factor "/" term | factor ;
 factor = integer | "(" expr ")" ;
 integer = "1" | "2" | "3" | "4" ;

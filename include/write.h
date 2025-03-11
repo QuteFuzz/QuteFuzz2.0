@@ -17,11 +17,6 @@ class Write{
             return float_dist(gen);
         }
 
-        inline int random_int(int maximum_index){
-            std::uniform_real_distribution<> int_dist(0, maximum_index);
-            return int_dist(gen);
-        }
-
         void set_grammar(const Grammar& _grammar, const std::string& _entry_point){
             grammar = _grammar;
             entry_point = _entry_point;
