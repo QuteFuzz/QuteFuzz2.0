@@ -65,6 +65,8 @@ void Run::loop(){
             help();
         } else if ((current_command == "print") && (current_grammar != NULL)){
             current_grammar->print_grammar();
+        } else if ((current_command == "print_tokens") && (current_grammar != NULL)){
+            current_grammar->print_tokens();
         } else {
             tokenise(current_command);
 

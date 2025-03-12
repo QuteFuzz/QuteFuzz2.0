@@ -33,7 +33,9 @@ class Grammar{
 
         bool in_variant_grouping(const Token& current_token);
 
-        void expand_range(const Token& from, const Token& to);
+        bool just_finished_grouping(){return prev_token.kind == TOKEN_RPAREN;}
+
+        void expand_range();
 
         void add_n_branches(const Token& next);
 
@@ -44,9 +46,9 @@ class Grammar{
         void lazily_add_branches_to_rule(){
             // add all current branches to current rule, reset current branches
             for(Branch& current_branch : current_branches){
-                // std::cout << "Lazily adding ";
-                // current_branch.print(std::cout);
-                // std::cout << std::endl;
+                std::cout << "Lazily adding ";
+                current_branch.print(std::cout);
+                std::cout << std::endl;
 
                 current_rule->add(current_branch);   
             }
@@ -73,6 +75,10 @@ class Grammar{
 
         void print_rules() const;
 
+        void print_tokens() const;
+
+        void add_to_expansion_tokens(const Token& token);
+
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}
@@ -85,15 +91,15 @@ class Grammar{
         Result<Token, std::string> next_token;
         Token prev_token;
 
+        std::string range_start = "", range_end = "";
+
         std::vector<Branch> current_branches = {Branch()}; // when performing expansions, there may be more than one branch to continue building ((expr)+, (expr)*)
         std::shared_ptr<Rule> current_rule = nullptr;
         size_t expanded_branches_head = 0;
 
-        // * ? + expansion stores
-        unsigned int in_grouping = 0;
-        Expansions expansion_tokens = {{}};
+        unsigned int in_paren = 0, in_brack = 0;
+        Expansions expansion_tokens = {};
         int wildcard_max = WILDCARD_MAX;
-        bool just_finished_grouping = false;
 
         bool assign_equal_probs = false;
 

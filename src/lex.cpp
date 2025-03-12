@@ -31,12 +31,42 @@ void Lexer::lex(){
             } else if (string_is(matched_string, RANGE)){
                 tokens.push_back(Token{.kind = TOKEN_RANGE, .value = matched_string});
                 
-            } else if (string_is(matched_string, OPEN_BRACKET)){
-                tokens.push_back(Token{.kind = TOKEN_OPEN_BRACKET, .value = matched_string});
+            } else if (string_is(matched_string, LPAREN)){
+                tokens.push_back(Token{.kind = TOKEN_LPAREN, .value = matched_string});
                 
-            } else if (string_is(matched_string, CLOSED_BRACKET)){
-                tokens.push_back(Token{.kind = TOKEN_CLOSED_BRACKET, .value = matched_string});
-                
+            } else if (string_is(matched_string, RPAREN)){
+                tokens.push_back(Token{.kind = TOKEN_RPAREN, .value = matched_string});
+
+            } else if (string_is(matched_string, OR_EXPAND)){
+                size_t len = matched_string.size();
+                char lbrack = matched_string.at(0);
+                char rbrack = matched_string.at(len - 1);
+                std::string str;
+
+                tokens.push_back(Token{.kind = TOKEN_LBRACK, .value = std::string(1, lbrack)});
+
+                for(size_t i = 1; i < len - 1; ++i){
+                    str = std::string(1, matched_string.at(i));
+
+                    if(string_is(str, RANGE)){
+                        tokens.push_back(Token{.kind = TOKEN_RANGE, .value = str});
+
+                    } else {
+                        tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = str});
+
+                    }
+                }
+
+                tokens.push_back(Token{.kind = TOKEN_RBRACK, .value = std::string(1, rbrack)});
+
+                tokens.push_back(Token{.kind = TOKEN_PROB, .value = matched_string  });
+            
+            //} else if (string_is(matched_string, LBRACE)){
+            //    tokens.push_back(Token{.kind = TOKEN_LBRACE, .value = matched_string});
+            //    
+            //} else if (string_is(matched_string, RBRACE)){
+            //    tokens.push_back(Token{.kind = TOKEN_RBRACE, .value = matched_string});
+
             } else if (string_is(matched_string, ONE_OR_MORE)){
                 tokens.push_back(Token{.kind = TOKEN_ONE_OR_MORE, .value = matched_string});
                 
@@ -64,8 +94,6 @@ void Lexer::lex(){
             } else if (string_is(matched_string, SEPARATOR)){
                 tokens.push_back(Token{.kind = TOKEN_SEPARATOR, .value = matched_string});
 
-            } else if (string_is(matched_string, PROB)){
-                tokens.push_back(Token{.kind = TOKEN_PROB, .value = remove_decorators(matched_string)});
             } 
 
         }
@@ -75,7 +103,7 @@ void Lexer::lex(){
     result.set_ok(tokens);
 }
 
-void Lexer::print_tokens(){
+void Lexer::print_tokens() const {
 
     if(result.is_error()){
         std::cout << result.get_error() << std::endl; 
