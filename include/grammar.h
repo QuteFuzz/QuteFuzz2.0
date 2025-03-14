@@ -33,7 +33,15 @@ class Grammar{
 
         bool in_variant_grouping(const Token& current_token);
 
-        bool just_finished_grouping(){return prev_token.kind == TOKEN_RPAREN;}
+        bool just_finished_paren_grouping(){return prev_token.kind == TOKEN_RPAREN;}
+
+        bool just_finished_brack_grouping(){return prev_token.kind == TOKEN_RBRACK;}
+
+        bool can_create_branches(){
+            return (just_finished_paren_grouping() && (in_paren == 0))
+                || (just_finished_brack_grouping() && (in_brack == 0))
+            ;
+        }
 
         void expand_range();
 
@@ -56,6 +64,8 @@ class Grammar{
 
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
         void complete_rule(){
+            std::cout << "sz: " << expansion_tokens.size() << std::endl;
+
             lazily_add_branches_to_rule();
             assign_equal_probabilities();
         }

@@ -50,7 +50,6 @@ typedef enum {
     TOKEN_RULE_START,
     TOKEN_RULE_END,
     TOKEN_SYNTAX,
-    TOKEN_PROB,
     TOKEN_PROB_SET_FLAG,
     TOKEN_RANGE,
     TOKEN_LPAREN,
@@ -82,8 +81,6 @@ struct Token{
                 stream << "SEPARATOR "; break;
             case TOKEN_SYNTAX:
                 stream << "SYNTAX "; break;
-            case TOKEN_PROB:
-                stream << "PROB "; break;
             case TOKEN_PROB_SET_FLAG:
                 stream << "PROB SET FLAG "; break;
             case TOKEN_RANGE:

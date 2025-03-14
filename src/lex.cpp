@@ -59,14 +59,6 @@ void Lexer::lex(){
 
                 tokens.push_back(Token{.kind = TOKEN_RBRACK, .value = std::string(1, rbrack)});
 
-                tokens.push_back(Token{.kind = TOKEN_PROB, .value = matched_string  });
-            
-            //} else if (string_is(matched_string, LBRACE)){
-            //    tokens.push_back(Token{.kind = TOKEN_LBRACE, .value = matched_string});
-            //    
-            //} else if (string_is(matched_string, RBRACE)){
-            //    tokens.push_back(Token{.kind = TOKEN_RBRACE, .value = matched_string});
-
             } else if (string_is(matched_string, ONE_OR_MORE)){
                 tokens.push_back(Token{.kind = TOKEN_ONE_OR_MORE, .value = matched_string});
                 

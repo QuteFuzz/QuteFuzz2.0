@@ -1,6 +1,8 @@
-expr = term (("+" | "-") expr)*;
+# expr = term (("+" | "-") expr)*;
 #term = factor "*" term | factor "/" term | factor ;
 #factor = integer | "(" expr ")" ;
-#integer = [a-zUu] ;
+# integer = [1-9] [0-9]* ([Uu]? [Ll]*) | [1-9] [0-9]* ( [Ll]* [Uu]? ) ;
 
-# DECIMAL_LITERAL: [1-9] [0-9]* ( ( [U-u]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
+# DECIMAL_LITERAL: [1-9] [0-9]* ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
+
+INT: ('u')? 'int' ( '32_t' )?;

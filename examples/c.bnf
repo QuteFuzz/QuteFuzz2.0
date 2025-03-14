@@ -466,7 +466,7 @@ UNSIGNED: 'unsigned';
 VOID: 'void';
 CHAR: 'char';
 
-# INT: ('u')? 'int' ( [0-9]* '_t' )?;
+INT: ('u')? 'int' ( '32_t' )?;
 
 CARET: '^';
 COLON: ':';
@@ -485,19 +485,12 @@ RBRACE: '}';
 RBRACK: ']';
 RPAREN: ')';
 
-# DECIMAL_LITERAL: [1-9] [0-9]* ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
-# OCTAL_LITERAL: '0' [0-7]* ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
-# HEXADECIMAL_LITERAL: '0' [Xx] [0-9a-fA-F]+ ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
-# BINARY_LITERAL: '0' [Bb] [01]+ ;
+DECIMAL_LITERAL: [1-9] [0-9]*;
+OCTAL_LITERAL: '0' [0-7]*;
+HEXADECIMAL_LITERAL: '0' [Xx] [0-9a-fA-F]+;
+BINARY_LITERAL: '0' [Bb] [01]+ ;
 
-# DECIMAL_FLOAT_LITERAL:
-#   (
-#     ( ( [0-9]* '.' [0-9]+  | [0-9]+ '.' ) ( [Ee] [-+]? [0-9]+ )? )
-#     | ( [0-9]+ ( [Ee] [-+]? [0-9]+ ) )
-#   )
-#   [FfLl]? ;
+STRING_LITERAL: '"' 'string' '"';
+CHAR_LITERAL: '\'' 'a' '\'';
 
-# STRING_LITERAL: '"' [^"]* '"';
-# CHAR_LITERAL: '\'' [^'] '\'';
-
-# IDENTIFIER: [a-zA-Z_]+ [a-zA-Z0-9_]*;
+IDENTIFIER: [a-zA-Z_]+ [a-zA-Z0-9_]*;
