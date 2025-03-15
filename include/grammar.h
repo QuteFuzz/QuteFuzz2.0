@@ -31,16 +31,16 @@ class Grammar{
 
         void assign_equal_probabilities();
 
-        bool in_variant_grouping(const Token& current_token);
+        bool in_variant_grouping(const Token& current_token, const Token& next_token);
 
         bool just_finished_paren_grouping(){return prev_token.kind == TOKEN_RPAREN;}
 
         bool just_finished_brack_grouping(){return prev_token.kind == TOKEN_RBRACK;}
 
         bool can_create_branches(){
-            return (just_finished_paren_grouping() && (in_paren == 0))
-                || (just_finished_brack_grouping() && (in_brack == 0))
-            ;
+            bool finished_grouping = just_finished_paren_grouping() || just_finished_brack_grouping();
+
+            return finished_grouping && !in_paren && !in_brack;        
         }
 
         void expand_range();

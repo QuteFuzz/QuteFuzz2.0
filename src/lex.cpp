@@ -77,6 +77,9 @@ void Lexer::lex(){
             } else if (string_is(matched_string, SYNTAX)){
                 tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = remove_decorators(matched_string)});
 
+            } else if (string_is(matched_string, DIGIT) || string_is(matched_string, CHAR)){
+                tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = matched_string});
+
             } else if (string_is(matched_string, RULE_ENTRY_0) || string_is(matched_string, RULE_ENTRY_1) || string_is(matched_string, RULE_ENTRY_2)){
                 tokens.push_back(Token{.kind = TOKEN_RULE_START, .value = matched_string});
 

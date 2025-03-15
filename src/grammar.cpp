@@ -89,7 +89,7 @@ void Grammar::expand_range(){
         char from_char = range_start[0];
         char to_char = range_end[0];
 
-        for(char i = from_char + 1; i <= to_char; ++i){
+        for(char i = from_char + 1; i < to_char; ++i){
             add_to_expansion_tokens(Token{.kind = TOKEN_SYNTAX, .value = std::string(1, i)});
         }
 
@@ -98,7 +98,7 @@ void Grammar::expand_range(){
         int from_int = std::stoi(range_start);
         int to_int = std::stoi(range_end);
 
-        for(int i = from_int + 1; i <= to_int; ++i){
+        for(int i = from_int + 1; i < to_int; ++i){
             add_to_expansion_tokens(Token{.kind = TOKEN_SYNTAX, .value = std::to_string(i)});            
         }
     }
@@ -144,30 +144,29 @@ void Grammar::add_n_branches(const Token& next){
         }
     }
 
-    // expansion_tokens = {{}}; // return to initial state to prepare for new branch
-
     expansion_tokens.clear();
+
+    //for(Expansion_option& opt : expansion_tokens){
+    //    for(Token& t : opt){
+    //        std::cout << t << std::endl;
+    //    }
+    //}
 }
 
-bool Grammar::in_variant_grouping(const Token& current_token){
-    peek();
+bool Grammar::in_variant_grouping(const Token& current_token, const Token& next_token){
 
-    if(next_token.is_ok()){
-        Token token = next_token.get_ok();
+    bool explicit_separator = 
+        ((next_token.kind == TOKEN_SEPARATOR) 
+        || (prev_token.kind == TOKEN_SEPARATOR) 
+        || (current_token.kind == TOKEN_SEPARATOR)) 
+        && in_paren;
 
-        bool explicit_separator = 
-            ((token.kind == TOKEN_SEPARATOR) 
-            || (prev_token.kind == TOKEN_SEPARATOR) 
-            || (current_token.kind == TOKEN_SEPARATOR)) 
-            && in_paren;
+    bool implicit_separator = 
+        (next_token.kind == TOKEN_RANGE) 
+        || (prev_token.kind == TOKEN_RANGE) 
+        || (current_token.kind == TOKEN_RANGE);
 
-        return explicit_separator || in_brack;
-
-    } else {
-        throw std::runtime_error(next_token.get_error());
-    }
-
-    return false;
+    return explicit_separator || implicit_separator || in_brack;
 }
 
 void Grammar::add_to_expansion_tokens(const Token& token){
@@ -182,19 +181,19 @@ void Grammar::build_grammar(){
 
     if(curr_token.is_ok()){
         Token token = curr_token.get_ok();
+
+        // cannot set here because if curr token is EOF, next should be an error. 
+        // I set this for only the specific cases where I use it to avoid an extra if statement checking for ok here
         Token next;
 
         switch(token.kind){
             case TOKEN_RULE : case TOKEN_SYNTAX: {
-
-                if (prev_token.kind == TOKEN_RANGE){
-                    range_end = token.value;
-                    expand_range();
-
-                } else if(in_variant_grouping(token)){
+                next = next_token.get_ok();
+                
+                if (in_variant_grouping(token, next)){
                     add_to_expansion_tokens(token);
 
-                } else if (just_finished_paren_grouping() || in_paren){
+                } else if (in_paren){
                     std::cout << "added " << token << " to expansion tokens" << std::endl;
 
                     if(expansion_tokens.size() == 0){
@@ -206,8 +205,8 @@ void Grammar::build_grammar(){
                         opt.push_back(token);
                     }
 
-
                 } else {
+
                     add_term_to_current_branches(token);
 
                 }
@@ -222,7 +221,7 @@ void Grammar::build_grammar(){
 
             case TOKEN_RULE_END: complete_rule(); break;
 
-            case TOKEN_EOF: return;
+            case TOKEN_EOF: return; // should never peek if current token was EOF
 
             case TOKEN_LPAREN: in_paren += 1; break;
 
@@ -243,7 +242,12 @@ void Grammar::build_grammar(){
             }
 
             case TOKEN_RANGE: 
-                range_start = prev_token.value; break;
+                range_start = prev_token.value; 
+                range_end = next_token.get_ok().value;
+                
+                expand_range();
+
+                break;
 
             case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
 
@@ -261,10 +265,10 @@ void Grammar::build_grammar(){
 
         prev_token = token;
 
-        if(can_create_branches()){            
-            next = next_token.get_ok();
+        if(can_create_branches()){  
+            next = next_token.get_ok();          
             add_n_branches(next);
-        } 
+        }
 
         consume(1);
 

@@ -5,4 +5,7 @@
 
 # DECIMAL_LITERAL: [1-9] [0-9]* ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
 
-INT: ('u')? 'int' ( '32_t' )?;
+# [1-2] [3-4] works
+# ([1-2] [3-4]) doesn't work
+
+INT: [1-2] [3-4]
