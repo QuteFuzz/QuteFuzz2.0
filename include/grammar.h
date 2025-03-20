@@ -40,7 +40,7 @@ class Grammar{
         bool can_create_branches(){
             bool finished_grouping = just_finished_paren_grouping() || just_finished_brack_grouping();
 
-            return finished_grouping && !in_paren && !in_brack;        
+            return finished_grouping;
         }
 
         void expand_range();
@@ -51,7 +51,7 @@ class Grammar{
             current_branches = {Branch()};
         }
         
-        void lazily_add_branches_to_rule(){
+        void add_current_branches_to_rule(){
             // add all current branches to current rule, reset current branches
             for(Branch& current_branch : current_branches){
                 std::cout << "Lazily adding ";
@@ -63,10 +63,9 @@ class Grammar{
         }
 
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
+        /// Called at end of rule, and at each branch seprator
         void complete_rule(){
-            std::cout << "sz: " << expansion_tokens.size() << std::endl;
-
-            lazily_add_branches_to_rule();
+            add_current_branches_to_rule();
             assign_equal_probabilities();
         }
 

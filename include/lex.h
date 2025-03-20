@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-#define CHAR R"([a-zA-Z\-])"
+// #define CHAR R"(\\c)"
 #define RULE R"([a-zA-Z_]+)"
 #define DIGIT R"([0-9])"
 #define SYNTAX R"(["'].*?["'])"
@@ -33,10 +33,11 @@
 #define ZERO_OR_MORE R"(\*)"
 #define OPTIONAL R"(\?)"
 #define ONE_OR_MORE R"(\+)"
+// #define ESCAPED R"(\)"
 
 #define OR_EXPAND "(" LBRACK ".*?" RBRACK ")"
 
-#define FULL_REGEX "(" PROB_SET_FLAG "|" OR_EXPAND "|"  RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" \
+#define FULL_REGEX "(" PROB_SET_FLAG "|" OR_EXPAND "|"  RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" CHAR "|" SEPARATOR "|" \
         RULE_ENTRY_0 "|" RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" COMMENT "|" MULTI_COMMENT_START "|" \
         MULTI_COMMENT_END "|" RULE_END "|"  RANGE "|" LPAREN "|" RPAREN "|" \
         LBRACK "|" RBRACK "|" LBRACE "|" RBRACE "|" \

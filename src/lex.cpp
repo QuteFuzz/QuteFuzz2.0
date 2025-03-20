@@ -44,19 +44,7 @@ void Lexer::lex(){
                 std::string str;
 
                 tokens.push_back(Token{.kind = TOKEN_LBRACK, .value = std::string(1, lbrack)});
-
-                for(size_t i = 1; i < len - 1; ++i){
-                    str = std::string(1, matched_string.at(i));
-
-                    if(string_is(str, RANGE)){
-                        tokens.push_back(Token{.kind = TOKEN_RANGE, .value = str});
-
-                    } else {
-                        tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = str});
-
-                    }
-                }
-
+                tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = matched_string.substr(1, len-2)});
                 tokens.push_back(Token{.kind = TOKEN_RBRACK, .value = std::string(1, rbrack)});
 
             } else if (string_is(matched_string, ONE_OR_MORE)){

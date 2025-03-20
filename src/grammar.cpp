@@ -144,13 +144,24 @@ void Grammar::add_n_branches(const Token& next){
         }
     }
 
-    expansion_tokens.clear();
+    std::cout << "  Expansion tokens " << std::endl;
+    for(Expansion_option& opt : expansion_tokens){
+        for(Token& t : opt){
+            std::cout << t << " ";
+        }
 
-    //for(Expansion_option& opt : expansion_tokens){
-    //    for(Token& t : opt){
-    //        std::cout << t << std::endl;
-    //    }
-    //}
+        std::cout << std::endl;
+    }
+
+    std::cout << "current branches" << std::endl;
+    for(Branch& b : current_branches){
+        b.print(std::cout);
+        std::cout << " ";
+    }
+
+    std::cout << std::endl;
+
+    expansion_tokens.clear();
 }
 
 bool Grammar::in_variant_grouping(const Token& current_token, const Token& next_token){
@@ -173,8 +184,6 @@ void Grammar::add_to_expansion_tokens(const Token& token){
     Expansion_option option;
     option.push_back(token);
     expansion_tokens.push_back(option);
-
-    std::cout << "added " << token << " as expansion token" << std::endl;
 }
 
 void Grammar::build_grammar(){
@@ -188,29 +197,8 @@ void Grammar::build_grammar(){
 
         switch(token.kind){
             case TOKEN_RULE : case TOKEN_SYNTAX: {
-                next = next_token.get_ok();
-                
-                if (in_variant_grouping(token, next)){
-                    add_to_expansion_tokens(token);
-
-                } else if (in_paren){
-                    std::cout << "added " << token << " to expansion tokens" << std::endl;
-
-                    if(expansion_tokens.size() == 0){
-                        expansion_tokens = {Expansion_option{}};
-                    }
-
-                    // and this term to all expansion tokens buffers
-                    for(Expansion_option& opt : expansion_tokens){
-                        opt.push_back(token);
-                    }
-
-                } else {
-
-                    add_term_to_current_branches(token);
-
-                }
-
+                // next = next_token.get_ok();
+                add_term_to_current_branches(token);
                 break;
             }
 
@@ -234,7 +222,7 @@ void Grammar::build_grammar(){
             case TOKEN_SEPARATOR: {
 
                 if(!in_paren){
-                    lazily_add_branches_to_rule();
+                    add_current_branches_to_rule();
                     reset_current_branches();
                 }
 
