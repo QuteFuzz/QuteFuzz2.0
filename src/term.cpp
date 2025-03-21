@@ -50,3 +50,20 @@ Branch Rule::pick_non_recursive_branch(){
         throw std::runtime_error("There are no non-recursive branches for rule " + _name);
     }
 }
+
+/// @brief Never called on an empty branch, multiplier always starts at 2
+/// @param multiplier 
+/// @param only_last 
+/// @return 
+Branch Branch::multiply_terms(unsigned int multiplier, unsigned int nesting_depth) const {
+    std::vector<Term> mult_terms; 
+
+    for(unsigned int i = 1; i <= nesting_depth; ++i){
+        for(const Term& t : terms){
+            mult_terms.push_back(t);
+        }
+    }
+
+    return Branch(mult_terms);
+}
+

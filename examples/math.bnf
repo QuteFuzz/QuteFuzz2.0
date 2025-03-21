@@ -1,9 +1,4 @@
-# expr = term (("+" | "-") expr)*;
 term = factor "*" term | factor "/" term | factor ;
-# factor = integer | "(" expr ")" ;
-# integer = [1-9] [0-9]* ([Uu]? [Ll]*) | [1-9] [0-9]* ( [Ll]* [Uu]? ) ;
-
-# DECIMAL_LITERAL: [1-9] [0-9]* ( ( [Uu]? [Ll]* ) | ( [Ll]* [Uu]? ) ) ;
-
-# [1-2] [3-4] works
-# ([1-2] [3-4]) doesn't work <- need to find out why
+test = (term expr)+;
+# nninteger := [1-9]+[0-9]*|0
+# expr = term (("+" | "-") expr)*;

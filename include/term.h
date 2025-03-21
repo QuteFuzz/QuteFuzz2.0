@@ -13,7 +13,7 @@ class Rule;
 class Term {
     public:
         Term(){}
-        Term(const std::string& name) :_name(name){}
+        Term(const std::string& name, unsigned int nd) :_name(name), nesting_depth(nd) {}
         ~Term() = default;
 
         void set_pointer(std::shared_ptr<Rule> term){
@@ -62,7 +62,27 @@ class Term {
             return stream;
         }
 
-    protected:
+        void set_nesting_depth(unsigned int nd){nesting_depth = nd;}
+
+        unsigned int get_nesting_depth() const {return nesting_depth;}
+
+        friend std::vector<Term> operator*(const Term t, unsigned int mult){
+            std::vector<Term> out;
+
+            for(unsigned int i = 0; i < mult; ++i){
+                out.push_back(t);
+            }
+
+            return out;
+        }
+
+        void multiply(std::vector<Term>& acc, unsigned int mult) const {
+            for(unsigned int i = 0; i < mult; ++i){
+                acc.push_back(*this);
+            }
+        }
+
+    private:
         bool is(Term_kind nk) const {
             return kind == nk;
         }
@@ -70,6 +90,7 @@ class Term {
         Term_kind kind;
         std::variant<std::shared_ptr<Rule>, std::string> value;
         std::string _name;
+        unsigned int nesting_depth = 0;
 };
 
 class Collection{
@@ -85,7 +106,7 @@ class Collection{
 
         virtual size_t size() = 0;
 
-        virtual bool is_empty() = 0;
+        virtual bool is_empty() const = 0;
 
         virtual void print(std::ostream& os) const = 0;
 
@@ -99,6 +120,8 @@ class Branch : public Collection {
     public:
         using Collection::Collection;
 
+        Branch(std::vector<Term> _terms) : terms(_terms) {}
+
         inline void set_recursive_flag(){recursive = true;}
 
         void assign_prob(const float _prob){prob = _prob;}
@@ -109,15 +132,17 @@ class Branch : public Collection {
 
         size_t size(){return terms.size();}
 
-        bool is_empty(){return terms.empty();}
+        bool is_empty() const {return terms.empty();}
 
         std::vector<Term> get_terms(){return terms;} 
+
+        Branch multiply_terms(unsigned int multiplier, unsigned int nesting_depth) const;
 
         void print(std::ostream& os) const;
 
     private:
         std::vector<Term> terms;
-        float prob;
+        float prob = 0.0;
 };
 
 class Rule : public Collection {
@@ -135,7 +160,7 @@ class Rule : public Collection {
 
         size_t size(){return branches.size();}
 
-        bool is_empty(){return branches.empty();}
+        bool is_empty() const {return branches.empty();}
 
         void assign_prob(const float _prob);
 

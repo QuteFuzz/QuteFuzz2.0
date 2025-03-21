@@ -47,11 +47,9 @@ class Grammar{
 
         void add_n_branches(const Token& next);
 
-        void reset_current_branches(){
-            current_branches = {Branch()};
-        }
+        inline void reset_current_branches(){current_branches.clear();}
         
-        void add_current_branches_to_rule(){
+        inline void add_current_branches_to_rule(){
             // add all current branches to current rule, reset current branches
             for(Branch& current_branch : current_branches){
                 std::cout << "Lazily adding ";
@@ -64,15 +62,19 @@ class Grammar{
 
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
         /// Called at end of rule, and at each branch seprator
-        void complete_rule(){
+        inline void complete_rule(){
             add_current_branches_to_rule();
             assign_equal_probabilities();
         }
 
-        void drop_heads(){
+        inline void drop_heads(){
             // std::cout << expanded_branches_head << std::endl;
-            current_branches = std::vector<Branch>(current_branches.begin() + expanded_branches_head, current_branches.end());
+            current_branches = std::vector<Branch>(current_branches.begin() + current_branches_head, current_branches.end());
         }
+
+        void extend_current_branches();
+
+        inline void add_empty_to_current_branches(){current_branches.push_back(Branch());}
 
         void add_term_to_current_branches(const Token& tokens);
 
@@ -102,13 +104,12 @@ class Grammar{
 
         std::string range_start = "", range_end = "";
 
-        std::vector<Branch> current_branches = {Branch()}; // when performing expansions, there may be more than one branch to continue building ((expr)+, (expr)*)
+        std::vector<Branch> current_branches;
         std::shared_ptr<Rule> current_rule = nullptr;
-        size_t expanded_branches_head = 0;
+        size_t current_branches_head = 0;
 
-        unsigned int in_paren = 0, in_brack = 0;
-        Expansions expansion_tokens = {};
-        int wildcard_max = WILDCARD_MAX;
+        unsigned int nesting_depth = 0;
+        Expansions expansion_tokens;
 
         bool assign_equal_probs = false;
 

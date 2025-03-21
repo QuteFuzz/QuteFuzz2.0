@@ -3,17 +3,17 @@
 #include "../include/run.h"
 
 int main(){
-    fs::path file("../examples/openqasm2.bnf");
+    fs::path file("../examples/math.bnf");
 
     // testing the lexer
-    Lexer lexer(file.string());
-    lexer.print_tokens();
+    //Lexer lexer(file.string());
+    //lexer.print_tokens();
 
     // testing grammar builder
-    //Grammar grammar(file);
-    //grammar.print_tokens();
-    //grammar.build_grammar();
-    //grammar.print_grammar();
+    Grammar grammar(file);
+    grammar.print_tokens();
+    grammar.build_grammar();
+    grammar.print_grammar();
 
     // testing the writer
     //Write write(file, "expr");
