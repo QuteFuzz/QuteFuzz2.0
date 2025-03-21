@@ -55,15 +55,15 @@ Branch Rule::pick_non_recursive_branch(){
 /// @param multiplier 
 /// @param only_last 
 /// @return 
-Branch Branch::multiply_terms(unsigned int multiplier, unsigned int nesting_depth) const {
-    std::vector<Term> mult_terms; 
+void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const {
 
-    for(unsigned int i = 1; i <= nesting_depth; ++i){
-        for(const Term& t : terms){
-            mult_terms.push_back(t);
+    for(const Term& t : terms){
+        if(t.get_nesting_depth() > nesting_depth){  // only multiply the term if it is in the correct grouping scope
+            basis.mults.push_back(t);
+        } else {
+            basis.remainders.push_back(t);
         }
     }
 
-    return Branch(mult_terms);
+    std::cout << basis.mults.size() << " " << basis.remainders.size() << std::endl;
 }
-

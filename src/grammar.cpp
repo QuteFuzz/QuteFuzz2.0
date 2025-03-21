@@ -90,29 +90,35 @@ void Grammar::add_term_to_current_branches(const Token& token){
 
 }
 
-void Grammar::extend_current_branches(){
+void Grammar::extend_current_branches(const Token& wildcard){
     // loop through current heads, and multiply
     std::vector<Branch> extensions;
-    // int prev_nesting_depth = 0;
-// 
-    // if(nesting_depth - 1){
-        // prev_nesting_depth = nesting_depth - 1;
-    // }
+    Branch_multiply basis;
 
     for(const Branch& current_branch : current_branches){
         if(!current_branch.is_empty()){
+            basis.clear();
+            current_branch.setup_basis(basis, nesting_depth);
+
+            if(wildcard.kind == TOKEN_OPTIONAL){
+                extensions.push_back(Branch(basis.remainders));
+                break;            
+
+            } else if (wildcard.kind == TOKEN_ZERO_OR_MORE){
+                extensions.push_back(Branch(basis.remainders));
+            }
+        
+            // use basis to get extensions depending on the wildcard being processed
             for(unsigned int mult = 2; mult <= WILDCARD_MAX; ++mult){
-                Branch extension = current_branch.multiply_terms(mult, nesting_depth);
+                auto terms = append_vectors(basis.remainders, multiply_vector(basis.mults, mult));
+                Branch extension(terms);
                 extensions.push_back(extension);
             }
+
         }
     }
 
     current_branches.insert(current_branches.end(), extensions.begin(), extensions.end());
-}
-
-bool Grammar::is_alpha(const std::string& str){
-    return std::all_of(str.begin(), str.end(), ::isalpha);
 }
 
 void Grammar::build_grammar(){
@@ -162,18 +168,8 @@ void Grammar::build_grammar(){
 
             case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
 
-            case TOKEN_OPTIONAL: 
-                add_empty_to_current_branches();
-                break;
-            
-            case TOKEN_ZERO_OR_MORE: {
-                add_empty_to_current_branches();
-                extend_current_branches(); 
-                break;
-            }
-
-            case TOKEN_ONE_OR_MORE:
-                extend_current_branches();
+            case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: case TOKEN_ONE_OR_MORE:
+                extend_current_branches(token);
                 break;
 
             default:
@@ -182,11 +178,6 @@ void Grammar::build_grammar(){
         }
 
         prev_token = token;
-
-        // if(can_create_branches()){  
-        //     next = next_token.get_ok();          
-        //     add_n_branches(next);
-        // }
 
         consume(1);
 

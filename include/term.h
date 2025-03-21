@@ -9,6 +9,22 @@ typedef enum {
 } Term_kind;
 
 class Rule;
+class Term;
+
+typedef struct {
+    std::vector<Term> remainders;
+    std::vector<Term> mults;
+
+    bool is_empty(){
+        return remainders.empty() && mults.empty();
+    }
+
+    void clear(){
+        remainders.clear();
+        mults.clear();
+    }
+
+} Branch_multiply;
 
 class Term {
     public:
@@ -136,7 +152,7 @@ class Branch : public Collection {
 
         std::vector<Term> get_terms(){return terms;} 
 
-        Branch multiply_terms(unsigned int multiplier, unsigned int nesting_depth) const;
+        void setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const;
 
         void print(std::ostream& os) const;
 

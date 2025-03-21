@@ -14,7 +14,7 @@ statement: decl
   | "if (" id "==" nninteger ")" qop
   | "barrier" anylist ";"
 
-decl: "qreg" id [ nninteger ] ";" | "creg" id [ nninteger ] ";"
+decl: "qreg" id "[" nninteger "]" ";" | "creg" id "[" nninteger "]" ";"
 
 gatedecl: "gate" id idlist "{"
   | "gate" id "( )" idlist "{"
@@ -38,11 +38,11 @@ anylist: idlist | mixedlistj
 
 idlist: id | idlist "," id
 
-mixedlist: id [ nninteger ] | miedlist "," id
-  | mixedlist "," id [ nninteger ]
-  | idlist "," id [ nninteger ]
+mixedlist: id "[" nninteger "]" | miedlist "," id
+  | mixedlist "," id "[" nninteger "]"
+  | idlist "," id "[" nninteger "]"
 
-argument: id | id [ nninteger ]
+argument: id | id "[" nninteger "]"
 
 explist: exp | explist "," exp
 
@@ -53,6 +53,12 @@ exp: real | nninteger | "pi" | id
 
 unaryop: "sin" | "cos" | "tan" | "exp" | "ln" | "sqrt"
 
-id        := [a-z][A-Za-z0-9_]*
-real      := ([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?
-nninteger := [1-9]+[0-9]*|0
+# the parser is still unable to handle these, I just hard coded some values below
+
+# id        := [a-z][A-Za-z0-9_]*
+# real      := ([0-9]+"."[0-9]*|[0-9]*"."[0-9]+)([eE][-+]?[0-9]+)?
+# nninteger := [1-9]+[0-9]*|0
+
+id        := "identifier"
+real      := 1
+nninteger := 0

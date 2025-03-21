@@ -3,7 +3,7 @@
 #include "../include/run.h"
 
 int main(){
-    fs::path file("../examples/math.bnf");
+    fs::path file("../examples/openqasm2.bnf");
 
     // testing the lexer
     //Lexer lexer(file.string());
