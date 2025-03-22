@@ -1,8 +1,8 @@
 # Copied from: https://github.com/libtangle/QASM-Grammar/tree/master
 
-mainprogram: "OPENQASM" real ";" program
+mainprogram: "OPENQASM" real ";" program;
 
-program: statement | program statement
+program: statement | program statement;
 
 statement: decl
   | gatedecl goplist "}"
@@ -13,45 +13,52 @@ statement: decl
   | qop
   | "if (" id "==" nninteger ")" qop
   | "barrier" anylist ";"
+  ;
 
-decl: "qreg" id "[" nninteger "]" ";" | "creg" id "[" nninteger "]" ";"
+decl: "qreg" id "[" nninteger "]" ";" | "creg" id "[" nninteger "]" ";";
 
 gatedecl: "gate" id idlist "{"
   | "gate" id "( )" idlist "{"
   | "gate" id "(" idlist ")" idlist "{"
+  ;
 
 goplist: uop
   | "barrier" idlist ";"
   | goplist uop
   | goplist "barrier" idlist ";"
+  ;
 
 qop: uop
   | "measure" argument "->" argument ";"
   | "reset" argument ";"
+  ;
 
 uop: "U (" explist ")" argument ";"
   | "CX" argument "," argument ";"
   | id anylist ";" | id "( )" anylist ";"
   | id "(" explist ")" anylist ";"
+  ;
 
-anylist: idlist | mixedlistj
+anylist: idlist | mixedlistj;
 
-idlist: id | idlist "," id
+idlist: id | idlist "," id;
 
-mixedlist: id "[" nninteger "]" | miedlist "," id
+mixedlist: id "[" nninteger "]" | mixedlist "," id
   | mixedlist "," id "[" nninteger "]"
   | idlist "," id "[" nninteger "]"
+  ;
 
-argument: id | id "[" nninteger "]"
+argument: id | id "[" nninteger "]";
 
-explist: exp | explist "," exp
+explist: exp | explist "," exp;
 
 exp: real | nninteger | "pi" | id
   | exp "+" exp | exp "-" exp | exp "*" exp
   | exp "/" exp | "-"exp | exp "^" exp
   | "(" exp ")" | unaryop "(" exp ")"
+  ;
 
-unaryop: "sin" | "cos" | "tan" | "exp" | "ln" | "sqrt"
+unaryop: "sin" | "cos" | "tan" | "exp" | "ln" | "sqrt";
 
 # the parser is still unable to handle these, I just hard coded some values below
 
@@ -59,6 +66,6 @@ unaryop: "sin" | "cos" | "tan" | "exp" | "ln" | "sqrt"
 # real      := ([0-9]+"."[0-9]*|[0-9]*"."[0-9]+)([eE][-+]?[0-9]+)?
 # nninteger := [1-9]+[0-9]*|0
 
-id        := "identifier"
-real      := 1
-nninteger := 0
+id        : "identifier";
+real      : 1;
+nninteger : 0;

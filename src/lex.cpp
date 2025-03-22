@@ -68,7 +68,7 @@ void Lexer::lex(){
             } else if (string_is(matched_string, DIGIT)){
                 tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = matched_string});
 
-            } else if (string_is(matched_string, RULE_ENTRY_0) || string_is(matched_string, RULE_ENTRY_1) || string_is(matched_string, RULE_ENTRY_2)){
+            } else if (string_is(matched_string, RULE_ENTRY_1) || string_is(matched_string, RULE_ENTRY_2)){
                 tokens.push_back(Token{.kind = TOKEN_RULE_START, .value = matched_string});
 
             } else if (string_is(matched_string, RULE_END)){

@@ -13,7 +13,6 @@
 #define DIGIT R"([0-9])"
 #define SYNTAX R"(["'].*?["'])"
 #define ANGLE_RULE R"([\<].*?[\>])"
-#define RULE_ENTRY_0 R"(::=)"
 #define RULE_ENTRY_1 R"(=)"
 #define RULE_ENTRY_2 R"(:)"
 #define SEPARATOR R"(\|)"
@@ -37,7 +36,7 @@
 #define OR_EXPAND "(" LBRACK ".*?" RBRACK ")"
 
 #define FULL_REGEX "(" PROB_SET_FLAG "|" OR_EXPAND "|"  RULE "|" ANGLE_RULE "|" DIGIT "|" SYNTAX "|" SEPARATOR "|" \
-        RULE_ENTRY_0 "|" RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" COMMENT "|" MULTI_COMMENT_START "|" \
+        RULE_ENTRY_1 "|" RULE_ENTRY_2 "|" COMMENT "|" MULTI_COMMENT_START "|" \
         MULTI_COMMENT_END "|" RULE_END "|"  RANGE "|" LPAREN "|" RPAREN "|" \
         LBRACK "|" RBRACK "|" LBRACE "|" RBRACE "|" \
         ZERO_OR_MORE "|" OPTIONAL "|" ONE_OR_MORE \

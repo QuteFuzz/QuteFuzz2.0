@@ -1,3 +1,11 @@
-term = factor "*" term | factor "/" term | factor ;
+# term = factor "*" term | factor "/" term | factor ;
 # nninteger := [1-9]+[0-9]*|0
 # expr = term (("+" | "-") expr)*;
+
+# mixedlist: id "[" nninteger "]" | mixedlist "," id
+#   | mixedlist "," id "[" nninteger "]"
+#   | idlist "," id "[" nninteger "]"
+#   ;
+id        = "identifier";
+real      = 1;
+nninteger = 0;
