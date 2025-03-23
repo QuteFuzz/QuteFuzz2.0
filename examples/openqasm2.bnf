@@ -39,7 +39,7 @@ uop: "U (" explist ")" argument ";"
   | id "(" explist ")" anylist ";"
   ;
 
-anylist: idlist | mixedlistj;
+anylist: idlist | mixedlist;
 
 idlist: id | idlist "," id;
 
