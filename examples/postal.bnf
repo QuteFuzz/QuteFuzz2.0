@@ -6,22 +6,22 @@ equal_prob
 Can even write multiline comments. 
 *)
 
-<name-part> ::= <personal-part> " " <last-name> " " <opt-suffix-part> "\n" | <personal-part> " " <name-part>;
-<personal-part> ::= <initial> "." | <first-name> ;
-<street-address> ::= <house-num> " " <street-name> " " <opt-apt-num> "\n"; 
-<zip-part> ::= <town-name> ", " <state-code> " " <ZIP-code> "\n" ;
-<opt-suffix-part> ::= "Sr." | "Jr." | <roman-numeral> | "" ;
-<opt-apt-num> ::= <apt-num> | "";
+<name-part> = <personal-part> " " <last-name> " " <opt-suffix-part> "\n" | <personal-part> " " <name-part>;
+<personal-part> = <initial> "." | <first-name> ;
+<street-address> = <house-num> " " <street-name> " " <opt-apt-num> "\n"; 
+<zip-part> = <town-name> ", " <state-code> " " <ZIP-code> "\n" ;
+<opt-suffix-part> = "Sr." | "Jr." | <roman-numeral> | "" ;
+<opt-apt-num> = <apt-num> | "";
 
-// Test data 
-<numbers> ::= "100" | "42" | "1992" | "34354" | "80";
-<apt-num> ::= <numbers>;
-<roman-numeral> ::= "I" | "II" | "III" | "IV" | "V" | "VI";
-<first-name> ::= "John" | "Benny" | "Ilan" | "Klondike" | "Totalitarius" | "John" | "Imaan" | "Danny" | "Robert";
-<initial> ::= "A" - "Z";
-<last-name> ::= "Wickerson" | "Liu" | "Iwumbwe" | "Riptide" | "Gomez" | "Oppenheimer" | "JJ" | "Thomas";
-<house-num> ::= <numbers>;
-<street-name> ::= "EXHIBITION ROAD" | "OXFORD STREET" | "DOWNING STREET" | "BOOTH LANE" | "CLOAK LANE" | "KEATS PLACE" | "NUN COURT" | "OCTAGON ARCADE" | "LILYPANE STREET";
-<town-name> ::= "Towns are cool" | "London" | "Cambridge" ;
-<state-code> ::= "AD" | "AR" | "AS" | "BR" | "CG" | "DL" | "GA" | "GJ" | "HR" | "HP" | "JK" | "JH" | "KA" | "KL" | "LD" | "MP" | "MH" | "MN" | "ML" | "MZ" | "NL" | "OD" | "PY" | "PB" | "RJ" | "SK" | "TN" | "TS" | "TR" | "UP" | "UK" | "WB";
-<ZIP-code> ::= "10001" | "10002" | "11101" | "11212" | "23220" | "33101" | "10003" | "20001" | "11201" | "10011";
+# Test data 
+<numbers> = "100" | "42" | "1992" | "34354" | "80";
+<apt-num> = <numbers>;
+<roman-numeral> = "I" | "II" | "III" | "IV" | "V" | "VI";
+<first-name> = "John" | "Benny" | "Ilan" | "Klondike" | "Totalitarius" | "John" | "Imaan" | "Danny" | "Robert";
+<initial> = "A" - "Z";
+<last-name> = "Wickerson" | "Liu" | "Iwumbwe" | "Riptide" | "Gomez" | "Oppenheimer" | "JJ" | "Thomas";
+<house-num> = <numbers>;
+<street-name> = "EXHIBITION ROAD" | "OXFORD STREET" | "DOWNING STREET" | "BOOTH LANE" | "CLOAK LANE" | "KEATS PLACE" | "NUN COURT" | "OCTAGON ARCADE" | "LILYPANE STREET";
+<town-name> = "Towns are cool" | "London" | "Cambridge" ;
+<state-code> = "AD" | "AR" | "AS" | "BR" | "CG" | "DL" | "GA" | "GJ" | "HR" | "HP" | "JK" | "JH" | "KA" | "KL" | "LD" | "MP" | "MH" | "MN" | "ML" | "MZ" | "NL" | "OD" | "PY" | "PB" | "RJ" | "SK" | "TN" | "TS" | "TR" | "UP" | "UK" | "WB";
+<ZIP-code> = "10001" | "10002" | "11101" | "11212" | "23220" | "33101" | "10003" | "20001" | "11201" | "10011";
