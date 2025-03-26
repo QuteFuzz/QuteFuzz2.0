@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../include/write.h"
+#include "../include/ast.h"
 #include "../include/run.h"
 
 int main(){
@@ -16,12 +16,12 @@ int main(){
     //grammar.print_grammar();
 
     // testing the writer
-    //Write write(file, "expr");
-    //write.emit();
+    Ast_builder astb(file, "factor");
+    astb.emit();
 
     //run entire application
-    Run run("../examples");
-    run.loop();
+    //Run run("../examples");
+    //run.loop();
 
     return 0;
 }

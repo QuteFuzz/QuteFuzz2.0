@@ -38,7 +38,7 @@ class Grammar{
                 current_branch.print(std::cout);
                 std::cout << std::endl;
 
-                current_rule->add(current_branch);   
+                current_rule->add(current_branch);
             }
         }
 
