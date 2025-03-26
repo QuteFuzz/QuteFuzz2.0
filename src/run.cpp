@@ -30,7 +30,7 @@ void Run::set_grammar(){
 
     if(is_grammar(grammar_name)){
         current_grammar = &grammars[grammar_name];
-        // write.set_grammar(grammars[grammar_name], entry_name);
+        astb.set_grammar(grammars[grammar_name], entry_name);
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
     }
@@ -59,14 +59,19 @@ void Run::loop(){
 
         if(current_command == "quit"){
             run = false;
+
         } else if (current_command == ""){
-            // write.emit();
+            std::cout << "AST: \n" << astb.emit() << std::endl;
+
         } else if (current_command == "h"){
             help();
+            
         } else if ((current_command == "print") && (current_grammar != NULL)){
             current_grammar->print_grammar();
+        
         } else if ((current_command == "print_tokens") && (current_grammar != NULL)){
             current_grammar->print_tokens();
+        
         } else {
             tokenise(current_command);
 

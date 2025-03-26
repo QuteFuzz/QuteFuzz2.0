@@ -16,12 +16,12 @@ int main(){
     //grammar.print_grammar();
 
     // testing the writer
-    Ast_builder astb(file, "factor");
-    astb.emit();
+    //Ast_builder astb(file, "factor");
+    //astb.emit();
 
     //run entire application
-    //Run run("../examples");
-    //run.loop();
+    Run run("../examples");
+    run.loop();
 
     return 0;
 }

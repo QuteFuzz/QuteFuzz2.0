@@ -2,6 +2,7 @@
 #define RUN_H
 
 #include "grammar.h"
+#include "ast.h"
 #include <sstream>
 
 class Run{
@@ -35,7 +36,7 @@ class Run{
         fs::path grammars_dir;
         std::unordered_map<std::string, Grammar> grammars;
         Grammar* current_grammar = NULL;
-        // Write write;
+        Ast_builder astb;
 
         std::vector<std::string> tokens;
 
