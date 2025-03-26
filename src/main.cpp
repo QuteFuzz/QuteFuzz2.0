@@ -1,9 +1,9 @@
 #include <iostream>
-#include "../include/write.h"
+#include "../include/ast.h"
 #include "../include/run.h"
 
 int main(){
-    fs::path file("../examples/openqasm.bnf");
+    fs::path file("../examples/testbed.bnf");
 
     // testing the lexer
     //Lexer lexer(file.string());
@@ -11,14 +11,15 @@ int main(){
 
     // testing grammar builder
     //Grammar grammar(file);
+    //grammar.print_tokens();
     //grammar.build_grammar();
     //grammar.print_grammar();
 
     // testing the writer
-    //Write write(file, "qreg_declaration");
-    //write.emit();
+    //Ast_builder astb(file, "factor");
+    //astb.emit();
 
-    // run entire application
+    //run entire application
     Run run("../examples");
     run.loop();
 

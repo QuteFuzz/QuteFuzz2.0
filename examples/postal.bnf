@@ -1,10 +1,10 @@
 equal_prob
 
-<postal-address> = <name-part> <street-address> <zip-part> "\n" ; // comments after '//' are ignored
+<postal-address> = <name-part> <street-address> <zip-part> "\n" ; # comments after '#' are ignored
 
-/*
-Can even write multiline comments. C style
-*/
+(*
+Can even write multiline comments. 
+*)
 
 <name-part> ::= <personal-part> " " <last-name> " " <opt-suffix-part> "\n" | <personal-part> " " <name-part>;
 <personal-part> ::= <initial> "." | <first-name> ;

@@ -25,43 +25,31 @@ class Grammar{
 
         void peek();
 
-        bool is_alpha(const std::string& str);
-
         std::shared_ptr<Rule> get_rule_pointer(const std::string& rule_name);
 
         void assign_equal_probabilities();
 
-        bool in_variant_grouping(const Token& current_token);
-
-        void expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to);
-
-        void add_n_branches(const Token& next);
-
-        void reset_current_branches(){
-            current_branches = {Branch()};
-        }
+        inline void reset_current_branches(){current_branches.clear();}
         
-        void lazily_add_branches_to_rule(){
+        inline void add_current_branches_to_rule(){
             // add all current branches to current rule, reset current branches
-            for(const Branch& current_branch : current_branches){
-                // std::cout << "Lazily adding ";
-                // current_branch.print(std::cout);
-                // std::cout << std::endl;
+            for(Branch& current_branch : current_branches){
+                std::cout << "Lazily adding ";
+                current_branch.print(std::cout);
+                std::cout << std::endl;
 
                 current_rule->add(current_branch);
             }
         }
 
         /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
-        void complete_rule(){
-            lazily_add_branches_to_rule();
+        /// Called at end of rule, and at each branch seprator
+        inline void complete_rule(){
+            add_current_branches_to_rule();
             assign_equal_probabilities();
         }
 
-        void drop_heads(){
-            // std::cout << expanded_branches_head << std::endl;
-            current_branches = std::vector<Branch>(current_branches.begin() + expanded_branches_head, current_branches.end());
-        }
+        void extend_current_branches(const Token& wildcard);
 
         void add_term_to_current_branches(const Token& tokens);
 
@@ -72,6 +60,8 @@ class Grammar{
         void print_grammar() const;
 
         void print_rules() const;
+
+        void print_tokens() const;
 
         inline std::string get_name(){return name;}
 
@@ -85,15 +75,12 @@ class Grammar{
         Result<Token, std::string> next_token;
         Token prev_token;
 
-        std::vector<Branch> current_branches = {Branch()}; // when performing expansions, there may be more than one branch to continue building ((expr)+, (expr)*)
-        std::shared_ptr<Rule> current_rule = nullptr;
-        size_t expanded_branches_head = 0;
+        std::string range_start = "", range_end = "";
 
-        // * ? + expansion stores
-        unsigned int in_grouping = 0;
-        Expansions expansion_tokens;
-        int wildcard_max = WILDCARD_MAX;
-        bool just_finished_grouping = false;
+        std::vector<Branch> current_branches;
+        std::shared_ptr<Rule> current_rule = nullptr;
+
+        unsigned int nesting_depth = 0;
 
         bool assign_equal_probs = false;
 

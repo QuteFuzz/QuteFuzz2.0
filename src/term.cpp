@@ -1,56 +1,69 @@
 #include "../include/term.h"
 
-template<>
 void Branch::print(std::ostream& os) const {
-    for(const auto& elem : coll){
+    for(const auto& elem : terms){
         os << elem << " ";
     }
 
-    os << "[" << _prob << "]";
+    os << "[" << prob << "]";
 }
 
-template<>
 void Rule::print(std::ostream& os) const {
-    for(const auto& elem : coll){
+    for(const auto& elem : branches){
         elem.print(os);
         os << "| ";
     }
+
+    std::cout << " non_recursive branches: " << non_recursive_branches.size() << std::endl;
 }
 
-template<>
-bool Branch::is_empty() const {
-    return coll.empty();
-}
-
-template<>
-void Branch::assign_prob(const float prob){
-    _prob = prob;
-}
-
-template<>
-void Rule::assign_prob(const float prob){
-
-    for(Branch& b : coll){
-        b.assign_prob(prob);
+void Rule::assign_prob(const float _prob){
+    for(Branch& b : branches){
+        b.assign_prob(_prob);
     }
 }
 
-template<>
-void Rule::set_recursive_flag(std::shared_ptr<Rule> current_rule){
-    recursive = true;
+void Branch::add(const Term& term){
+    terms.push_back(term);
 }
 
-template<>
-void Branch::set_recursive_flag(std::shared_ptr<Rule> parent_rule){
-    recursive = false;
+/// @brief need to have this check and store pointers to recursive branches separately
+/// @param branch 
+void Rule::add(const Branch& branch){
+    branches.push_back(branch);
 
-    for(const Term& term : coll){
-        if (term.name_matches(parent_rule->get_name())){
-            recursive = true;
-            parent_rule->set_recursive_flag(nullptr);
-            break;
+    if(branch.get_recursive_flag()){
+        recursive = true; // this rule is recursive
+    } else {
+        std::shared_ptr<Branch> ptr = std::make_shared<Branch>(branch);
+        non_recursive_branches.push_back(ptr); // this branch is non-recursive
+    }
+}
+
+Branch Rule::pick_non_recursive_branch(){
+    size_t size = non_recursive_branches.size();
+
+    if(size > 0){
+        int rand_index = random_int(size - 1);
+        return *(non_recursive_branches[rand_index]);
+    } else {
+        throw std::runtime_error("There are no non-recursive branches for rule " + _name);
+    }
+}
+
+/// @brief Never called on an empty branch, multiplier always starts at 2
+/// @param multiplier 
+/// @param only_last 
+/// @return 
+void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const {
+
+    for(const Term& t : terms){
+        if(t.get_nesting_depth() > nesting_depth){  // only multiply the term if it is in the correct grouping scope
+            basis.mults.push_back(t);
+        } else {
+            basis.remainders.push_back(t);
         }
     }
 
-    // std::cout << "Branch " << _name << "flag " << recursive << std::endl; 
+    std::cout << basis.mults.size() << " " << basis.remainders.size() << std::endl;
 }

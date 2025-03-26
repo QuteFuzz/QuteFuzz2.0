@@ -10,7 +10,7 @@
 #include <random>
 #include <filesystem>
 
-#define WILDCARD_MAX 10
+#define WILDCARD_MAX 2
 
 namespace fs = std::filesystem;
 
@@ -67,6 +67,30 @@ struct Result{
         Result_kind kind;
         std::variant<A, B> as;
 };
+
+template<typename T>
+std::vector<T> multiply_vector(std::vector<T> vec, int mult){
+    std::vector<T> multiplied_vec;
+    
+    multiplied_vec.reserve(vec.size() * mult);
+
+    for(int i = 0; i < mult; ++i){
+        multiplied_vec.insert(multiplied_vec.end(), vec.begin(), vec.end());
+    }
+
+    std::cout << multiplied_vec.size() << std::endl;
+
+    return multiplied_vec;
+}
+
+template<typename T>
+std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
+    std::vector<T> result = vec1;
+
+    result.insert(result.end(), vec2.begin(), vec2.end());
+
+    return result;
+}
 
 #endif
 

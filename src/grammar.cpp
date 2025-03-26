@@ -58,7 +58,7 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
 /// @param token 
 void Grammar::add_term_to_branch(const Token& token, Branch& branch){
 
-    Term term(token.value);
+    Term term(token.value, nesting_depth);
     
     if(token.kind == TOKEN_SYNTAX){
         term.set_syntax(token.value);
@@ -69,103 +69,56 @@ void Grammar::add_term_to_branch(const Token& token, Branch& branch){
     }
 
     branch.add(term);
+
+    if((current_rule != nullptr) && (token.value == current_rule->get_name())){
+        branch.set_recursive_flag();
+    }
 }
 
 /// @brief The token into a term and add it to all current branches
 /// @param tokens 
 void Grammar::add_term_to_current_branches(const Token& token){
-    for(Branch& current_branch : current_branches){
-        add_term_to_branch(token, current_branch);
-    }
-}
-
-void Grammar::expand_range(std::shared_ptr<Rule> current_rule, const Token& from, const Token& to){
-
-    std::string from_val = from.value, to_val = to.value;
-
-    int from_int, to_int;
-    char from_char, to_char;
-
-    if(is_alpha(from_val) && is_alpha(to_val)){
-        from_char = from_val[0];
-        to_char = to_val[0];
-
-        for(char i = from_char + 1; i <= to_char; ++i){
-            Branch b;
-            add_term_to_branch(Token{.kind = TOKEN_SYNTAX, .value = std::string(1, i)}, b);
-            current_branches.push_back(b);
-        }
-
+    if(current_branches.size() == 0){
+        Branch b;
+        add_term_to_branch(token, b);
+        current_branches.push_back(b);    
     } else {
-        // assume 2 integers
-        from_int = std::stoi(from_val);
-        to_int = std::stoi(to_val);
-
-        for(int i = from_int + 1; i <= to_int; ++i){
-            Branch b;
-            add_term_to_branch(Token{.kind = TOKEN_SYNTAX, .value = std::to_string(i)}, b);
-            current_branches.push_back(b);
+        for(Branch& current_branch : current_branches){
+            add_term_to_branch(token, current_branch);
         }
     }
+
 }
 
-bool Grammar::is_alpha(const std::string& str){
-    return std::all_of(str.begin(), str.end(), ::isalpha);
-}
+void Grammar::extend_current_branches(const Token& wildcard){
+    // loop through current heads, and multiply
+    std::vector<Branch> extensions;
+    Branch_multiply basis;
 
-/// @brief Collect all new expansions, create branches for them, and add these branches to the current rule
-/// make current branch a new branch
-/// @param n 
-void Grammar::add_n_branches(const Token& next){
+    for(const Branch& current_branch : current_branches){
+        if(!current_branch.is_empty()){
+            basis.clear();
+            current_branch.setup_basis(basis, nesting_depth);
 
-    std::vector<Branch> heads = current_branches;
-    expanded_branches_head = heads.size();
+            if(wildcard.kind == TOKEN_OPTIONAL){
+                extensions.push_back(Branch(basis.remainders));
+                break;            
 
-    int n = 1; // also the default if there's no wildcard token after grouping
-
-    if(next.kind == TOKEN_OPTIONAL){
-        n = 1;
-    } else if ((next.kind == TOKEN_ONE_OR_MORE) | (next.kind == TOKEN_ZERO_OR_MORE)){
-        n = wildcard_max;
-    } else {
-        drop_heads();
-    }
-
-    for(Expansion_option& opt : expansion_tokens){
-
-        for(size_t j = 0; j < heads.size(); ++j){
-            Branch head = heads[j];
-
-            for(int i = 0; i < n; ++i){
-
-                for(const Token& token : opt){
-                    add_term_to_branch(token, head);
-                }
-
-                head.set_recursive_flag(current_rule);
-                current_branches.push_back(head);
+            } else if (wildcard.kind == TOKEN_ZERO_OR_MORE){
+                extensions.push_back(Branch(basis.remainders));
             }
+        
+            // use basis to get extensions depending on the wildcard being processed
+            for(unsigned int mult = 2; mult <= WILDCARD_MAX; ++mult){
+                auto terms = append_vectors(basis.remainders, multiply_vector(basis.mults, mult));
+                Branch extension(terms);
+                extensions.push_back(extension);
+            }
+
         }
     }
 
-    expansion_tokens.clear();
-}
-
-bool Grammar::in_variant_grouping(const Token& current_token){
-    peek();
-
-    if(next_token.is_ok()){
-        Token token = next_token.get_ok();
-
-        return ((token.kind == TOKEN_SEPARATOR) 
-                || (prev_token.kind == TOKEN_SEPARATOR) 
-                || (current_token.kind == TOKEN_SEPARATOR)) 
-                && in_grouping;
-    } else {
-        throw std::runtime_error(next_token.get_error());
-    }
-
-    return false;
+    current_branches.insert(current_branches.end(), extensions.begin(), extensions.end());
 }
 
 void Grammar::build_grammar(){
@@ -173,29 +126,15 @@ void Grammar::build_grammar(){
     if(curr_token.is_ok()){
         Token token = curr_token.get_ok();
 
+        // cannot set here because if curr token is EOF, next should be an error. 
+        // I set this for only the specific cases where I use it to avoid an extra if statement checking for ok here
+        Token next;
+
         switch(token.kind){
             case TOKEN_RULE : case TOKEN_SYNTAX: {
+                // next = next_token.get_ok();
 
-                if(in_variant_grouping(token)){
-                    Expansion_option option;
-                    option.push_back(token);
-                    expansion_tokens.push_back(option);
-
-                } else if (just_finished_grouping || in_grouping) {
-                    if(in_grouping && (expansion_tokens.size() == 0)){
-                        expansion_tokens.push_back({});
-                    }
-
-                    // and this term to all children branches
-                    for(Expansion_option& opt : expansion_tokens){
-                        opt.push_back(token);
-                    }
-
-                } else {
-                    add_term_to_current_branches(token);
-
-                }
-
+                add_term_to_current_branches(token);
                 break;
             }
 
@@ -204,67 +143,33 @@ void Grammar::build_grammar(){
                 current_rule = get_rule_pointer(prev_token.value);
                 break;
 
-            case TOKEN_RULE_END: 
-                complete_rule();
-                break;
+            case TOKEN_RULE_END: complete_rule(); break;
 
-            case TOKEN_EOF: return;
+            case TOKEN_EOF: return; // should never peek if current token was EOF
 
-            case TOKEN_OPEN_BRACKET: in_grouping += 1; break;
+            case TOKEN_LPAREN: case TOKEN_LBRACK: nesting_depth += 1; break;
 
-            case TOKEN_CLOSED_BRACKET: {
-                in_grouping -= 1;
-                
-                if(in_grouping == 0){
-                    just_finished_grouping = false;
-
-                    peek();
-
-                    if(next_token.is_ok()){
-                        Token next = next_token.get_ok();
-                        add_n_branches(next);
-                    }
-
-                } else {
-                    just_finished_grouping = true;
-                }
-                        
-                break;
-            }
+            case TOKEN_RBRACK: case TOKEN_RPAREN: nesting_depth -= 1; break;
 
             case TOKEN_SEPARATOR: {
 
-                if(!in_grouping){
-                    lazily_add_branches_to_rule();
-                    reset_current_branches();
-                }
+                add_current_branches_to_rule();
+                reset_current_branches();
 
                 break;
             }
 
-            case TOKEN_PROB: break;
-
-            case TOKEN_RANGE: {
-                peek();
-
-                if (next_token.is_error()){
-                    std::cout << next_token.get_error() << std::endl;
-                } else {
-                    expand_range(current_rule, prev_token, next_token.get_ok());
-                    consume(1);
-
-                }
+            case TOKEN_RANGE: 
+                range_start = prev_token.value; 
+                range_end = next_token.get_ok().value;
+                
 
                 break;
-            }
 
             case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
 
-            case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: break;
-
-            case TOKEN_ONE_OR_MORE:
-                // drop current heads
-                drop_heads();
+            case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: case TOKEN_ONE_OR_MORE:
+                extend_current_branches(token);
                 break;
 
             default:
@@ -275,11 +180,19 @@ void Grammar::build_grammar(){
         prev_token = token;
 
         consume(1);
+
+        // always peek to prepare for next token
+        peek();
+
         build_grammar();
 
     } else {
         throw std::runtime_error(curr_token.get_error());
     }
+}
+
+void Grammar::print_tokens() const {
+    lexer.print_tokens();
 }
 
 void Grammar::print_grammar() const {
