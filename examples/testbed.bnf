@@ -1,5 +1,6 @@
-expr = term "+" expr | term "-" expr | term; 
+expr = term "+" expr | term "-" expr | hello (term)+; 
 term = factor "*" term | factor "/" term | factor ;
 factor = integer | "(" expr ")" ;
-integer = "1" | "2" | "3" | "4" ;
+integer = 1-4;
 
+hello = [1-5]+;

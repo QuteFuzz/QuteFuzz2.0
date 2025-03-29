@@ -6,7 +6,8 @@ Grammar::Grammar(const fs::path& filename): lexer(filename.string()), name(filen
     tokens = lexer.get_tokens();
     num_tokens = tokens.size();
 
-    consume(0);
+    consume(0); // prepare current token
+    peek(); // prepare next token
 }
 
 void Grammar::consume(int n){
@@ -70,7 +71,7 @@ void Grammar::add_term_to_branch(const Token& token, Branch& branch){
 
     branch.add(term);
 
-    if((current_rule != nullptr) && (token.value == current_rule->get_name())){
+    if((current_rule != nullptr) && (token.value == current_rule->get_name()) && (token.kind == TOKEN_RULE)){
         branch.set_recursive_flag();
     }
 }
@@ -121,6 +122,28 @@ void Grammar::extend_current_branches(const Token& wildcard){
     current_branches.insert(current_branches.end(), extensions.begin(), extensions.end());
 }
 
+void Grammar::expand_range(){
+    char begin = range_start[0];
+    char end = range_end[0];
+
+    std::vector<Branch> new_current_branches;
+    
+    if(current_branches.size() == 0){
+        current_branches.assign(1, Branch());
+    }
+
+    for(char i = begin; i <= end; ++i){
+        Token token = {.kind = TOKEN_SYNTAX, .value = std::string(1, i)};
+        
+        for(Branch copy : current_branches){
+            add_term_to_branch(token, copy);
+            new_current_branches.push_back(copy);
+        }
+    }
+
+    current_branches = new_current_branches;
+}
+
 void Grammar::build_grammar(){
 
     if(curr_token.is_ok()){
@@ -132,9 +155,13 @@ void Grammar::build_grammar(){
 
         switch(token.kind){
             case TOKEN_RULE : case TOKEN_SYNTAX: {
-                // next = next_token.get_ok();
 
-                add_term_to_current_branches(token);
+                next = next_token.get_ok();
+
+                if((next.kind != TOKEN_RANGE) && (prev_token.kind != TOKEN_RANGE)){
+                    add_term_to_current_branches(token);
+                }
+
                 break;
             }
 
@@ -163,6 +190,7 @@ void Grammar::build_grammar(){
                 range_start = prev_token.value; 
                 range_end = next_token.get_ok().value;
                 
+                expand_range();
 
                 break;
 

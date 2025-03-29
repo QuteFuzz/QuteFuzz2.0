@@ -11,7 +11,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                     Grammar grammar(file);
                     grammar.build_grammar();
 
-                    std::cout << "Building " << grammar.get_name() << std::endl;
+                    std::cout << "Built " << grammar.get_name() << std::endl;
                     
                     grammars[grammar.get_name()] = grammar;
                 }

@@ -55,6 +55,8 @@ class Grammar{
 
         void add_term_to_branch(const Token& token, Branch& branch);
 
+        void expand_range();
+
         void build_grammar();
 
         void print_grammar() const;

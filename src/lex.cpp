@@ -44,7 +44,24 @@ void Lexer::lex(){
                 std::string str;
 
                 tokens.push_back(Token{.kind = TOKEN_LBRACK, .value = std::string(1, lbrack)});
-                tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = matched_string.substr(1, len-2)});
+                
+                std::string characters = matched_string.substr(1, len-2); 
+                len = characters.size(); // len is now the number of characters inside the brackets
+
+                for(size_t i = 0; i < len - 1; ++i){
+                    char c = characters[i];
+
+                    if(c == '-') tokens.push_back(Token{.kind = TOKEN_RANGE, .value = "-"});
+                    else {
+                        tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = std::string(1, c)});
+
+                        if(characters[i+1] != '-') tokens.push_back(Token{.kind = TOKEN_SEPARATOR, .value = "|"});
+                    }
+
+                }
+
+                tokens.push_back(Token{.kind = TOKEN_SYNTAX, .value = std::string(1, characters[len-1])});
+                
                 tokens.push_back(Token{.kind = TOKEN_RBRACK, .value = std::string(1, rbrack)});
 
             } else if (string_is(matched_string, ONE_OR_MORE)){

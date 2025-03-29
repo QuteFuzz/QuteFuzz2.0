@@ -9,7 +9,8 @@
 
 #include "utils.h"
 
-#define RULE R"([a-zA-Z_]+)"
+#define CHAR R"([a-zA-Z_])"
+#define RULE R"([a-zA-Z_1-9]+)"
 #define DIGIT R"([0-9])"
 #define SYNTAX R"(["'].*?["'])"
 #define ANGLE_RULE R"([\<].*?[\>])"

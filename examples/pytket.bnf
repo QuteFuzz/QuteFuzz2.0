@@ -1,0 +1,80 @@
+# trying to fix up a pytket grammar that could be used
+
+# TOKENS
+NEWLINE = "\n";
+COMMA = ",";
+LPAREN = "(";
+RPAREN = ")";
+EQUALS = "=";
+DOT = ".";
+SPACE = " ";
+DOUBLE_QUOTE = '"';
+SINGLE_QUOTE = "'";
+UNDERSCORE = "_";
+
+# KEYWORDS
+FROM = "from";
+IMPORT = "import";
+SYMBOL = "Symbol";
+PATH = "Path";
+CIRCUIT_OBJ = "Circuit";
+QUBIT = "Qubit";
+BIT = "Bit";
+SYMPY = "sympy";
+HELPERS_LIB = "helpers.pytket_helpers";
+PASSES_FUNC = "test_circuit_on_passes";
+PATHLIB = "pathlib";
+PYTKET = "pytket";
+CIRCUIT_LIB = "pytket.circuit";
+OP = "Op";
+OPTYPE = "OpType";
+CIRCUIT_NAME = "main_circ";
+ADD_QREG = ".add_q_register";
+ADD_CREG = ".add_c_register";
+ADD_GATE = ".add_gate";
+SIZE = "size";
+
+# GATES
+X = "X";
+Y = "Y";
+Z = "Z";
+H = "H";
+CX = "CX";
+CY = "CY";
+CZ = "CZ";
+CCX = "CCX";
+Rz = "Rz";
+Rx = "Rx";
+Ry = "Ry";
+U1 = "U1";
+U2 = "U2";
+U3 = "U3";
+
+import_statements = 
+    FROM SYMPY IMPORT SYMBOL NEWLINE
+    FROM HELPERS_LIB IMPORT PASSES_FUNC NEWLINE
+    FROM PATHLIB IMPORT PATH NEWLINE
+    FROM PYTKET IMPORT CIRCUIT_OBJ COMMA QUBIT COMMA BIT NEWLINE
+    FROM CIRCUIT_LIB IMPORT OP COMMA OPTYPE NEWLINE
+    ;
+
+# circuit
+circuit      = CIRCUIT_OBJ LPAREN int_literal RPAREN (ADD_GATE LPAREN gate_call RPAREN)*;
+
+# Gate Calls
+gate_call    = gate_name COMMA SPACE qubit_list (COMMA SPACE parameter_list);
+gate_name    = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
+qubit_list   = qubit (COMMA SPACE qubit)*;
+qubit        = QUBIT LPAREN int_literal RPAREN;
+
+# Parameters
+parameter_list = parameter (COMMA SPACE parameter)*;
+parameter      = float_literal | SYMBOL LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
+
+# Identifiers and Literals 
+identifier   = letter (letter | digit | UNDERSCORE)*;
+int_literal  = (digit)+;
+float_literal = (digit)+ DOT (digit)*;
+letter       = a-z | A-Z;
+digit        = 0-9;
+
