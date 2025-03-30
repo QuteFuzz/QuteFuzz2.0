@@ -6,6 +6,36 @@
 
 #define MAX_RECURSIONS 5
 
+int hash_rule_name(const std::string rule_name);
+
+namespace Common {
+    typedef enum {
+        LPAREN = 3,
+        RPAREN = 29,
+        COMMA = 76,
+        SPACE = 69,
+        DOT = 95,
+        SINGLE_QUOTE = 19,
+        DOUBLE_PIPE = 70,
+        DOUBLE_QUOTE = 28,
+        DOUBLE_AMPERSAND = 9,
+    } Common_token;
+
+    const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR = {
+        {LPAREN, "("},
+        {RPAREN, ")"},
+        {COMMA, ","},
+        {SPACE, " "},
+        {DOT, "."},
+        {SINGLE_QUOTE, "\'"},
+        {DOUBLE_PIPE, "||"},
+        {DOUBLE_QUOTE, "\""},
+        {DOUBLE_AMPERSAND, "&&"},
+    };
+
+    std::string terminal_value(const std::string& str);
+}
+
 /// @brief A node is a terminal term with pointers to other nodes
 class Node {
 
@@ -35,14 +65,22 @@ class Node {
 
         std::string get_value() const {
             if(term.is_pointer()){
-                return term.get_rule()->get_name();
+                std::string name = term.get_rule()->get_name();
+
+                if(num_children == 0){
+                    return Common::terminal_value(name);
+                } 
+                
+                return name;
+
             } else {
                 return term.get_syntax();
+
             }
         }
 
         bool is_terminal() const {
-            return term.is_syntax();
+            return term.is_syntax() || !num_children;
         }
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
@@ -85,11 +123,21 @@ class Ast{
 
         virtual void write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth);
 
-        virtual Node build();
+        virtual Result<Node, std::string> build();
 
         virtual void write(fs::path& path) {
             std::ofstream stream(path.string());
-            write(stream, build());
+
+            Result<Node, std::string> maybe_ast_root = build();
+
+            if(maybe_ast_root.is_ok()){
+                Node ast_root = maybe_ast_root.get_ok();
+                write(stream, ast_root);
+
+            } else {
+                std::cout << "[ERROR] " << maybe_ast_root.get_error() << std::endl; 
+            }
+
         };
 
     protected:
@@ -119,7 +167,5 @@ class Ast{
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
 };
-
-int hash_rule_name(const std::string rule_name);
 
 #endif

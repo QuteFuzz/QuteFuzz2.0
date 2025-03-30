@@ -1,17 +1,5 @@
 # trying to fix up a pytket grammar that could be used
 
-# TOKENS
-NEWLINE = "\n";
-COMMA = ",";
-LPAREN = "(";
-RPAREN = ")";
-EQUALS = "=";
-DOT = ".";
-SPACE = " ";
-DOUBLE_QUOTE = '"';
-SINGLE_QUOTE = "'";
-UNDERSCORE = "_";
-
 # KEYWORDS
 SYMBOL_OBJ = "Symbol";
 CIRCUIT_OBJ = "Circuit";
@@ -56,7 +44,7 @@ parameter      = float_literal | SYMBOL_OBJ LPAREN SINGLE_QUOTE identifier SINGL
 
 # Identifiers and Literals 
 identifier   = "test";  #letter (letter | digit | UNDERSCORE)*;
-int_literal  = (digit)+;
+int_literal  = 1-9 (digit)+;
 float_literal = (digit)+ DOT (digit)*;
 letter       = a-z | A-Z;
 digit        = 0-9;

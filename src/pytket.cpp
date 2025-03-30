@@ -24,7 +24,6 @@ std::ofstream& Pytket::Pytket::write(std::ofstream& stream, const Node& node) {
             stream << "\"";
             write_children(stream, node.get_children());
             stream << "\"";
-
             break;
 
         default:
@@ -35,14 +34,21 @@ std::ofstream& Pytket::Pytket::write(std::ofstream& stream, const Node& node) {
 }
 
 void Pytket::Pytket::write(fs::path& path) {
-    Node ast_root = build(); 
-    
-    std::ofstream stream(path.string());
+    Result<Node, std::string> maybe_ast_root = build(); 
 
-    write_imports(stream) << std::endl;
+    if(maybe_ast_root.is_ok()){
+        Node ast_root = maybe_ast_root.get_ok();
 
-    write(stream, build());
+        std::ofstream stream(path.string());
 
-    std::cout << ast_root << std::endl;
-    std::cout << "Written to " << path.string() << std::endl;
+        write_imports(stream) << std::endl;
+
+        write(stream, ast_root);
+
+        std::cout << ast_root << std::endl;
+        std::cout << "Written to " << path.string() << std::endl;
+
+    } else {
+        std::cout << "[ERROR] " << maybe_ast_root.get_error() << std::endl;
+    }
 };

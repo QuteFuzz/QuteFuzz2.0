@@ -17,6 +17,7 @@ namespace Pytket {
         FLOAT_LITERAL = 69,
         ADD_GATE = 1,
         CX = 24,
+        CCX = 88,
         SYMBOL_OBJ = 21,
         IDENTIFIER = 8,
     } Rule_names;
@@ -30,7 +31,6 @@ namespace Pytket {
 
         private:
             std::ofstream& write_imports(std::ofstream& stream);
-
             std::ofstream& write(std::ofstream& stream, const Node& node) override;
 
     };

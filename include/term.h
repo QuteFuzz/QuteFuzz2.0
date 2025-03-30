@@ -52,7 +52,7 @@ class Term {
         std::string get_syntax() const {
             if(kind == TK_SYNTAX){return std::get<std::string>(value);}
             else {
-                throw std::runtime_error("get_syntax called on term!");
+                throw std::runtime_error("get_syntax called on pointer!");
             }
         }
 

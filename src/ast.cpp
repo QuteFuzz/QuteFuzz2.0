@@ -1,5 +1,15 @@
 #include "../include/ast.h"
 
+std::string Common::terminal_value(const std::string& str){
+    auto f = COMMON_TOKEN_STR.find((Common_token)hash_rule_name(str)); 
+
+    if(f == COMMON_TOKEN_STR.end()){
+        return str;
+    } else {
+        return f->second;
+    }
+}
+
 /// @brief Given a rule, pick one branch from that rule
 /// @param rule 
 /// @return 
@@ -55,17 +65,19 @@ void Ast::write_branch(std::shared_ptr<Node> node, const Result<Branch, std::str
     }
 }
 
-Node Ast::build(){
+Result<Node, std::string> Ast::build(){
 
     std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
+    Result<Node, std::string> res;
 
     if(entry == nullptr){
-        std::cout << "[ERROR] Entry point not set " << std::endl;
-        return Node();
+        res.set_error("Entry point not set");
+        return res;
 
     } else {
         write_branch(root_ptr, pick_branch(entry), 1); // pick branch randomly to be written from entry point
-        return *root_ptr;
+        res.set_ok(*root_ptr);
+        return res;
     }
 }
 
