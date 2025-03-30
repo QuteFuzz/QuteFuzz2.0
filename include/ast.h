@@ -33,6 +33,14 @@ class Node {
             return tabs;
         }
 
+        std::string get_value() const {
+            if(term.is_pointer()){
+                return term.get_rule()->get_name();
+            } else {
+                return term.get_syntax();
+            }
+        }
+
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.num_children
                 << " depth: " << n.depth
@@ -53,39 +61,53 @@ class Node {
 
 };
 
-class Ast_builder{
+class Ast{
     public:
-        Ast_builder(){}
+        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
 
-        Ast_builder(const fs::path& filename, const std::string& _entry_point) : grammar(filename), entry_point(_entry_point), gen(rd()), float_dist(0.0, 1.0) {
-            grammar.build_grammar();
-            grammar.print_grammar();
-        }
+        // for move semantics
+        //Ast(Ast&&) = default;
+        //Ast& operator=(Ast&&) = default;
 
         inline float random_float(){
             return float_dist(gen);
         }
 
-        void set_grammar(const Grammar& _grammar, const std::string& _entry_point){
-            grammar = _grammar;
-            entry_point = _entry_point;
+        void set_entry(const std::shared_ptr<Rule> _entry){
+            entry = _entry;
         }
-
-        void write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth);
 
         Result<Branch, std::string> pick_branch(std::shared_ptr<Rule> rule);
 
-        Node emit();
+        virtual void write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth);
 
-    private:
-        Grammar grammar;
+        virtual Node build();
 
-        std::string entry_point;
+        virtual void write(fs::path& path) {
+            std::ofstream stream(path.string());
+            
+            std::cout << "Writing to " << path.string() << std::endl;
+
+            write(stream, build());
+        };
+
+    protected:
+        virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
+            std::cout << "This grammar has no AST builder defined for it. Default builder has been used to create this AST" << std::endl;
+            std::cout << "AST: \n" << node << std::endl;
+
+            return stream;
+        };
+
         int recursions = MAX_RECURSIONS;
+        std::shared_ptr<Rule> entry = nullptr;
 
         std::random_device rd;
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
 };
+
+
+
 
 #endif

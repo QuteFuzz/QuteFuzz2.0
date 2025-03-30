@@ -65,6 +65,10 @@ class Grammar{
 
         void print_tokens() const;
 
+        inline bool is_rule(const std::string rule_name){
+            return rule_pointers.find(rule_name) != rule_pointers.end();
+        }
+
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}

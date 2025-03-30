@@ -15,10 +15,6 @@ int main(){
     //grammar.build_grammar();
     //grammar.print_grammar();
 
-    // testing the writer
-    //Ast_builder astb(file, "factor");
-    //astb.emit();
-
     //run entire application
     Run run("../examples");
     run.loop();

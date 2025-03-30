@@ -116,7 +116,7 @@ class Collection{
         Collection(const std::string& name) :_name(name) {}
         ~Collection(){}
 
-        std::string get_name(){return _name;}
+        std::string get_name() const {return _name;}
 
         bool get_recursive_flag() const {return recursive;}
 

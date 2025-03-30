@@ -11,12 +11,41 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                     Grammar grammar(file);
                     grammar.build_grammar();
 
-                    std::cout << "Built " << grammar.get_name() << std::endl;
+                    std::string name = grammar.get_name();
+                    std::cout << "Built " << name << std::endl;
+
+                    Program_Spec spec;
+
+                    spec.grammar = std::make_shared<Grammar>(grammar);
                     
-                    grammars[grammar.get_name()] = grammar;
+                    if(name == "pytket"){
+                        spec.builder = std::make_shared<Pytket>();
+                        spec.extension = ".py";
+
+                    } else {
+                        spec.builder = std::make_shared<Ast>();
+                        spec.extension = ".txt";
+                    }
+
+                    specs[name] = std::make_shared<Program_Spec>(spec);
+                    
                 }
             }
         }
+
+        // prepare outputs directory
+        output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
+        
+        if(!fs::exists(output_dir)){
+            fs::create_directory(output_dir);
+        } else {
+
+            for(auto& entry : fs::directory_iterator(output_dir)){
+                fs::remove(entry.path());
+            }
+        }
+
+        std::cout << grammars_dir.parent_path() / "outputs" << std::endl;
 
     } catch (const fs::filesystem_error& error) {
         std::cout << error.what() << std::endl;
@@ -29,8 +58,9 @@ void Run::set_grammar(){
     std::string grammar_name = tokens[0], entry_name = tokens[1];
 
     if(is_grammar(grammar_name)){
-        current_grammar = &grammars[grammar_name];
-        astb.set_grammar(grammars[grammar_name], entry_name);
+        current_spec = specs[grammar_name];
+        current_spec->setup_builder(entry_name);
+
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
     }
@@ -60,17 +90,19 @@ void Run::loop(){
         if(current_command == "quit"){
             run = false;
 
-        } else if (current_command == ""){
-            std::cout << "AST: \n" << astb.emit() << std::endl;
+        } else if ((current_command == "") && (current_spec != nullptr)){
+            fs::path output_path = output_dir / ("output" + current_spec->extension);
+
+            current_spec->builder->write(output_path);
 
         } else if (current_command == "h"){
             help();
             
-        } else if ((current_command == "print") && (current_grammar != NULL)){
-            current_grammar->print_grammar();
+        } else if ((current_command == "print") && (current_spec != nullptr)){
+            current_spec->grammar->print_grammar();
         
-        } else if ((current_command == "print_tokens") && (current_grammar != NULL)){
-            current_grammar->print_tokens();
+        } else if ((current_command == "print_tokens") && (current_spec != nullptr)){
+            current_spec->grammar->print_tokens();
         
         } else {
             tokenise(current_command);

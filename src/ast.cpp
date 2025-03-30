@@ -3,7 +3,7 @@
 /// @brief Given a rule, pick one branch from that rule
 /// @param rule 
 /// @return 
-Result<Branch, std::string> Ast_builder::pick_branch(std::shared_ptr<Rule> rule){
+Result<Branch, std::string> Ast::pick_branch(std::shared_ptr<Rule> rule){
     float choice = random_float();
     float cummulative = 0.0;
     Result<Branch, std::string> result;
@@ -35,7 +35,7 @@ Result<Branch, std::string> Ast_builder::pick_branch(std::shared_ptr<Rule> rule)
     return result;
 }
 
-void Ast_builder::write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth){
+void Ast::write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth){
 
     if(maybe_branch.is_ok()){
         Branch branch = maybe_branch.get_ok();
@@ -55,11 +55,16 @@ void Ast_builder::write_branch(std::shared_ptr<Node> node, const Result<Branch, 
     }
 }
 
-Node Ast_builder::emit(){
-    std::shared_ptr<Rule> entry = grammar.get_rule_pointer(entry_point);
-    std::shared_ptr<Node> root = std::make_shared<Node>(entry);
+Node Ast::build(){
 
-    write_branch(root, pick_branch(entry), 1); // pick branch randomly to be written from entry point
+    std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
 
-    return *root;
+    if(entry == nullptr){
+        std::cout << "[ERROR] Entry point not set " << std::endl;
+        return Node();
+
+    } else {
+        write_branch(root_ptr, pick_branch(entry), 1); // pick branch randomly to be written from entry point
+        return *root_ptr;
+    }
 }

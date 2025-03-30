@@ -3,7 +3,25 @@
 
 #include "grammar.h"
 #include "ast.h"
+#include "pytket.h"
 #include <sstream>
+
+const std::string OUTPUTS_FOLDER_NAME = "outputs";
+
+typedef struct {
+    std::shared_ptr<Grammar> grammar;
+    std::shared_ptr<Ast> builder;
+    std::string extension;
+
+    void setup_builder(const std::string entry_name){
+        if(grammar->is_rule(entry_name)){
+            builder->set_entry(grammar->get_rule_pointer(entry_name));
+        } else {
+            std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
+        }
+    }
+
+} Program_Spec;
 
 class Run{
 
@@ -11,7 +29,7 @@ class Run{
         Run(const std::string& _grammars_dir);
 
         bool is_grammar(const std::string& name){
-            return grammars.find(name) != grammars.end();
+            return specs.find(name) != specs.end();
         }
 
         void help(){
@@ -19,9 +37,9 @@ class Run{
             std::cout << "-> \"grammar_name grammar_entry\" : command to set grammar " << std::endl;
             std::cout << "  These are the known grammar rules: " << std::endl;
 
-            for(const auto& g : grammars){
-                std::cout << "  . " << g.first << ": ";
-                g.second.print_rules();
+            for(const auto& spec : specs){
+                std::cout << "  . " << spec.first << ": ";
+                spec.second->grammar->print_rules();
                 std::cout << std::endl;
             }
         }
@@ -34,14 +52,14 @@ class Run{
 
     private:
         fs::path grammars_dir;
-        std::unordered_map<std::string, Grammar> grammars;
-        Grammar* current_grammar = NULL;
-        Ast_builder astb;
+        std::unordered_map<std::string, std::shared_ptr<Program_Spec>> specs;
+        std::shared_ptr<Program_Spec> current_spec = nullptr;
 
         std::vector<std::string> tokens;
 
         bool run = true;
 
+        fs::path output_dir;
 };
 
 #endif
