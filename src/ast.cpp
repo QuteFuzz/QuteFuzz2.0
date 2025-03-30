@@ -68,3 +68,14 @@ Node Ast::build(){
         return *root_ptr;
     }
 }
+
+int hash_rule_name(const std::string rule_name){
+    int hash = 0;
+    int len = 1;
+
+    for(const char& c : rule_name){
+        hash ^= c ^ (len++);
+    }
+
+    return hash;
+}

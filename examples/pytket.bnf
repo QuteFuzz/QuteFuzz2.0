@@ -64,7 +64,7 @@ parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | SYMBOL LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
 
 # Identifiers and Literals 
-identifier   = letter (letter | digit | UNDERSCORE)*;
+identifier   = "test";  #letter (letter | digit | UNDERSCORE)*;
 int_literal  = (digit)+;
 float_literal = (digit)+ DOT (digit)*;
 letter       = a-z | A-Z;

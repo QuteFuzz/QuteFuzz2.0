@@ -41,6 +41,10 @@ class Node {
             }
         }
 
+        bool is_terminal() const {
+            return term.is_syntax();
+        }
+
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.num_children
                 << " depth: " << n.depth
@@ -51,6 +55,10 @@ class Node {
             }
 
             return stream;
+        }
+
+        std::vector<std::shared_ptr<Node>> get_children() const {
+            return children;
         }
 
     private:
@@ -64,10 +72,6 @@ class Node {
 class Ast{
     public:
         Ast() : gen(rd()), float_dist(0.0, 1.0) {}
-
-        // for move semantics
-        //Ast(Ast&&) = default;
-        //Ast& operator=(Ast&&) = default;
 
         inline float random_float(){
             return float_dist(gen);
@@ -85,9 +89,6 @@ class Ast{
 
         virtual void write(fs::path& path) {
             std::ofstream stream(path.string());
-            
-            std::cout << "Writing to " << path.string() << std::endl;
-
             write(stream, build());
         };
 
@@ -107,7 +108,6 @@ class Ast{
         std::uniform_real_distribution<float> float_dist;
 };
 
-
-
+int hash_rule_name(const std::string rule_name);
 
 #endif

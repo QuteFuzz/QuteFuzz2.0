@@ -9,7 +9,7 @@
 #include <cctype>
 #include <algorithm>
 
-using Expansion_option = std::vector<Token>;
+using Expansion_option = std::vector<Token::Token>;
 using Expansions = std::vector<Expansion_option>;
 
 class Grammar{
@@ -21,7 +21,7 @@ class Grammar{
 
         void consume(int n);
 
-        void consume(const Token_kind kind);
+        void consume(const Token::Token_kind kind);
 
         void peek();
 
@@ -49,11 +49,11 @@ class Grammar{
             assign_equal_probabilities();
         }
 
-        void extend_current_branches(const Token& wildcard);
+        void extend_current_branches(const Token::Token& wildcard);
 
-        void add_term_to_current_branches(const Token& tokens);
+        void add_term_to_current_branches(const Token::Token& tokens);
 
-        void add_term_to_branch(const Token& token, Branch& branch);
+        void add_term_to_branch(const Token::Token& token, Branch& branch);
 
         void expand_range();
 
@@ -74,12 +74,12 @@ class Grammar{
         inline std::string get_path(){return path.string();}
 
     private:
-        std::vector<Token> tokens;
+        std::vector<Token::Token> tokens;
         size_t num_tokens = 0;
         size_t token_pointer = 0;
-        Result<Token, std::string> curr_token;
-        Result<Token, std::string> next_token;
-        Token prev_token;
+        Result<Token::Token, std::string> curr_token;
+        Result<Token::Token, std::string> next_token;
+        Token::Token prev_token;
 
         std::string range_start = "", range_end = "";
 
@@ -92,7 +92,7 @@ class Grammar{
 
         std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
 
-        Lexer lexer;
+        Lexer::Lexer lexer;
         std::string name;
         fs::path path;
 };

@@ -21,7 +21,7 @@ void Grammar::consume(int n){
     }
 }
 
-void Grammar::consume(const Token_kind kind){
+void Grammar::consume(const Token::Token_kind kind){
 
     if(curr_token.get_ok().kind == kind){
         consume(1);
@@ -57,13 +57,13 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
 
 /// @brief Convert a single token into a term and add it to the given branch
 /// @param token 
-void Grammar::add_term_to_branch(const Token& token, Branch& branch){
+void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
 
     Term term(token.value, nesting_depth);
     
-    if(token.kind == TOKEN_SYNTAX){
+    if(token.kind == Token::SYNTAX){
         term.set_syntax(token.value);
-    } else if (token.kind == TOKEN_RULE){
+    } else if (token.kind == Token::RULE){
         term.set_pointer(get_rule_pointer(token.value));
     } else {
         throw std::runtime_error("Build branch should only be called on syntax or rule tokens!");
@@ -71,14 +71,14 @@ void Grammar::add_term_to_branch(const Token& token, Branch& branch){
 
     branch.add(term);
 
-    if((current_rule != nullptr) && (token.value == current_rule->get_name()) && (token.kind == TOKEN_RULE)){
+    if((current_rule != nullptr) && (token.value == current_rule->get_name()) && (token.kind == Token::RULE)){
         branch.set_recursive_flag();
     }
 }
 
 /// @brief The token into a term and add it to all current branches
 /// @param tokens 
-void Grammar::add_term_to_current_branches(const Token& token){
+void Grammar::add_term_to_current_branches(const Token::Token& token){
     if(current_branches.size() == 0){
         Branch b;
         add_term_to_branch(token, b);
@@ -91,7 +91,7 @@ void Grammar::add_term_to_current_branches(const Token& token){
 
 }
 
-void Grammar::extend_current_branches(const Token& wildcard){
+void Grammar::extend_current_branches(const Token::Token& wildcard){
     // loop through current heads, and multiply
     std::vector<Branch> extensions;
     Branch_multiply basis;
@@ -101,11 +101,11 @@ void Grammar::extend_current_branches(const Token& wildcard){
             basis.clear();
             current_branch.setup_basis(basis, nesting_depth);
 
-            if(wildcard.kind == TOKEN_OPTIONAL){
+            if(wildcard.kind == Token::OPTIONAL){
                 extensions.push_back(Branch(basis.remainders));
                 break;            
 
-            } else if (wildcard.kind == TOKEN_ZERO_OR_MORE){
+            } else if (wildcard.kind == Token::ZERO_OR_MORE){
                 extensions.push_back(Branch(basis.remainders));
             }
         
@@ -133,7 +133,7 @@ void Grammar::expand_range(){
     }
 
     for(char i = begin; i <= end; ++i){
-        Token token = {.kind = TOKEN_SYNTAX, .value = std::string(1, i)};
+        Token::Token token = {.kind = Token::SYNTAX, .value = std::string(1, i)};
         
         for(Branch copy : current_branches){
             add_term_to_branch(token, copy);
@@ -147,38 +147,38 @@ void Grammar::expand_range(){
 void Grammar::build_grammar(){
 
     if(curr_token.is_ok()){
-        Token token = curr_token.get_ok();
+        Token::Token token = curr_token.get_ok();
 
         // cannot set here because if curr token is EOF, next should be an error. 
         // I set this for only the specific cases where I use it to avoid an extra if statement checking for ok here
-        Token next;
+        Token::Token next;
 
         switch(token.kind){
-            case TOKEN_RULE : case TOKEN_SYNTAX: {
+            case Token::RULE : case Token::SYNTAX: {
 
                 next = next_token.get_ok();
 
-                if((next.kind != TOKEN_RANGE) && (prev_token.kind != TOKEN_RANGE)){
+                if((next.kind != Token::RANGE) && (prev_token.kind != Token::RANGE)){
                     add_term_to_current_branches(token);
                 }
 
                 break;
             }
 
-            case TOKEN_RULE_START: 
+            case Token::RULE_START: 
                 reset_current_branches();
                 current_rule = get_rule_pointer(prev_token.value);
                 break;
 
-            case TOKEN_RULE_END: complete_rule(); break;
+            case Token::RULE_END: complete_rule(); break;
 
-            case TOKEN_EOF: return; // should never peek if current token was EOF
+            case Token::_EOF: return; // should never peek if current token was EOF
 
-            case TOKEN_LPAREN: case TOKEN_LBRACK: nesting_depth += 1; break;
+            case Token::LPAREN: case Token::LBRACK: nesting_depth += 1; break;
 
-            case TOKEN_RBRACK: case TOKEN_RPAREN: nesting_depth -= 1; break;
+            case Token::RBRACK: case Token::RPAREN: nesting_depth -= 1; break;
 
-            case TOKEN_SEPARATOR: {
+            case Token::SEPARATOR: {
 
                 add_current_branches_to_rule();
                 reset_current_branches();
@@ -186,7 +186,7 @@ void Grammar::build_grammar(){
                 break;
             }
 
-            case TOKEN_RANGE: 
+            case Token::RANGE: 
                 range_start = prev_token.value; 
                 range_end = next_token.get_ok().value;
                 
@@ -194,9 +194,9 @@ void Grammar::build_grammar(){
 
                 break;
 
-            case TOKEN_PROB_SET_FLAG: assign_equal_probs = true; break;
+            case Token::PROB_SET_FLAG: assign_equal_probs = true; break;
 
-            case TOKEN_OPTIONAL: case TOKEN_ZERO_OR_MORE: case TOKEN_ONE_OR_MORE:
+            case Token::OPTIONAL: case Token::ZERO_OR_MORE: case Token::ONE_OR_MORE:
                 extend_current_branches(token);
                 break;
 
