@@ -1,6 +1,6 @@
 #include "../include/pytket.h"
 
-std::ofstream& Pytket::write_imports(std::ofstream& stream){
+std::ofstream& Pytket::Pytket::write_imports(std::ofstream& stream){
     stream << "from sympy import Symbol \n" <<
         "from helpers.pytket_helpers import test_circuit_on_passes \n" <<
         "from pathlib import Path \n" <<
@@ -11,22 +11,30 @@ std::ofstream& Pytket::write_imports(std::ofstream& stream){
     return stream;
 }
 
-std::ofstream& Pytket::write(std::ofstream& stream, const Node& node) {
+std::ofstream& Pytket::Pytket::write(std::ofstream& stream, const Node& node) {
 
     if(node.is_terminal()){
         stream << node.get_value();
-    } else {
-        std::cout << node.get_value() << " " << hash_rule_name(node.get_value()) << std::endl;
+        return stream;
     }
 
-    for(auto child : node.get_children()){
-        write(stream, *child);
+    switch(hash_rule_name(node.get_value())){
+
+        case GATE_NAME:
+            stream << "\"";
+            write_children(stream, node.get_children());
+            stream << "\"";
+
+            break;
+
+        default:
+            write_children(stream, node.get_children());
     }
 
     return stream;
 }
 
-void Pytket::write(fs::path& path) {
+void Pytket::Pytket::write(fs::path& path) {
     Node ast_root = build(); 
     
     std::ofstream stream(path.string());

@@ -13,21 +13,12 @@ SINGLE_QUOTE = "'";
 UNDERSCORE = "_";
 
 # KEYWORDS
-FROM = "from";
-IMPORT = "import";
-SYMBOL = "Symbol";
-PATH = "Path";
+SYMBOL_OBJ = "Symbol";
 CIRCUIT_OBJ = "Circuit";
-QUBIT = "Qubit";
-BIT = "Bit";
-SYMPY = "sympy";
-HELPERS_LIB = "helpers.pytket_helpers";
-PASSES_FUNC = "test_circuit_on_passes";
-PATHLIB = "pathlib";
-PYTKET = "pytket";
-CIRCUIT_LIB = "pytket.circuit";
-OP = "Op";
-OPTYPE = "OpType";
+QUBIT_OBJ = "Qubit";
+BIT_OBJ = "Bit";
+OP_OBJ = "Op";
+OPTYPE_OBJ = "OpType";
 CIRCUIT_NAME = "main_circ";
 ADD_QREG = ".add_q_register";
 ADD_CREG = ".add_c_register";
@@ -57,11 +48,11 @@ circuit      = CIRCUIT_OBJ LPAREN int_literal RPAREN (ADD_GATE LPAREN gate_call 
 gate_call    = gate_name COMMA SPACE qubit_list (COMMA SPACE parameter_list);
 gate_name    = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list   = qubit (COMMA SPACE qubit)*;
-qubit        = QUBIT LPAREN int_literal RPAREN;
+qubit        = QUBIT_OBJ LPAREN int_literal RPAREN;
 
 # Parameters
 parameter_list = parameter (COMMA SPACE parameter)*;
-parameter      = float_literal | SYMBOL LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
+parameter      = float_literal | SYMBOL_OBJ LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
 
 # Identifiers and Literals 
 identifier   = "test";  #letter (letter | digit | UNDERSCORE)*;

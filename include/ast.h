@@ -100,6 +100,18 @@ class Ast{
             return stream;
         };
 
+        /// @brief Loop through and call `write` on each child 
+        /// @param stream 
+        /// @param children 
+        /// @return 
+        std::ofstream& write_children(std::ofstream& stream, const std::vector<std::shared_ptr<Node>> children){
+            for(auto child : children){
+                write(stream, *child);
+            }
+
+            return stream;
+        }
+
         int recursions = MAX_RECURSIONS;
         std::shared_ptr<Rule> entry = nullptr;
 
