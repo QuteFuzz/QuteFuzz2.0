@@ -1,18 +1,5 @@
 # trying to fix up a pytket grammar that could be used
 
-# KEYWORDS
-SYMBOL_OBJ = "Symbol";
-CIRCUIT_OBJ = "Circuit";
-QUBIT_OBJ = "Qubit";
-BIT_OBJ = "Bit";
-OP_OBJ = "Op";
-OPTYPE_OBJ = "OpType";
-CIRCUIT_NAME = "main_circ";
-ADD_QREG = ".add_q_register";
-ADD_CREG = ".add_c_register";
-ADD_GATE = ".add_gate";
-SIZE = "size";
-
 # GATES
 X = "X";
 Y = "Y";
@@ -29,20 +16,19 @@ U1 = "U1";
 U2 = "U2";
 U3 = "U3";
 
-# circuit
-circuit      = CIRCUIT_OBJ LPAREN int_literal RPAREN (ADD_GATE LPAREN gate_call RPAREN)*;
+circuit     = circuit_def (statement)+;
 
-# Gate Calls
-gate_call    = gate_name COMMA SPACE qubit_list (COMMA SPACE parameter_list);
+circuit_def = CIRCUIT_NAME EQUALS "Circuit" LPAREN int_literal RPAREN;
+
+statement = CIRCUIT_NAME DOT gate_name LPAREN qubit_list RPAREN;
+
 gate_name    = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list   = qubit (COMMA SPACE qubit)*;
-qubit        = QUBIT_OBJ LPAREN int_literal RPAREN;
+qubit        = "Qubit" LPAREN int_literal RPAREN;
 
-# Parameters
 parameter_list = parameter (COMMA SPACE parameter)*;
-parameter      = float_literal | SYMBOL_OBJ LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
+parameter      = float_literal | "Symbol" LPAREN SINGLE_QUOTE identifier SINGLE_QUOTE RPAREN;
 
-# Identifiers and Literals 
 identifier   = "test";  #letter (letter | digit | UNDERSCORE)*;
 int_literal  = 1-9 (digit)+;
 float_literal = (digit)+ DOT (digit)*;

@@ -19,6 +19,7 @@ namespace Common {
         DOUBLE_PIPE = 70,
         DOUBLE_QUOTE = 28,
         DOUBLE_AMPERSAND = 9,
+        EQUALS = 24,
     } Common_token;
 
     const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR = {
@@ -31,6 +32,7 @@ namespace Common {
         {DOUBLE_PIPE, "||"},
         {DOUBLE_QUOTE, "\""},
         {DOUBLE_AMPERSAND, "&&"},
+        {EQUALS, " = "},
     };
 
     std::string terminal_value(const std::string& str);
@@ -79,6 +81,10 @@ class Node {
             }
         }
 
+        Term get_term(){
+            return term;
+        }
+
         bool is_terminal() const {
             return term.is_syntax() || !num_children;
         }
@@ -119,32 +125,19 @@ class Ast{
             entry = _entry;
         }
 
-        Result<Branch, std::string> pick_branch(std::shared_ptr<Rule> rule);
+        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule);
 
-        virtual void write_branch(std::shared_ptr<Node> node, const Result<Branch, std::string>& maybe_branch, int depth);
+        virtual void write_branch(std::shared_ptr<Node> node, int depth);
 
-        virtual Result<Node, std::string> build();
+        Result<Node, std::string> build();
 
-        virtual void write(fs::path& path) {
-            std::ofstream stream(path.string());
-
-            Result<Node, std::string> maybe_ast_root = build();
-
-            if(maybe_ast_root.is_ok()){
-                Node ast_root = maybe_ast_root.get_ok();
-                write(stream, ast_root);
-
-            } else {
-                std::cout << "[ERROR] " << maybe_ast_root.get_error() << std::endl; 
-            }
-
-        };
+        virtual void write(fs::path& path);
 
     protected:
         virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
             std::cout << "This grammar has no AST builder defined for it. Default builder has been used to create this AST" << std::endl;
             std::cout << "AST: \n" << node << std::endl;
-
+        
             return stream;
         };
 

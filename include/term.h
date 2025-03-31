@@ -82,20 +82,13 @@ class Term {
 
         unsigned int get_nesting_depth() const {return nesting_depth;}
 
-        friend std::vector<Term> operator*(const Term t, unsigned int mult){
-            std::vector<Term> out;
+        /// @brief Combine syntax terms. This is unsafe, but will throw errors if `get_syntax` is called on pointer
+        /// @param ext 
+        Term& operator+=(const Term& ext){
+            auto s = get_syntax() + ext.get_syntax();
+            set_syntax(s);
 
-            for(unsigned int i = 0; i < mult; ++i){
-                out.push_back(t);
-            }
-
-            return out;
-        }
-
-        void multiply(std::vector<Term>& acc, unsigned int mult) const {
-            for(unsigned int i = 0; i < mult; ++i){
-                acc.push_back(*this);
-            }
+            return *this;
         }
 
     private:
@@ -136,7 +129,12 @@ class Branch : public Collection {
     public:
         using Collection::Collection;
 
-        Branch(std::vector<Term> _terms) : terms(_terms) {}
+        Branch(std::vector<Term> _terms) {
+            // collapse terms
+            for(Term& t : _terms){
+                add(t);
+            }
+        }
 
         inline void set_recursive_flag(){recursive = true;}
 
@@ -151,6 +149,8 @@ class Branch : public Collection {
         bool is_empty() const {return terms.empty();}
 
         std::vector<Term> get_terms(){return terms;} 
+
+        std::vector<Term> collapse_terms(std::vector<Term> terms);
 
         void setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const;
 

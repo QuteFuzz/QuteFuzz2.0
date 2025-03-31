@@ -111,7 +111,11 @@ void Grammar::extend_current_branches(const Token::Token& wildcard){
         
             // use basis to get extensions depending on the wildcard being processed
             for(unsigned int mult = 2; mult <= WILDCARD_MAX; ++mult){
-                auto terms = append_vectors(basis.remainders, multiply_vector(basis.mults, mult));
+
+                auto terms = append_vectors(
+                                basis.remainders, 
+                                multiply_vector(basis.mults, mult)
+                        );
                 Branch extension(terms);
                 extensions.push_back(extension);
             }
