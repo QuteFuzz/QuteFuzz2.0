@@ -8,15 +8,17 @@ class Rule;
 class Term {
     public:
         Term(){}
-        Term(const std::string& name, unsigned int nd) :_name(name), nesting_depth(nd) {}
+        Term(const std::string& name, unsigned int nd): _name(name), nesting_depth(nd) {}
         ~Term() = default;
 
         void set(std::shared_ptr<Rule> term){
             value = term;
+            hashed_name = hash_rule_name(_name);
         }
 
         void set(std::string syntax){
             value = syntax;
+            hashed_name = hash_rule_name(syntax);
         }
 
         std::shared_ptr<Rule> get_rule() const {
@@ -33,8 +35,12 @@ class Term {
             }
         }
 
-        bool name_matches(const std::string& name) const {
-            return _name == name;
+        std::string get_string() const {
+            return _name;
+        }
+
+        unsigned int get_value() const {
+            return hashed_name;
         }
 
         bool is_syntax() const {
@@ -70,7 +76,9 @@ class Term {
 
     private:
         std::variant<std::shared_ptr<Rule>, std::string> value;
+
         std::string _name;
+        unsigned int hashed_name = 0;
         unsigned int nesting_depth = 0;
 };
 

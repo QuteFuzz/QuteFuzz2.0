@@ -4,21 +4,23 @@
 #include "ast.h"
 
 namespace Pytket {
+    const std::string TOP_LEVEL_CIRCUIT = "main_circ"; 
+
     typedef enum {
-        CIRCUIT = 115,
-        CIRCUIT_NAME = 7,
-        CIRCUIT_DEF = 75,
-        INT_LITERAL = 71,
-        GATE_NAME = 78,
-        H = 73,
-        QUBIT_LIST = 45,
-        PARAMETER_LIST = 59,
-        PARAMETER = 104,
-        FLOAT_LITERAL = 69,
-        CX = 24,
-        CCX = 88,
-        IDENTIFIER = 8,
-        STATEMENT = 100,
+        circuit = 115,
+        circuit_name = 39,
+        circuit_def = 75,
+        int_literal = 71,
+        gate_name = 78,
+        h = 73,
+        qubit_list = 45,
+        parameter_list = 59,
+        parameter = 104,
+        float_literal = 69,
+        cx = 24,
+        ccx = 120,
+        identifier = 8,
+        statement = 100,
     } Rule_names;
 
     class Pytket : public Ast {
@@ -26,7 +28,7 @@ namespace Pytket {
         public:
             using Ast::Ast;
 
-            void write_branch(std::shared_ptr<Node> node, int depth);
+            void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints) override;
 
             void write(fs::path& path) override;
 
@@ -44,14 +46,15 @@ namespace Pytket {
 
             std::ofstream& write(std::ofstream& stream, const Node& node) override {
                 std::vector<std::shared_ptr<Node>> children = node.get_children();
-                size_t children_size = children.size();
             
-                switch(hash_rule_name(node.get_value())){
+                switch(node.get_value()){
             
-                    case CIRCUIT_NAME:
-                        stream << circuit_name; break;
+                    case circuit_name:
+                        stream << TOP_LEVEL_CIRCUIT; break;
 
-                    case CIRCUIT:
+                    case circuit:
+                        stream << "# CIRCUIT" << std::endl;
+                         
                         for(auto child : children){
                             write(stream, *child) << "\n";
                         }
@@ -59,8 +62,8 @@ namespace Pytket {
                         break;
         
                     default:
-                        if(node.is_terminal()){
-                            stream << node.get_value();
+                        if(node.is_terminal()){                        
+                            stream << Common::terminal_value(node.get_string());
                             return stream;
                         }
 
@@ -69,8 +72,6 @@ namespace Pytket {
             
                 return stream;
             }
-
-            std::string circuit_name = "main_circ";
 
     };
 }

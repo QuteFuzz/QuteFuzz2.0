@@ -6,38 +6,6 @@
 
 #define MAX_RECURSIONS 5
 
-int hash_rule_name(const std::string rule_name);
-
-namespace Common {
-    typedef enum {
-        LPAREN = 3,
-        RPAREN = 29,
-        COMMA = 76,
-        SPACE = 69,
-        DOT = 95,
-        SINGLE_QUOTE = 19,
-        DOUBLE_PIPE = 70,
-        DOUBLE_QUOTE = 28,
-        DOUBLE_AMPERSAND = 9,
-        EQUALS = 24,
-    } Common_token;
-
-    const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR = {
-        {LPAREN, "("},
-        {RPAREN, ")"},
-        {COMMA, ","},
-        {SPACE, " "},
-        {DOT, "."},
-        {SINGLE_QUOTE, "\'"},
-        {DOUBLE_PIPE, "||"},
-        {DOUBLE_QUOTE, "\""},
-        {DOUBLE_AMPERSAND, "&&"},
-        {EQUALS, " = "},
-    };
-
-    std::string terminal_value(const std::string& str);
-}
-
 /// @brief A node is a term with pointers to other nodes
 class Node {
 
@@ -65,26 +33,20 @@ class Node {
             return tabs;
         }
 
-        std::string get_value() const {
-            if(term.is_pointer()){
-                std::string name = term.get_rule()->get_name();
-
-                if(num_children == 0){
-                    return Common::terminal_value(name);
-                } 
-                
-                return name;
-
-            } else {
-                return term.get_syntax();
-
-            }
+        unsigned int get_value() const {
+            return term.get_value();
         }
 
-        Term get_term(){
+        Term get_term() const {
             return term;
         }
 
+        std::string get_string() const {
+            return term.get_string();
+        }
+
+        /// @brief A node is terminal if it is a syntax node, or if it is a pointer pointing to nothing
+        /// @return 
         bool is_terminal() const {
             return term.is_syntax() || !num_children;
         }
@@ -129,9 +91,9 @@ class Ast{
         /// @param rule 
         /// @param c 
         /// @return 
-        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& c);
+        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        virtual void write_branch(std::shared_ptr<Node> node, int depth);
+        virtual void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
 
         Result<Node, std::string> build(){
 
@@ -143,7 +105,9 @@ class Ast{
                 return res;
         
             } else {
-                write_branch(root_ptr, 1);
+                Constraints::Constraints constraints;
+
+                write_branch(root_ptr, 1, constraints);
                 res.set_ok(*root_ptr);
                 return res;
             }

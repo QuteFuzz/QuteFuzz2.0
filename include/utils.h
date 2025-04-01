@@ -9,10 +9,38 @@
 #include <regex>
 #include <random>
 #include <filesystem>
+#include <unordered_map>
+#include <algorithm>
+#include <cctype>
 
 #define WILDCARD_MAX 2
 
 namespace fs = std::filesystem;
+
+unsigned int hash_rule_name(std::string rule_name);
+
+namespace Common {
+    typedef enum {
+        lparen = 3,
+        rparen = 29,
+        comma = 108,
+        space = 101,
+        dot = 127,
+        single_quote = 51,
+        double_pipe = 70,
+        double_quote = 60,
+        double_ampersand = 41,
+        equals = 24,
+    } Common_token;
+
+    extern const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR;
+
+    bool is_common(const Common_token& hashed_str);
+
+    bool is_common(const std::string& str);
+
+    std::string terminal_value(const std::string& str);
+}
 
 typedef enum{
     R_OK,
@@ -91,6 +119,8 @@ std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
 
     return result;
 }
+
+void lower(std::string& str);
 
 #endif
 

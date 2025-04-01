@@ -18,13 +18,13 @@ U3 = "U3";
 
 circuit     = circuit_def qregs (statement)+;
 
-circuit_def = CIRCUIT_NAME EQUALS "Circuit" LPAREN num_index_qubits RPAREN;
+circuit_def = circuit_name EQUALS "Circuit" LPAREN num_index_qubits RPAREN;
 
-qreg_def    = qreg_name EQUALS CIRCUIT_NAME ".add_q_register" LPAREN qreg_size RPAREN;
+qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN qreg_size RPAREN;
 
 qregs = (qreg_def)+;
 
-statement = CIRCUIT_NAME DOT gate_name LPAREN qubit_list RPAREN;
+statement = circuit_name DOT gate_name LPAREN qubit_list RPAREN;
 
 gate_name    = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list   = qubit (COMMA SPACE qubit)*;
@@ -33,7 +33,7 @@ qubit_list   = qubit (COMMA SPACE qubit)*;
 parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
-identifier   = "test";  #letter (letter | digit | UNDERSCORE)*;
+identifier   = "test";
 int_literal  = 1-9 (digit)+;
 float_literal = (digit)+ DOT (digit)*;
 letter       = a-z | A-Z;

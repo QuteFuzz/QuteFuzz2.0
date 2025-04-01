@@ -9,9 +9,30 @@ An idea for where QuteFuzz 2.0 might head.
 - The idea is that we have a grammar representation on top of which we can build other things. Here, the grammar is parsed to output text directly, but Dr Wickerson had spoken about making our circuit generation more "graph based". Perhaps we could write for each QSS: 1. `QSS Grammar -> QSS AST`, then we can play with the AST to edit the circuit in any way we want before doing 2. `QSS AST -> QSS Program`. 
 - The first step will probably be the hardest part, because I think this is where we do type checking and other checks to make sure the program is well formed
 
-## Grammar parser limitations
+## Grammar parser
 
-The grammar parser can handle most of the BNF syntax, up to simple groupings with / without wildcards like `(term (expr)+ hello)*`. However, things like `term ("+" | "-") expr` and `[1-9]` are tokenised, but not parsed correctly. 
+### How to use
+- Write grammar in BNF syntax. 
+- As a convention, I use lower case for rules, and uppercase for syntax tokens. This isn't needed for functionality.
+- The tokens below are known as "common" syntax tokens, and therefore do not need to be defined in the grammar. 
+Use the names below (case-agnostic), and the corresponding token will be written to the program:
+```
+lparen, "("
+rparen, ")"
+comma, ","
+space, " "
+dot, "."
+single_quote, "\'"
+double_pipe, "||"
+double_quote, "\""
+double_ampersand, "&&"
+equals, " = "
+```
+Gates have not been added as those could have different APIs depending on the front-end.
+
+### Limitations
+
+The grammar parser can handle most of the BNF syntax, up to simple groupings with / without wildcards like `(term (expr)+ hello)*`. However, things like `term ("+" | "-") expr` are tokenised, but not parsed correctly. 
 
 These are small bits that can be added later.
 
@@ -52,3 +73,5 @@ AST:
                                 ->["4"] children: 0 depth: 5
 ->[")"] children: 0 depth: 1
 ```
+
+An AST for [`pytket.bnf`](examples/pytket.bnf) can be produced in the same way. Since an AST builder is defined for it, a program will be written to `outputs/output.py`.  

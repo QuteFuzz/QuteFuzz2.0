@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <math.h>
 #include <unordered_map>
-#include "branch.h"
 #include "rule.h"
 #include <cctype>
 #include <algorithm>
