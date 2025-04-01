@@ -34,8 +34,20 @@ namespace Common {
         equals = 3453683047558497236ULL,
 
         h = 12638197096160295895ULL,
+        x = 12638214688346347271ULL,
+        y = 12638213588834719060ULL,
+        z = 12638216887369603693ULL,
+
         cx = 622136697450792830ULL,
         ccx = 17716034042247149281ULL,
+        
+        rz = 638471042196278621ULL,
+        rx = 638468843173022199ULL,
+        ry = 638467743661393988ULL,
+        
+        u1 = 631765120777144307ULL,
+        u2 = 631766220288772518ULL,
+        u3 = 631767319800400729ULL,
     };
 
     extern const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR;

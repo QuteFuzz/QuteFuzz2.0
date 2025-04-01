@@ -31,11 +31,32 @@ equals, " = "
 
 Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
 
+Wildcards are expanded out, with a maximum set to 2. So `expr+` becomes `expr expr` in memory. 
+
 ### Limitations
 
 The grammar parser can handle most of the BNF syntax, up to simple groupings with / without wildcards like `(term (expr)+ hello)*`. However, things like `term ("+" | "-") expr` are tokenised, but not parsed correctly. 
 
-These are small bits that can be added later.
+### Major TODOS
+These are limitations that turned out to be quite a pain, so are important to get fixed
+- [ ] `circuit = circuit_def qreg+ statement+;` does not work as expected. In general consecutive wildcards seem to be buggy. This has to be broken down into `circuit = circuit_def qregs statements;`. 
+
+## AST builder
+
+A constraint system ensures that the AST is well formed. 
+
+- The AST builder follows the grammar, picking a branch at random as long as it satisfies a set of constraints. The default AST which just follows the grammar blindly has only one constraint which prevents infinite recursion. See [`src/ast.cpp`](src/ast.cpp#L16-#L21)
+
+- The pytket AST has other interesting constraints. Constraints are added depending on which node in the AST is being built. For instance, here's a set of constraints for single qubit gates:
+
+```C++
+case Common::h: case Common::x: case Common::y: case Common::z:
+        constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+        constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+        break;
+```
+
+Where `gate_application` and `qubit_list` are rules defined in the grammar.
 
 ## Running
 

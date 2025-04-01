@@ -67,24 +67,24 @@ class Branch {
 /// @brief A constraint on some property of a branch
 namespace Constraints {
     enum Type {
-        MINIMUM,
-        MAXIMUM,
-        EQUALS,
-        NON_RECURSIVE,
+        BRANCH_SIZE_MINIMUM,
+        BRANCH_SIZE_MAXIMUM,
+        BRANCH_SIZE_EQUALS,
+        BRANCH_IS_NON_RECURSIVE,
     };
 
     struct Constraint {
+        uint64_t node = 0; // constraint on a branch from a particular node
         Type type;
         unsigned int value = 0;
-        uint64_t node = 0; // constraint on a branch from a particular node
 
         bool is_satisfied(const uint64_t _node, const Branch& b) const {
 
             switch(type){
-                case MAXIMUM: return (b.num_rules() <= value) || (node != _node);
-                case MINIMUM: return (b.num_rules() >= value) || (node != _node);
-                case EQUALS: return (b.num_rules() == value) || (node != _node);
-                case NON_RECURSIVE: return !b.get_recursive_flag();
+                case BRANCH_SIZE_MAXIMUM: return (b.num_rules() <= value) || (node != _node);
+                case BRANCH_SIZE_MINIMUM: return (b.num_rules() >= value) || (node != _node);
+                case BRANCH_SIZE_EQUALS: return (b.num_rules() == value) || (node != _node);
+                case BRANCH_IS_NON_RECURSIVE: return !b.get_recursive_flag();
             }
 
             return false;

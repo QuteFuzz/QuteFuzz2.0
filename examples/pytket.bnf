@@ -10,7 +10,9 @@ statements  = (statement)+;
 
 qregs       = (qreg_def)+;
 
-statement   = circuit_name DOT gate_name LPAREN qubit_list RPAREN;
+statement   = circuit_name DOT gate_name gate_application;
+
+gate_application = LPAREN qubit_list RPAREN | LPAREN float_literal COMMA qubit_list RPAREN;
 
 gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list  = qubit (COMMA SPACE qubit)*;
@@ -21,7 +23,7 @@ parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
 identifier    = "test";
 int_literal   = 1-9 (digit)+;
-float_literal = (digit)+ DOT (digit)*;
+float_literal = digit DOT (digit)*;
 letter        = a-z | A-Z;
 digit         = 0-9;
 

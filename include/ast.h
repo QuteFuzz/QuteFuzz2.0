@@ -93,7 +93,7 @@ class Ast{
         /// @return 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){};
+        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){}
 
         void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
 
@@ -136,6 +136,8 @@ class Ast{
 
             return stream;
         }
+
+        Constraints::Constraints default_constraints;
 
         int recursions = MAX_RECURSIONS;
         std::shared_ptr<Rule> entry = nullptr;

@@ -4,13 +4,44 @@
 /// @param node 
 /// @param constraints 
 void Pytket::Pytket::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
-    // std::cout << "Node " << node->get_string() << " has value " << node->get_value() << std::endl;
+
     switch(node->get_value()){
         case gate_name: constraints.clear(); break;
-        case Common::h: 
-            constraints.add_constraint({.type = Constraints::EQUALS, .value = 1, .node = qubit_list}); break;
+
+        case Common::h: case Common::x: case Common::y: case Common::z:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            break;
+        
         case Common::cx:
-            constraints.add_constraint({.type = Constraints::EQUALS, .value = 2, .node = qubit_list}); break;
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            break;
+
+        case Common::ccx:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 3}); 
+            break;
+
+        case Common::u1:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            break;
+
+        case Common::u2:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            break;
+
+        case Common::u3:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 3}); 
+            break;   
+        
+        case Common::rx: case Common::ry: case Common::rz:
+            constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 2}); 
+            constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+            break;
 
     }
 }

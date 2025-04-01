@@ -17,6 +17,7 @@ namespace Pytket {
         parameter = 1363275014107747824ULL,
         statements = 7457579184642066079ULL,
         qregs = 16470122600586778151ULL,
+        gate_application = 2267869270411795151ULL,
     } ;
 
     class Pytket : public Ast {
@@ -24,7 +25,7 @@ namespace Pytket {
         public:
             using Ast::Ast;
 
-            void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints) override;
+            void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
             void write(fs::path& path) override;
 

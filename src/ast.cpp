@@ -15,7 +15,7 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
     
     // if we have done a set number of recursions already and this rule has a non recursive branch, choose that instead
     if ((recursions <= 0) && rule->get_recursive_flag()){
-        constraints.add_constraint({.type = Constraints::NON_RECURSIVE});
+        constraints.add_constraint({.type = Constraints::BRANCH_IS_NON_RECURSIVE});
         result.set_ok(rule->pick_branch(constraints));   
         return result;
     }
@@ -34,7 +34,6 @@ void Ast::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Const
     Term t = node->get_term();
 
     if(t.is_pointer()){
-
         add_constraint(node, constraints);
 
         Result<Branch, std::string> maybe_branch = pick_branch(t.get_rule(), constraints);
