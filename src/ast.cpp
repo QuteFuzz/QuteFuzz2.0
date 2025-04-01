@@ -24,9 +24,7 @@ std::string Common::terminal_value(const std::string& str){
 /// @brief Given a rule, pick one branch from that rule
 /// @param rule 
 /// @return 
-Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule){
-    float choice = random_float();
-    float cummulative = 0.0;
+Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& c){
     Result<Branch, std::string> result;
 
     std::vector<Branch> branches = rule->get_branches();
@@ -38,21 +36,14 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule){
     
     // if we have done a set number of recursions already and this rule has a non recursive branch, choose that instead
     if ((recursions <= 0) && rule->get_recursive_flag()){
-        result.set_ok(rule->pick_non_recursive_branch());   
+        c.add_constraint({.type = Constraints::NON_RECURSIVE});
+        result.set_ok(rule->pick_branch(c));   
         return result;
     }
 
-    for(const Branch& b : branches){
-        cummulative += b.get_prob();
+    result.set_ok(rule->pick_branch(c));
+    recursions -= 1;
 
-        if(choice <= cummulative){
-            result.set_ok(b);
-            recursions -= 1;
-            return result;
-        }
-    }
-
-    result.set_error("[ERROR] Cannot pick branch for rule " + rule->get_name() + " !" + "\nChoose prob " + std::to_string(choice));
     return result;
 }
 
@@ -61,7 +52,9 @@ void Ast::write_branch(std::shared_ptr<Node> node, int depth){
 
     if(t.is_pointer()){
 
-        Result<Branch, std::string> maybe_branch = pick_branch(t.get_rule());
+        Constraints::Constraints cs;
+
+        Result<Branch, std::string> maybe_branch = pick_branch(t.get_rule(), cs);
 
         if(maybe_branch.is_ok()){
             Branch branch = maybe_branch.get_ok();
@@ -80,22 +73,6 @@ void Ast::write_branch(std::shared_ptr<Node> node, int depth){
 
     }
     
-}
-
-Result<Node, std::string> Ast::build(){
-
-    std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
-    Result<Node, std::string> res;
-
-    if(entry == nullptr){
-        res.set_error("Entry point not set");
-        return res;
-
-    } else {
-        write_branch(root_ptr, 1); // pick branch randomly to be written from entry point
-        res.set_ok(*root_ptr);
-        return res;
-    }
 }
 
 void Ast::write(fs::path& path) {

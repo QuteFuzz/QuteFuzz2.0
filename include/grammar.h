@@ -5,12 +5,10 @@
 #include <errno.h>
 #include <math.h>
 #include <unordered_map>
-#include "term.h"
+#include "branch.h"
+#include "rule.h"
 #include <cctype>
 #include <algorithm>
-
-using Expansion_option = std::vector<Token::Token>;
-using Expansions = std::vector<Expansion_option>;
 
 class Grammar{
 

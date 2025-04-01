@@ -26,6 +26,8 @@ namespace Pytket {
         public:
             using Ast::Ast;
 
+            void write_branch(std::shared_ptr<Node> node, int depth);
+
             void write(fs::path& path) override;
 
         private:

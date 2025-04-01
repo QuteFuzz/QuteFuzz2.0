@@ -62,9 +62,9 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
     Term term(token.value, nesting_depth);
     
     if(token.kind == Token::SYNTAX){
-        term.set_syntax(token.value);
+        term.set(token.value);
     } else if (token.kind == Token::RULE){
-        term.set_pointer(get_rule_pointer(token.value));
+        term.set(get_rule_pointer(token.value));
     } else {
         throw std::runtime_error("Build branch should only be called on syntax or rule tokens!");
     }

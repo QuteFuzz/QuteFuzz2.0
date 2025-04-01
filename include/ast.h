@@ -38,7 +38,7 @@ namespace Common {
     std::string terminal_value(const std::string& str);
 }
 
-/// @brief A node is a terminal term with pointers to other nodes
+/// @brief A node is a term with pointers to other nodes
 class Node {
 
     public:
@@ -47,7 +47,7 @@ class Node {
         Node(const Term& _term, int _depth) : term(_term), depth(_depth){}
 
         Node(const std::shared_ptr<Rule> rule) {
-            term.set_pointer(rule);
+            term.set(rule);
         }
 
         void add_child(const std::shared_ptr<Node> child){
@@ -125,11 +125,29 @@ class Ast{
             entry = _entry;
         }
 
-        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule);
+        /// @brief Pick a branch that satisfies some constraint
+        /// @param rule 
+        /// @param c 
+        /// @return 
+        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& c);
 
         virtual void write_branch(std::shared_ptr<Node> node, int depth);
 
-        Result<Node, std::string> build();
+        Result<Node, std::string> build(){
+
+            std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
+            Result<Node, std::string> res;
+        
+            if(entry == nullptr){
+                res.set_error("Entry point not set");
+                return res;
+        
+            } else {
+                write_branch(root_ptr, 1);
+                res.set_ok(*root_ptr);
+                return res;
+            }
+        }
 
         virtual void write(fs::path& path);
 
