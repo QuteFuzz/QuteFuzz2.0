@@ -28,7 +28,8 @@ double_quote, "\""
 double_ampersand, "&&"
 equals, " = "
 ```
-Gates have not been added as those could have different APIs depending on the front-end.
+
+Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
 
 ### Limitations
 
