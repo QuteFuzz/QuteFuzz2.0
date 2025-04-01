@@ -93,7 +93,9 @@ class Ast{
         /// @return 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        virtual void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
+        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){};
+
+        void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
 
         Result<Node, std::string> build(){
 

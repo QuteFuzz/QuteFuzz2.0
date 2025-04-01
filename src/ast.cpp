@@ -26,10 +26,16 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
     return result;
 }
 
+/// @brief Write branch terms to node children. Choosen branch must satisfy given constraints
+/// @param node 
+/// @param depth 
+/// @param constraints 
 void Ast::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints){
     Term t = node->get_term();
 
     if(t.is_pointer()){
+
+        add_constraint(node, constraints);
 
         Result<Branch, std::string> maybe_branch = pick_branch(t.get_rule(), constraints);
 

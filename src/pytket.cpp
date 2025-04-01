@@ -1,40 +1,18 @@
 #include "../include/pytket.h"
 
-
-void Pytket::Pytket::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints){
-    Term t = node->get_term();
-
-    if(t.is_pointer()){
-        // figure out what constraints to add to branch depending on the node type
-        // std::cout << "Node " << node->get_string() << " has value " << node->get_value() << std::endl;
-        switch(node->get_value()){
-            case gate_name: constraints.clear(); break;
-            case Common::h: 
-                constraints.add_constraint({.type = Constraints::EQUALS, .value = 1, .node = qubit_list}); break;
-            case Common::cx:
-                constraints.add_constraint({.type = Constraints::EQUALS, .value = 2, .node = qubit_list}); break;
-
-        }
-
-        Result<Branch, std::string> maybe_branch = pick_branch(t.get_rule(), constraints);
-
-        if(maybe_branch.is_ok()){
-            Branch branch = maybe_branch.get_ok();
-    
-            for(const Term& t : branch.get_terms()){
-                std::shared_ptr<Node> child = std::make_shared<Node>(t, depth);
-                
-                write_branch(child, depth + 1, constraints);
-    
-                node->add_child(child);
-            }
-    
-        } else {
-            std::cout << maybe_branch.get_error() << std::endl;
-        }
+/// @brief Depending on the type of the node, add constraints on which branch can be picked 
+/// @param node 
+/// @param constraints 
+void Pytket::Pytket::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
+    // std::cout << "Node " << node->get_string() << " has value " << node->get_value() << std::endl;
+    switch(node->get_value()){
+        case gate_name: constraints.clear(); break;
+        case Common::h: 
+            constraints.add_constraint({.type = Constraints::EQUALS, .value = 1, .node = qubit_list}); break;
+        case Common::cx:
+            constraints.add_constraint({.type = Constraints::EQUALS, .value = 2, .node = qubit_list}); break;
 
     }
-    
 }
 
 void Pytket::Pytket::write(fs::path& path) {

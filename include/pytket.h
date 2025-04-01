@@ -15,6 +15,8 @@ namespace Pytket {
         qubit_list = 18380990572907722739ULL,
         parameter_list = 10044088521670889753ULL,
         parameter = 1363275014107747824ULL,
+        statements = 7457579184642066079ULL,
+        qregs = 16470122600586778151ULL,
     } ;
 
     class Pytket : public Ast {
@@ -22,7 +24,7 @@ namespace Pytket {
         public:
             using Ast::Ast;
 
-            void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints) override;
+            void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints) override;
 
             void write(fs::path& path) override;
 
@@ -53,7 +55,7 @@ namespace Pytket {
                     case circuit_name:
                         stream << TOP_LEVEL_CIRCUIT; break;
 
-                    case circuit:    
+                    case circuit: case statements: case qregs:    
                         std::cout << "circuit rule " << node.get_string() << std::endl;                     
                         for(auto child : children){
                             write(stream, *child) << "\n";
