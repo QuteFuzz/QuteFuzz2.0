@@ -6,12 +6,13 @@ void Pytket::Pytket::write_branch(std::shared_ptr<Node> node, int depth, Constra
 
     if(t.is_pointer()){
         // figure out what constraints to add to branch depending on the node type
+        // std::cout << "Node " << node->get_string() << " has value " << node->get_value() << std::endl;
         switch(node->get_value()){
             case gate_name: constraints.clear(); break;
-            case h: 
-                constraints.add_constraint({.type = Constraints::EQUALS, .value = 1, .node = qubit_list}); std::cout << "constraint on qubit_list " << std::endl; break;
-            case cx:
-                constraints.add_constraint({.type = Constraints::EQUALS, .value = 2, .node = qubit_list}); std::cout << "constraint on qubit_list " << std::endl; break;
+            case Common::h: 
+                constraints.add_constraint({.type = Constraints::EQUALS, .value = 1, .node = qubit_list}); break;
+            case Common::cx:
+                constraints.add_constraint({.type = Constraints::EQUALS, .value = 2, .node = qubit_list}); break;
 
         }
 

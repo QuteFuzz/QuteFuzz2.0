@@ -38,17 +38,18 @@ void lower(std::string& str){
     );
 }
 
-/// @brief Lowercase input for consistency, and ease
+/// @brief Lowercase input for consistency, and ease. Uses FNV hash. Tried to find a good hash so as to avoid collisions
 /// @param rule_name 
 /// @return 
-unsigned int hash_rule_name(std::string rule_name){
-    int hash = 0;
-    int len = 1;
+uint64_t hash_rule_name(std::string rule_name) {
+    uint64_t hash = 14695981039346656037ULL;  // FNV offset basis
+    const uint64_t prime = 1099511628211ULL;  // FNV prime
 
     lower(rule_name);
 
-    for(const char& c : rule_name){
-        hash ^= c ^ (len++);
+    for (const char& c : rule_name) {
+        hash ^= static_cast<uint8_t>(c);  
+        hash *= prime;                     // multiply by a prime
     }
 
     return hash;

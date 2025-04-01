@@ -12,26 +12,31 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 
 #define WILDCARD_MAX 2
 
 namespace fs = std::filesystem;
 
-unsigned int hash_rule_name(std::string rule_name);
+uint64_t hash_rule_name(std::string rule_name);
 
 namespace Common {
-    typedef enum {
-        lparen = 3,
-        rparen = 29,
-        comma = 108,
-        space = 101,
-        dot = 127,
-        single_quote = 51,
-        double_pipe = 70,
-        double_quote = 60,
-        double_ampersand = 41,
-        equals = 24,
-    } Common_token;
+    enum Common_token : uint64_t {
+        lparen = 8662532954183415845ULL,
+        rparen = 4240811817421387563ULL,
+        comma = 7874411517935695704ULL,
+        space = 4858524775536387045ULL,
+        dot = 14604936204231399584ULL,
+        single_quote = 11907393312445673822ULL,
+        double_pipe = 6606020031733204521ULL,
+        double_quote = 8080484409244937479ULL,
+        double_ampersand = 5535872232892287956ULL,
+        equals = 3453683047558497236ULL,
+
+        h = 12638197096160295895ULL,
+        cx = 622136697450792830ULL,
+        ccx = 17716034042247149281ULL,
+    };
 
     extern const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR;
 

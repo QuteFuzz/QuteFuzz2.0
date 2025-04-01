@@ -33,7 +33,7 @@ class Node {
             return tabs;
         }
 
-        unsigned int get_value() const {
+        uint64_t get_value() const {
             return term.get_value();
         }
 

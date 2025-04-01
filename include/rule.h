@@ -76,9 +76,9 @@ namespace Constraints {
     typedef struct {
         Type type;
         unsigned int value = 0;
-        unsigned int node = 0; // constraint on a branch from a particular node
+        uint64_t node = 0; // constraint on a branch from a particular node
 
-        bool is_satisfied(const unsigned int _node, const Branch& b) const {
+        bool is_satisfied(const uint64_t _node, const Branch& b) const {
 
             switch(type){
                 case MAXIMUM: return (b.num_rules() <= value) || (node != _node);
@@ -100,7 +100,7 @@ namespace Constraints {
             /// @brief Check that all constraints on this branch are satisfied
             /// @param b 
             /// @return 
-            bool are_satisfied(const unsigned int _node, const Branch& b) const {
+            bool are_satisfied(const uint64_t _node, const Branch& b) const {
                 
                 for(const Constraint& c : constraints){
                     if(!c.is_satisfied(_node, b)) return false;

@@ -6,22 +6,16 @@
 namespace Pytket {
     const std::string TOP_LEVEL_CIRCUIT = "main_circ"; 
 
-    typedef enum {
-        circuit = 115,
-        circuit_name = 39,
-        circuit_def = 75,
-        int_literal = 71,
-        gate_name = 78,
-        h = 73,
-        qubit_list = 45,
-        parameter_list = 59,
-        parameter = 104,
-        float_literal = 69,
-        cx = 24,
-        ccx = 120,
-        identifier = 8,
-        statement = 100,
-    } Rule_names;
+    enum Rule_names : uint64_t {
+        circuit = 18088473315674432532ULL,
+        circuit_name = 5389401364268778602ULL,
+        circuit_def = 17654104105659481736ULL,
+        int_literal = 12222978820271297122ULL,
+        gate_name = 4107851538286704628ULL,
+        qubit_list = 18380990572907722739ULL,
+        parameter_list = 10044088521670889753ULL,
+        parameter = 1363275014107747824ULL,
+    } ;
 
     class Pytket : public Ast {
 
@@ -45,6 +39,13 @@ namespace Pytket {
             }
 
             std::ofstream& write(std::ofstream& stream, const Node& node) override {
+                
+                // write terminal nodes right away
+                if(node.is_terminal()){             
+                    stream << Common::terminal_value(node.get_string());
+                    return stream;
+                }
+
                 std::vector<std::shared_ptr<Node>> children = node.get_children();
             
                 switch(node.get_value()){
@@ -52,9 +53,8 @@ namespace Pytket {
                     case circuit_name:
                         stream << TOP_LEVEL_CIRCUIT; break;
 
-                    case circuit:
-                        stream << "# CIRCUIT" << std::endl;
-                         
+                    case circuit:    
+                        std::cout << "circuit rule " << node.get_string() << std::endl;                     
                         for(auto child : children){
                             write(stream, *child) << "\n";
                         }
@@ -62,11 +62,6 @@ namespace Pytket {
                         break;
         
                     default:
-                        if(node.is_terminal()){                        
-                            stream << Common::terminal_value(node.get_string());
-                            return stream;
-                        }
-
                         write_children(stream, node.get_children());
                 }
             

@@ -1,21 +1,5 @@
 # trying to fix up a pytket grammar that could be used
 
-# GATES
-X = "X";
-Y = "Y";
-Z = "Z";
-H = "H";
-CX = "CX";
-CY = "CY";
-CZ = "CZ";
-CCX = "CCX";
-Rz = "Rz";
-Rx = "Rx";
-Ry = "Ry";
-U1 = "U1";
-U2 = "U2";
-U3 = "U3";
-
 circuit     = circuit_def qregs (statement)+;
 
 circuit_def = circuit_name EQUALS "Circuit" LPAREN num_index_qubits RPAREN;

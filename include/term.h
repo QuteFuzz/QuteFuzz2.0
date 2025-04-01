@@ -39,7 +39,7 @@ class Term {
             return _name;
         }
 
-        unsigned int get_value() const {
+        uint64_t get_value() const {
             return hashed_name;
         }
 
@@ -53,7 +53,7 @@ class Term {
 
         friend std::ostream& operator<<(std::ostream& stream, Term term){
             if(term.is_syntax()){
-                stream << "\"" << term.get_syntax() << "\"";
+                stream << "\"" << term._name << "\"";
             } else {
                 stream << term._name;
             }
@@ -78,7 +78,7 @@ class Term {
         std::variant<std::shared_ptr<Rule>, std::string> value;
 
         std::string _name;
-        unsigned int hashed_name = 0;
+        uint64_t hashed_name = 0ULL;
         unsigned int nesting_depth = 0;
 };
 
