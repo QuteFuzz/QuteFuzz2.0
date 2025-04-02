@@ -39,7 +39,7 @@ The grammar parser can handle most of the BNF syntax, up to simple groupings wit
 
 ### Major TODOS
 These are limitations that turned out to be quite a pain, so are important to get fixed
-- [ ] `circuit = circuit_def qreg+ statement+;` does not work as expected. In general consecutive wildcards seem to be buggy. This has to be broken down into `circuit = circuit_def qregs statements;`. 
+- [x] `circuit = circuit_def qreg+ statement+;` does not work as expected. In general consecutive wildcards seem to be buggy. This has to be broken down into `circuit = circuit_def qregs statements;`. 
 
 ## AST builder
 

@@ -46,6 +46,17 @@ class Grammar{
             assign_equal_probabilities();
         }
 
+        inline void increment_nesting_depth_base(){
+            if(nesting_depth == nesting_depth_base) {
+                nesting_depth_base += 1;
+                nesting_depth = nesting_depth_base;
+            }
+        }
+
+        bool is_wilcard(const Token::Token& token) const {
+            return (token.kind ==  Token::OPTIONAL) || (token.kind == Token::ZERO_OR_MORE) || (token.kind == Token::ONE_OR_MORE);
+        }
+
         void extend_current_branches(const Token::Token& wildcard);
 
         void add_term_to_current_branches(const Token::Token& tokens);
@@ -83,7 +94,8 @@ class Grammar{
         std::vector<Branch> current_branches;
         std::shared_ptr<Rule> current_rule = nullptr;
 
-        unsigned int nesting_depth = 0;
+        unsigned int nesting_depth_base = 0;
+        unsigned int nesting_depth = nesting_depth_base;
 
         bool assign_equal_probs = false;
 

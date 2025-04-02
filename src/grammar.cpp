@@ -123,6 +123,8 @@ void Grammar::extend_current_branches(const Token::Token& wildcard){
         }
     }
 
+    increment_nesting_depth_base(); // must be done after wildcards are processed
+
     current_branches.insert(current_branches.end(), extensions.begin(), extensions.end());
 }
 
@@ -180,7 +182,16 @@ void Grammar::build_grammar(){
 
             case Token::LPAREN: case Token::LBRACK: nesting_depth += 1; break;
 
-            case Token::RBRACK: case Token::RPAREN: nesting_depth -= 1; break;
+            case Token::RBRACK: case Token::RPAREN: 
+                nesting_depth -= 1; 
+
+                next = next_token.get_ok();
+
+                if(!is_wilcard(next)){
+                    increment_nesting_depth_base();
+                }
+
+                break;
 
             case Token::SEPARATOR: {
 

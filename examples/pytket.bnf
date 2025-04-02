@@ -23,7 +23,7 @@ parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
 identifier    = "test";
 int_literal   = 1-9 (digit)+;
-float_literal = digit DOT (digit)*;
+float_literal = (digit)+ DOT (digit)*;
 letter        = a-z | A-Z;
 digit         = 0-9;
 
