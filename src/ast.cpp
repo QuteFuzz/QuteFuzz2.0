@@ -15,7 +15,7 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
     
     // if we have done a set number of recursions already and this rule has a non recursive branch, choose that instead
     if ((recursions <= 0) && rule->get_recursive_flag()){
-        constraints.add_constraint({.type = Constraints::BRANCH_IS_NON_RECURSIVE});
+        constraints.add_constraint(Constraints::Constraint(Constraints::BRANCH_IS_NON_RECURSIVE));
         result.set_ok(rule->pick_branch(constraints));   
         return result;
     }

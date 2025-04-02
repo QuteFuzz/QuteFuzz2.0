@@ -11,6 +11,7 @@ namespace Pytket {
         circuit_name = 5389401364268778602ULL,
         circuit_def = 17654104105659481736ULL,
         int_literal = 12222978820271297122ULL,
+        float_literal = 6014115549703600901ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
         parameter_list = 10044088521670889753ULL,
@@ -51,7 +52,7 @@ namespace Pytket {
 
                 std::vector<std::shared_ptr<Node>> children = node.get_children();
             
-                switch(node.get_value()){
+                switch(node.get_hash()){
             
                     case circuit_name:
                         stream << TOP_LEVEL_CIRCUIT; break;

@@ -21,7 +21,7 @@ class Term {
 
         std::string get_string() const;
 
-        uint64_t get_value() const;
+        uint64_t get_hash() const;
 
         bool is_syntax() const;
 
@@ -34,6 +34,10 @@ class Term {
         unsigned int get_nesting_depth() const;
 
         Term& operator+=(const Term& ext);
+
+        bool operator==(const Term& other);
+
+        bool operator==(const uint64_t& hash);
 
     private:
         std::variant<std::shared_ptr<Rule>, std::string> value;

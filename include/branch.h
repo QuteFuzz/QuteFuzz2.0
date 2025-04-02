@@ -46,7 +46,9 @@ class Branch {
 
         size_t size() const {return terms.size();}
 
-        size_t num_rules() const;
+        inline size_t num_pointer_terms() const {return pointer_terms.size();}
+
+        bool pointer_terms_match(std::vector<uint64_t> term_hashes) const ;
 
         bool is_empty() const {return terms.empty();}
 
@@ -61,66 +63,9 @@ class Branch {
         bool recursive = false;
 
         std::vector<Term> terms;
+        std::vector<std::shared_ptr<Term>> pointer_terms;
         float prob = 0.0;
 };
-
-/// @brief A constraint on some property of a branch
-namespace Constraints {
-    enum Type {
-        BRANCH_SIZE_MINIMUM,
-        BRANCH_SIZE_MAXIMUM,
-        BRANCH_SIZE_EQUALS,
-        BRANCH_IS_NON_RECURSIVE,
-    };
-
-    struct Constraint {
-        uint64_t node = 0; // constraint on a branch from a particular node
-        Type type;
-        unsigned int value = 0;
-
-        bool is_satisfied(const uint64_t _node, const Branch& b) const {
-
-            switch(type){
-                case BRANCH_SIZE_MAXIMUM: return (b.num_rules() <= value) || (node != _node);
-                case BRANCH_SIZE_MINIMUM: return (b.num_rules() >= value) || (node != _node);
-                case BRANCH_SIZE_EQUALS: return (b.num_rules() == value) || (node != _node);
-                case BRANCH_IS_NON_RECURSIVE: return !b.get_recursive_flag();
-            }
-
-            return false;
-        }
-
-    };
-
-    struct Constraints {
-        
-        public:
-            Constraints(){}
-
-            /// @brief Check that all constraints on this branch are satisfied
-            /// @param b 
-            /// @return 
-            bool are_satisfied(const uint64_t _node, const Branch& b) const {
-                
-                for(const Constraint& c : constraints){
-                    if(!c.is_satisfied(_node, b)) return false;
-                }
-                return true;
-            }
-
-            void add_constraint(Constraint c){
-                constraints.push_back(c);
-            }
-
-            void clear(){
-                constraints.clear();
-            }
-        
-        private:
-            std::vector<Constraint> constraints = {};
-
-    };
-}
 
 
 #endif

@@ -59,11 +59,6 @@ namespace Common {
     std::string terminal_value(const std::string& str);
 }
 
-typedef enum{
-    R_OK,
-    R_ERROR
-} Result_kind;
-
 template<typename A, typename B>
 struct Result{
 
@@ -74,42 +69,35 @@ struct Result{
 
         void set_ok(A a){
             as = a;
-            kind = R_OK;
         }
 
         void set_error(B b){
             as = b;
-            kind = R_ERROR;
         }
 
         A get_ok() const {
-            if(kind == R_OK){return std::get<A>(as);}
+            if(is_ok()){return std::get<A>(as);}
             else {
                 throw std::runtime_error("get_ok called on error!");
             }
         }
 
         B get_error() const {
-            if(kind == R_ERROR){return std::get<B>(as);}
+            if(is_error()){return std::get<B>(as);}
             else {
                 throw std::runtime_error("get_ok called on OK!");
             }
         }
 
         bool is_ok() const {
-            return is(R_OK);
+            return as.index() == 0;
         }
 
         bool is_error() const {
-            return is(R_ERROR);
+            return as.index() == 1;
         }
 
     private:
-        bool is(Result_kind rk) const {
-            return kind == rk;
-        }
-
-        Result_kind kind;
         std::variant<A, B> as;
 };
 

@@ -3,6 +3,7 @@
 
 #include "term.h"
 #include "grammar.h"
+#include "constraints.h"
 
 #define MAX_RECURSIONS 5
 
@@ -33,8 +34,8 @@ class Node {
             return tabs;
         }
 
-        uint64_t get_value() const {
-            return term.get_value();
+        uint64_t get_hash() const {
+            return term.get_hash();
         }
 
         Term get_term() const {

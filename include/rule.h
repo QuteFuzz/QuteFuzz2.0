@@ -2,6 +2,7 @@
 #define RULE_H
 
 #include "branch.h"
+#include "constraints.h"
 
 class Rule {
 

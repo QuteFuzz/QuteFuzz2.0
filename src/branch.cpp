@@ -5,13 +5,15 @@ void Branch::print(std::ostream& os) const {
         os << elem << " ";
     }
 
-    os << " [non_terminals: " << num_rules() << "] ";
+    os << " [non_terminals: " << num_pointer_terms() << "] ";
 }
 
 /// @brief When adding a term to a branch, check whether it can be combined with the previous term that was added
 /// @param term 
 void Branch::add(const Term& term){
     size_t size = terms.size();
+
+    if(term.is_pointer() && !Common::is_common(term.get_string())) pointer_terms.push_back(std::make_shared<Term>(term));
 
     if(size){
         auto last_term = terms.end()-1; // reference to the last term in the branch
@@ -42,13 +44,19 @@ void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) con
     std::cout << basis.mults.size() << " " << basis.remainders.size() << std::endl;
 }
 
-size_t Branch::num_rules() const{
-    size_t out = 0;
+bool Branch::pointer_terms_match(std::vector<uint64_t> term_hashes) const {
+    size_t size = num_pointer_terms();
 
-    for(const Term& t : terms){
-        // if the term is a pointer that points to some branch, then it is a non-terminal
-        out += (t.is_pointer() && !Common::is_common(t.get_string()));
+    if(size == term_hashes.size()){
+        
+        for(size_t i = 0; i < size; ++i){
+            Term t = *pointer_terms[i];
+            if (!(t == term_hashes[i])) return false;
+        }
+
+        return true;
+
+    } else {
+        return false;
     }
-
-    return out;
 }

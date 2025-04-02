@@ -51,8 +51,8 @@ A constraint system ensures that the AST is well formed.
 
 ```C++
 case Common::h: case Common::x: case Common::y: case Common::z:
-        constraints.add_constraint({.node = gate_application, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
-        constraints.add_constraint({.node = qubit_list, .type = Constraints::BRANCH_SIZE_EQUALS, .value = 1}); 
+        constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
+        constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 1)); 
         break;
 ```
 
