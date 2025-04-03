@@ -1,29 +1,31 @@
 # trying to fix up a pytket grammar that could be used
 
-circuit     = circuit_def qregs statements;
+circuit     = circuit_def (qreg_def)+ (statement)+;
 
 circuit_def = circuit_name EQUALS "Circuit" LPAREN num_index_qubits RPAREN;
 
 qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN qreg_size RPAREN;
 
-statements  = (statement)+;
+statement   = gate_application;
 
-qregs       = (qreg_def)+;
+gate_application = 
+    circuit_name DOT gate_name gate_application_kind
+    ;
 
-statement   = circuit_name DOT gate_name gate_application;
-
-gate_application = LPAREN qubit_list RPAREN | LPAREN float_literal COMMA qubit_list RPAREN;
+gate_application_kind = 
+    LPAREN qubit_list RPAREN 
+    | LPAREN float_literal COMMA qubit_list RPAREN
+    ;
 
 gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list  = qubit (COMMA SPACE qubit)*;
-# qubit     = "Qubit" LPAREN int_literal RPAREN;
 
 parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
 identifier    = "test";
 int_literal   = 1-9 (digit)+;
-float_literal = (digit)+ DOT (digit)*;
+float_literal = digit DOT (digit)*;
 letter        = a-z | A-Z;
 digit         = 0-9;
 

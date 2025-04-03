@@ -80,13 +80,15 @@ class Ast{
     public:
         Ast() : gen(rd()), float_dist(0.0, 1.0) {}
 
+        ~Ast() = default;
+
         inline float random_float(){
             return float_dist(gen);
         }
 
         void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
-        }
+        }   
 
         /// @brief Pick a branch that satisfies some constraint
         /// @param rule 
@@ -94,13 +96,14 @@ class Ast{
         /// @return 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
+        /// @brief Default constraint adder does nothing
+        /// @param node 
+        /// @param constraints 
         virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){}
 
         void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
 
         Result<Node, std::string> build(){
-
-            std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
             Result<Node, std::string> res;
         
             if(entry == nullptr){
@@ -108,6 +111,8 @@ class Ast{
                 return res;
         
             } else {
+                std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
+
                 Constraints::Constraints constraints;
 
                 write_branch(root_ptr, 1, constraints);

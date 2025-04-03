@@ -9,33 +9,33 @@ void Pytket::Pytket::add_constraint(std::shared_ptr<Node> node, Constraints::Con
         case gate_name: constraints.clear(); break;
 
         case Common::h: case Common::x: case Common::y: case Common::z:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 1)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 1)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 1)); 
             break;
         
         case Common::cx:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 2)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 1)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 2)); 
             break;
 
         case Common::ccx:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 3)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 1)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 3)); 
             break;
 
         case Common::u1: case Common::rx: case Common::ry: case Common::rz:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_EQUALS, {float_literal, qubit_list})); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 1)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 2)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 1)); 
             break;
 
         case Common::u2:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_EQUALS, {float_literal, qubit_list})); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 2)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 2)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 2)); 
             break;
 
         case Common::u3:
-            constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_EQUALS, {float_literal, qubit_list})); 
-            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 3)); 
+            constraints.add_constraint(Constraints::Constraint(gate_application_kind, Constraints::NUM_RULES_EQUALS, 2)); 
+            constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::NUM_RULES_EQUALS, 3)); 
             break;   
 
     }
