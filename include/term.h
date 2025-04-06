@@ -21,7 +21,7 @@ class Term {
 
         std::string get_string() const;
 
-        uint64_t get_hash() const;
+        U64 get_hash() const;
 
         bool is_syntax() const;
 
@@ -37,13 +37,13 @@ class Term {
 
         bool operator==(const Term& other);
 
-        bool operator==(const uint64_t& hash);
+        bool operator==(const U64& hash);
 
     private:
         std::variant<std::shared_ptr<Rule>, std::string> value;
 
         std::string _name;
-        uint64_t hashed_name = 0ULL;
+        U64 hashed_name = 0ULL;
         unsigned int nesting_depth = 0;
 };
 

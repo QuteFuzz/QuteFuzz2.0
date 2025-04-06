@@ -48,7 +48,7 @@ class Branch {
 
         inline size_t num_pointer_terms() const {return pointer_terms.size();}
 
-        bool pointer_terms_match(std::vector<uint64_t> term_hashes) const ;
+        bool pointer_terms_match(std::vector<U64> term_hashes) const ;
 
         bool is_empty() const {return terms.empty();}
 

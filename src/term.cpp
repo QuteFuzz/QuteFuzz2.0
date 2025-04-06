@@ -30,7 +30,7 @@ std::string Term::get_string() const {
     return _name;
 }
 
-uint64_t Term::get_hash() const {
+U64 Term::get_hash() const {
     return hashed_name;
 }
 
@@ -69,6 +69,6 @@ bool Term::operator==(const Term& other){
     return hashed_name == other.get_hash();
 }
 
-bool Term::operator==(const uint64_t& hash){
+bool Term::operator==(const U64& hash){
     return hashed_name == hash;
 }

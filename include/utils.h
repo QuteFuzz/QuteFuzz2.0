@@ -16,12 +16,14 @@
 
 #define WILDCARD_MAX 2
 
+using U64 = uint64_t;
+
 namespace fs = std::filesystem;
 
-uint64_t hash_rule_name(std::string rule_name);
+U64 hash_rule_name(std::string rule_name);
 
 namespace Common {
-    enum Common_token : uint64_t {
+    enum Common_token : U64 {
         lparen = 8662532954183415845ULL,
         rparen = 4240811817421387563ULL,
         comma = 7874411517935695704ULL,

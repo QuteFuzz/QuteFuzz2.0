@@ -14,9 +14,9 @@ namespace Constraints {
     };
 
     struct Constraint {
-        uint64_t node = 0; // constraint on a branch from a particular node
+        U64 node = 0; // constraint on a branch from a particular node
         Type type;
-        std::variant<size_t, std::vector<uint64_t>> value;
+        std::variant<size_t, std::vector<U64>> value;
 
         Constraint(Type t){
             if(t == BRANCH_IS_NON_RECURSIVE){
@@ -24,7 +24,7 @@ namespace Constraints {
             }
         }
 
-        Constraint(uint64_t _node, Type t, size_t val) {
+        Constraint(U64 _node, Type t, size_t val) {
             node = _node;
             value = val;
 
@@ -34,7 +34,7 @@ namespace Constraints {
             }
         }
 
-        Constraint(uint64_t _node, Type t, std::vector<uint64_t> node_hashes){
+        Constraint(U64 _node, Type t, std::vector<U64> node_hashes){
             node = _node;
             value = node_hashes;
 
@@ -44,9 +44,9 @@ namespace Constraints {
             }
         }
 
-        bool not_relevant(const uint64_t _node) const {return _node != node;}
+        bool not_relevant(const U64 _node) const {return _node != node;}
 
-        bool is_satisfied(const uint64_t _node, const Branch& b) const {
+        bool is_satisfied(const U64 _node, const Branch& b) const {
 
             size_t pts_size = b.num_pointer_terms();
 
@@ -55,7 +55,7 @@ namespace Constraints {
                 case NUM_RULES_MINIMUM: return not_relevant(_node) || (pts_size >= std::get<size_t>(value));
                 case NUM_RULES_EQUALS: return not_relevant(_node)  || (pts_size == std::get<size_t>(value));
                 case BRANCH_IS_NON_RECURSIVE: return !b.get_recursive_flag();
-                case BRANCH_EQUALS: return not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<uint64_t>>(value));
+                case BRANCH_EQUALS: return not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<U64>>(value));
             }
 
             return false;
@@ -71,7 +71,7 @@ namespace Constraints {
             /// @brief Check that all constraints on this branch are satisfied
             /// @param b 
             /// @return 
-            bool are_satisfied(const uint64_t _node, const Branch& b) const {
+            bool are_satisfied(const U64 _node, const Branch& b) const {
                 
                 for(const Constraint& c : constraints){
                     if(!c.is_satisfied(_node, b)) return false;

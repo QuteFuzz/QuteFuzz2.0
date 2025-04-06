@@ -33,7 +33,7 @@ Branch Rule::pick_branch(Constraints::Constraints& constraints){
     if(size > 0){
         int rand_index = random_int(size - 1);
         Branch branch = branches[rand_index];
-        uint64_t hashed_rule_name = hash_rule_name(name);
+        U64 hashed_rule_name = hash_rule_name(name);
 
         while(!constraints.are_satisfied(hashed_rule_name, branch)){
             // std::cout << "Branch " << rand_index << " for " << name << std::endl;

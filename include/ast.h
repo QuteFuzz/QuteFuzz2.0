@@ -34,7 +34,7 @@ class Node {
             return tabs;
         }
 
-        uint64_t get_hash() const {
+        U64 get_hash() const {
             return term.get_hash();
         }
 

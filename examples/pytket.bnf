@@ -1,6 +1,10 @@
 # trying to fix up a pytket grammar that could be used
 
-circuit     = circuit_def (qreg_def)+ (statement)+;
+circuit     = circuit_def qreg_defs statements;
+
+qreg_defs = (qreg_def)+;
+
+statements = (statement)+;
 
 circuit_def = circuit_name EQUALS "Circuit" LPAREN num_index_qubits RPAREN;
 

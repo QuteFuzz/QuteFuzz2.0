@@ -6,7 +6,7 @@
 namespace Pytket {
     const std::string TOP_LEVEL_CIRCUIT = "main_circ"; 
 
-    enum Rule_names : uint64_t {
+    enum Rule_names : U64 {
         circuit = 18088473315674432532ULL,
         circuit_name = 5389401364268778602ULL,
         circuit_def = 17654104105659481736ULL,
@@ -17,9 +17,10 @@ namespace Pytket {
         parameter_list = 10044088521670889753ULL,
         parameter = 1363275014107747824ULL,
         statements = 7457579184642066079ULL,
-        qregs = 16470122600586778151ULL,
+        qreg_defs = 3680647047563729043ULL,
         gate_application = 2267869270411795151ULL,
         gate_application_kind = 6595164713576809234ULL,
+        statement = 7142774524121430294ULL,
     } ;
 
     class Pytket : public Ast {
@@ -58,7 +59,7 @@ namespace Pytket {
                     case circuit_name:
                         stream << TOP_LEVEL_CIRCUIT; break;
 
-                    case circuit: case statements: case qregs:    
+                    case circuit: case statements: case qreg_defs:
                         std::cout << "circuit rule " << node.get_string() << std::endl;                     
                         for(auto child : children){
                             write(stream, *child) << "\n";
