@@ -83,11 +83,27 @@ namespace Constraints {
                 constraints.push_back(c);
             }
 
+            /// @brief Add a constraint on the number of qubits that should be picked for a gate
+            /// @param n number of qubits
+            /// @param is_rotation whether or not the gate requires an argument
+            void add_n_qubit_constrait(size_t n, bool is_rotation = false){
+                if(is_rotation){
+                    add_arg_constraint();
+                
+                }  
+
+                constraints.push_back(Constraint(Common::qubit_list, NUM_RULES_EQUALS, n)); 
+            }
+
             void clear(){
                 constraints.clear();
             }
         
         private:
+            void add_arg_constraint(){
+                constraints.push_back(Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list})); 
+            }
+
             std::vector<Constraint> constraints = {};
 
     };

@@ -54,3 +54,20 @@ U64 hash_rule_name(std::string rule_name) {
 
     return hash;
 }
+
+/// @brief Random integer within some range
+/// @param max value inclusive
+/// @param min value inclusive
+/// @return 
+int random_int(int max, int min){
+    std::random_device random_device;
+    std::mt19937 random_gen(random_device());
+
+    if(min < max){
+        std::uniform_int_distribution<int> int_dist(min, max);
+        return int_dist(random_gen);
+
+    } else {
+        return min;
+    }
+}

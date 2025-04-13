@@ -23,7 +23,13 @@ namespace fs = std::filesystem;
 U64 hash_rule_name(std::string rule_name);
 
 namespace Common {
+    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
+    constexpr int MIN_QUBITS = 4;
+    constexpr int MAX_QUBITS = 15;
+    constexpr int MAX_QREGS = 5;
+
     enum Common_token : U64 {
+        // TOKENS
         lparen = 8662532954183415845ULL,
         rparen = 4240811817421387563ULL,
         comma = 7874411517935695704ULL,
@@ -35,21 +41,39 @@ namespace Common {
         double_ampersand = 5535872232892287956ULL,
         equals = 3453683047558497236ULL,
 
+        // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
         x = 12638214688346347271ULL,
         y = 12638213588834719060ULL,
         z = 12638216887369603693ULL,
-
-        cx = 622136697450792830ULL,
-        ccx = 17716034042247149281ULL,
-        
         rz = 638471042196278621ULL,
         rx = 638468843173022199ULL,
         ry = 638467743661393988ULL,
-        
         u1 = 631765120777144307ULL,
+
+        // TWO QUBIT GATES
+        cx = 622136697450792830ULL,
+        ccx = 17716034042247149281ULL,
         u2 = 631766220288772518ULL,
+    
+        // THREE QUBIT GATES    
         u3 = 631767319800400729ULL,
+
+        // RULE NAMES
+        circuit = 18088473315674432532ULL,
+        circuit_name = 5389401364268778602ULL,
+        circuit_def = 17654104105659481736ULL,
+        int_literal = 12222978820271297122ULL,
+        float_literal = 6014115549703600901ULL,
+        gate_name = 4107851538286704628ULL,
+        qubit_list = 18380990572907722739ULL,
+        parameter_list = 10044088521670889753ULL,
+        parameter = 1363275014107747824ULL,
+        statements = 7457579184642066079ULL,
+        qreg_defs = 3680647047563729043ULL,
+        gate_application = 2267869270411795151ULL,
+        gate_application_kind = 6595164713576809234ULL,
+        statement = 7142774524121430294ULL,
     };
 
     extern const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR;
@@ -128,6 +152,8 @@ std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
 }
 
 void lower(std::string& str);
+
+int random_int(int max, int min = 0);
 
 #endif
 

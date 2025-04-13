@@ -8,7 +8,7 @@ class Rule {
 
     public:
         Rule(){}
-        Rule(const std::string& _name) : name(_name), gen(rd()) {}
+        Rule(const std::string& _name) : name(_name) {}
         ~Rule(){}
 
         std::string get_name() const {return name;}
@@ -27,11 +27,6 @@ class Rule {
 
         void assign_prob(const float _prob);
 
-        inline int random_int(int maximum_index){
-            std::uniform_int_distribution<int> int_dist(0, maximum_index);
-            return int_dist(gen);
-        }
-
         Branch pick_branch(Constraints::Constraints& constraints);
 
     private:
@@ -39,8 +34,7 @@ class Rule {
         bool recursive = false;
     
         std::vector<Branch> branches;
-        std::random_device rd;
-        std::mt19937 gen;
+
 };
 
 #endif

@@ -6,7 +6,7 @@ qreg_defs = (qreg_def)+;
 
 statements = (statement)+;
 
-circuit_def = circuit_name EQUALS "Circuit" LPAREN num_index_qubits RPAREN;
+circuit_def = circuit_name " = Circuit()";
 
 qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN qreg_size RPAREN;
 
