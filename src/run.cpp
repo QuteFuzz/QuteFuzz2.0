@@ -93,7 +93,7 @@ void Run::loop(){
         } else if ((current_command == "") && (current_spec != nullptr)){
             fs::path output_path = output_dir / ("output" + current_spec->extension);
 
-            current_spec->builder->write(output_path);
+            current_spec->builder->ast_to_program(output_path);
 
         } else if (current_command == "h"){
             help();

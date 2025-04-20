@@ -29,9 +29,9 @@ double_ampersand, "&&"
 equals, " = "
 ```
 
-Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
-
-Wildcards are expanded out, with a maximum set to 2. So `expr+` becomes `expr expr` in memory. 
+- Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
+- Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr expr .... expr` in memory, 50 times. 
+- Any grammar rules that you want to be replaced with custom code or function calls should be written with at least one branch in the grammar. For instance, to write imports, I add `imports = PLACEHOLDER;` in the grammar. 
 
 ### Limitations
 
@@ -65,9 +65,11 @@ Build with:
 ```sh
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
+
+Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info. 
 
 Run with `./fuzzer`, and type `h` for help.
 

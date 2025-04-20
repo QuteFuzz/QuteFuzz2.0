@@ -94,7 +94,7 @@ namespace Constraints {
 
                 constraints.push_back(Constraint(Common::qubit_list, NUM_RULES_EQUALS, n)); 
             }
-
+            
             void clear(){
                 constraints.clear();
             }

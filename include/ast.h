@@ -82,10 +82,6 @@ class Ast{
 
         ~Ast() = default;
 
-        inline float random_float(){
-            return float_dist(gen);
-        }
-
         void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
         }   
@@ -121,7 +117,7 @@ class Ast{
             }
         }
 
-        virtual void write(fs::path& path);
+        virtual void ast_to_program(fs::path& path);
 
     protected:
         virtual std::ofstream& write(std::ofstream& stream, const Node& node) {

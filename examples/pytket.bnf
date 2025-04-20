@@ -1,5 +1,11 @@
 # trying to fix up a pytket grammar that could be used
 
+program = imports circuit compiler_call;
+
+imports = PLACEHOLDER;
+
+compiler_call = PLACEHOLDER;
+
 circuit     = circuit_def qreg_defs statements;
 
 qreg_defs = (qreg_def)+;
@@ -27,9 +33,8 @@ qubit_list  = qubit (COMMA SPACE qubit)*;
 parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
-identifier    = "test";
-int_literal   = 1-9 (digit)+;
-float_literal = digit DOT (digit)*;
-letter        = a-z | A-Z;
-digit         = 0-9;
+float_literal  = PLACEHOLDER;
+qreg_size = PLACEHOLDER;
+qreg_name = PLACEHOLDER;
+qubit = PLACEHOLDER;
 

@@ -5,42 +5,14 @@
 
 namespace Pytket {
 
-    struct Qreg {
-        static int count;
-
-        public:
-            Qreg(size_t s){
-                name = "qreg" + std::to_string(count++);
-                size = s;
-            }
-
-            friend std::ostream& operator<<(std::ostream& stream, Qreg q){
-                if(q.size == 1){ 
-                    stream << q.name << "[0]";
-
-                } else {
-                    stream << q.name << "[" << q.size - 1 << ":0]";
-
-                }
-
-                return stream;
-            }
-
-        private:
-            std::string name;
-            size_t size;
-    };
-
     class Pytket : public Ast {
 
         public:
-            Pytket(){
-                setup_qregs();
-            }
+            using Ast::Ast;
 
             void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints) override;
 
-            void write(fs::path& path) override;
+            void ast_to_program(fs::path& path) override;
 
         private:
             std::ofstream& write_imports(std::ofstream& stream){
@@ -54,55 +26,68 @@ namespace Pytket {
                 return stream;
             }
 
-            void setup_qregs(){
-                qregs.clear();
-
-                int num_qubits = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
-
-                std::cout << num_qubits << "==============" << std::endl;
-                
-                while(num_qubits > 0){
-                    size_t qreg_size = random_int(Common::MIN_QUBITS, 1);
-                    qregs.push_back(Qreg(qreg_size));
-
-                    num_qubits -= qreg_size;
-                }
-
-                for(Qreg& q : qregs){
-                    std::cout << q << std::endl;
-                }
-            }
-
-            std::ofstream& write(std::ofstream& stream, const Node& node) override {                
-                // write terminal nodes right away
-                if(node.is_terminal()){             
-                    stream << Common::terminal_value(node.get_string());
-                    return stream;
-                }
-
+            std::ofstream& write(std::ofstream& stream, const Node& node) override {     
+                std::string str = node.get_string();
+                auto hash = (Common::Common_token)node.get_hash(); 
                 std::vector<std::shared_ptr<Node>> children = node.get_children();
+                size_t num_children = children.size();
+
+                if(node.is_terminal()){             
+                    if(Common::is_common(hash)){
+                        stream << Common::terminal_value(hash);
+                    } else {
+                        stream << str;
+                    }
             
-                switch(node.get_hash()){
+                    return stream;    
+                }
+            
+                switch(hash){
             
                     case Common::circuit_name:
                         stream << Common::TOP_LEVEL_CIRCUIT_NAME; break;
 
+                    case Common::imports:
+                        write_imports(stream) << std::endl; break;
+
+                    case Common::compiler_call: break;
+
                     case Common::circuit: case Common::statements: case Common::qreg_defs:
-                        std::cout << "circuit rule " << node.get_string() << std::endl;                     
+
                         for(auto child : children){
                             write(stream, *child) << "\n";
                         }
 
                         break;
+
+                    case Common::circuit_def: write_children(stream, children) << std::endl; break;
+                
+                    case Common::qreg_def:
+                        qreg_definition = qregs.at(qreg_definition_pointer++);
+
+                        write_children(stream, children);                        
+                        break;
+                    
+                    case Common::qreg_name:
+                        stream << qreg_definition.get_name();
+                        break;
+
+                    case Common::qreg_size:
+                        stream << qreg_definition.get_size();
+                        break;
+                    
+                    case Common::float_literal: stream << random_float(0.5); break;
         
                     default:
-                        write_children(stream, node.get_children());
+                        write_children(stream, children);
                 }
             
                 return stream;
             }
         
-            std::vector<Qreg> qregs;
+            std::vector<Common::Qreg> qregs;
+            Common::Qreg qreg_definition;
+            size_t qreg_definition_pointer = 0;
 
     };
 }

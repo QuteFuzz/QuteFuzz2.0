@@ -41,8 +41,6 @@ void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) con
             basis.remainders.push_back(t);
         }
     }
-
-    std::cout << basis.mults.size() << " " << basis.remainders.size() << std::endl;
 }
 
 bool Branch::pointer_terms_match(std::vector<U64> term_hashes) const {

@@ -1,7 +1,5 @@
 #include "../include/pytket.h"
 
-int Pytket::Qreg::count = 0;
-
 /// @brief Depending on the type of the node, add constraints on which branch can be picked 
 /// @param node 
 /// @param constraints 
@@ -9,6 +7,12 @@ void Pytket::Pytket::add_constraint(std::shared_ptr<Node> node, Constraints::Con
 
     switch(node->get_hash()){
         case Common::gate_name: constraints.clear(); break;
+
+        case Common::circuit:
+            Common::setup_qregs(qregs);
+            qreg_definition_pointer = 0;
+            constraints.add_constraint(Constraints::Constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, qregs.size()));
+            break;
 
         case Common::h: case Common::x: case Common::y: case Common::z:
             constraints.add_n_qubit_constrait(1);
@@ -36,17 +40,13 @@ void Pytket::Pytket::add_constraint(std::shared_ptr<Node> node, Constraints::Con
     }
 }
 
-void Pytket::Pytket::write(fs::path& path) {
+void Pytket::Pytket::ast_to_program(fs::path& path) {
     Result<Node, std::string> maybe_ast_root = build(); 
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
 
         std::ofstream stream(path.string());
-
-        write_imports(stream) << std::endl;
-
-        setup_qregs();
 
         write(stream, ast_root);
 

@@ -14,7 +14,7 @@
 #include <cctype>
 #include <cstdint>
 
-#define WILDCARD_MAX 2
+#define WILDCARD_MAX 50
 
 using U64 = uint64_t;
 
@@ -22,11 +22,51 @@ namespace fs = std::filesystem;
 
 U64 hash_rule_name(std::string rule_name);
 
+void lower(std::string& str);
+
+int random_int(int max, int min = 0);
+
+float random_float(float max, float min = 0.0);
+
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
     constexpr int MIN_QUBITS = 4;
     constexpr int MAX_QUBITS = 15;
     constexpr int MAX_QREGS = 5;
+
+    struct Qreg {
+        static int count;
+
+        public:
+            Qreg(){}
+
+            Qreg(size_t s){
+                name = "qreg" + std::to_string(count++);
+                size = s;
+            }
+
+            friend std::ostream& operator<<(std::ostream& stream, Qreg q){
+                if(q.size == 1){ 
+                    stream << q.name << "[0]";
+
+                } else {
+                    stream << q.name << "[" << q.size - 1 << ":0]";
+
+                }
+
+                return stream;
+            }
+
+            std::string get_name(){return name;}
+
+            size_t get_size(){return size;}
+
+        private:
+            std::string name;
+            size_t size;
+    };
+
+    void setup_qregs(std::vector<Qreg>& qregs);
 
     enum Common_token : U64 {
         // TOKENS
@@ -60,6 +100,9 @@ namespace Common {
         u3 = 631767319800400729ULL,
 
         // RULE NAMES
+        program = 6292337549112776011ULL,
+        imports = 5522660700275282789ULL,
+        compiler_call = 16764506069072603013ULL,
         circuit = 18088473315674432532ULL,
         circuit_name = 5389401364268778602ULL,
         circuit_def = 17654104105659481736ULL,
@@ -70,6 +113,9 @@ namespace Common {
         parameter_list = 10044088521670889753ULL,
         parameter = 1363275014107747824ULL,
         statements = 7457579184642066079ULL,
+        qreg_def = 11422033681961328082ULL,
+        qreg_name = 10722739978486866664ULL,
+        qreg_size = 11502232252882731618ULL,
         qreg_defs = 3680647047563729043ULL,
         gate_application = 2267869270411795151ULL,
         gate_application_kind = 6595164713576809234ULL,
@@ -82,7 +128,7 @@ namespace Common {
 
     bool is_common(const std::string& str);
 
-    std::string terminal_value(const std::string& str);
+    std::string terminal_value(const Common_token& hashed_str);
 }
 
 template<typename A, typename B>
@@ -137,8 +183,6 @@ std::vector<T> multiply_vector(std::vector<T> vec, int mult){
         multiplied_vec.insert(multiplied_vec.end(), vec.begin(), vec.end());
     }
 
-    std::cout << multiplied_vec.size() << std::endl;
-
     return multiplied_vec;
 }
 
@@ -150,10 +194,6 @@ std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
 
     return result;
 }
-
-void lower(std::string& str);
-
-int random_int(int max, int min = 0);
 
 #endif
 

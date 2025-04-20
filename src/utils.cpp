@@ -1,5 +1,7 @@
 #include "../include/utils.h"
 
+int Common::Qreg::count = 0;
+
 const std::unordered_map<Common::Common_token, std::string> Common::COMMON_TOKEN_STR = {
     {lparen, "("},
     {rparen, ")"},
@@ -22,14 +24,8 @@ bool Common::is_common(const std::string& str){
     return is_common(hashed_str);
 }
 
-std::string Common::terminal_value(const std::string& str){
-    Common_token hashed_str = (Common_token)hash_rule_name(str); 
-
-    if(is_common(hashed_str)){
-        return COMMON_TOKEN_STR.at(hashed_str);
-    } else {
-        return str;
-    }
+std::string Common::terminal_value(const Common_token& hashed_str){
+    return COMMON_TOKEN_STR.at(hashed_str);
 }
 
 void lower(std::string& str){
@@ -69,5 +65,37 @@ int random_int(int max, int min){
 
     } else {
         return min;
+    }
+}
+
+/// @brief Random float within some range
+/// @param max value inclusive
+/// @param min value inclusive
+/// @return 
+float random_float(float max, float min){
+    std::random_device random_device;
+    std::mt19937 random_gen(random_device());
+
+    if(min < max){
+        std::uniform_real_distribution<float> float_dist(min, max);
+        return float_dist(random_gen);
+
+    } else {
+        return min;
+    }
+}
+
+void Common::setup_qregs(std::vector<Qreg>& qregs){
+    qregs.clear();
+
+    Qreg::count = 0;
+
+    int num_qubits = random_int(MAX_QUBITS, MIN_QUBITS);
+    
+    while(num_qubits > 0){
+        size_t qreg_size = random_int(MIN_QUBITS, 1);
+        qregs.push_back(Qreg(qreg_size));
+
+        num_qubits -= qreg_size;
     }
 }
