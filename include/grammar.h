@@ -22,7 +22,7 @@ class Grammar{
 
         void peek();
 
-        std::shared_ptr<Rule> get_rule_pointer(const std::string& rule_name);
+        std::shared_ptr<Rule> get_rule_pointer(std::string rule_name);
 
         void assign_equal_probabilities();
 
@@ -102,7 +102,7 @@ class Grammar{
         bool assign_equal_probs = false;
 
         std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
-
+        
         Lexer::Lexer lexer;
         std::string name;
         fs::path path;

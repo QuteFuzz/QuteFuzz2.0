@@ -42,7 +42,9 @@ void Grammar::peek(){
 /// @brief If rule_name hasn't been initialsed, this adds a rule pointer for it and returns that pointer
 /// @param rule_name 
 /// @return 
-std::shared_ptr<Rule> Grammar::get_rule_pointer(const std::string& rule_name){
+std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name){
+
+    // lower(rule_name);
 
     if(rule_pointers.find(rule_name) != rule_pointers.end()){
         return rule_pointers[rule_name];

@@ -2,9 +2,9 @@
 
 program = imports circuit compiler_call;
 
-imports = PLACEHOLDER;
+imports = ;
 
-compiler_call = PLACEHOLDER;
+compiler_call = ;
 
 circuit     = circuit_def qreg_defs statements;
 
@@ -33,8 +33,5 @@ qubit_list  = qubit (COMMA SPACE qubit)*;
 parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
 
-float_literal  = PLACEHOLDER;
-qreg_size = PLACEHOLDER;
-qreg_name = PLACEHOLDER;
-qubit = PLACEHOLDER;
+float_literal; qreg_size ; qreg_name ; qubit ;
 

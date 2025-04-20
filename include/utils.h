@@ -117,6 +117,7 @@ namespace Common {
         qreg_name = 10722739978486866664ULL,
         qreg_size = 11502232252882731618ULL,
         qreg_defs = 3680647047563729043ULL,
+        qubit = 9613145697666387222ULL,
         gate_application = 2267869270411795151ULL,
         gate_application_kind = 6595164713576809234ULL,
         statement = 7142774524121430294ULL,

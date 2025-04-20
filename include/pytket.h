@@ -33,16 +33,16 @@ namespace Pytket {
                 size_t num_children = children.size();
 
                 if(node.is_terminal()){             
-                    if(Common::is_common(hash)){
-                        stream << Common::terminal_value(hash);
-                    } else {
-                        stream << str;
-                    }
-            
+                    stream << str;            
                     return stream;    
                 }
             
                 switch(hash){
+
+                    case Common::lparen: case Common::rparen: case Common::comma: case Common::space: case Common::dot: 
+                    case Common::single_quote: case Common::double_pipe: case Common::double_quote: case Common::double_ampersand: case Common::equals:
+                        stream << Common::terminal_value(hash);
+                        break;
             
                     case Common::circuit_name:
                         stream << Common::TOP_LEVEL_CIRCUIT_NAME; break;
@@ -50,7 +50,9 @@ namespace Pytket {
                     case Common::imports:
                         write_imports(stream) << std::endl; break;
 
-                    case Common::compiler_call: break;
+                    case Common::compiler_call: 
+                        stream << "# [" << str << "] Not implemented" << std::endl;
+                        break;
 
                     case Common::circuit: case Common::statements: case Common::qreg_defs:
 
@@ -77,9 +79,21 @@ namespace Pytket {
                         break;
                     
                     case Common::float_literal: stream << random_float(0.5); break;
-        
-                    default:
+
+                    case Common::program: case Common::int_literal: case Common::gate_name: case Common::qubit_list: case Common::parameter_list: 
+                        case Common::parameter: case Common::gate_application: case Common::gate_application_kind: case Common::statement:
                         write_children(stream, children);
+                        break;
+                    
+                    case Common::h: case Common::x: case Common::y: case Common::z: case Common::rz: case Common::rx: case Common::ry: 
+                        case Common::u1: case Common::cx: case Common::ccx: case Common::u2: case Common::u3:
+                        stream << str; 
+                        break;
+
+                    case Common::qubit: stream << str; break; // TODO
+                        
+                    default:
+                        std::cerr << "Unknown rule " << str << std::endl;
                 }
             
                 return stream;

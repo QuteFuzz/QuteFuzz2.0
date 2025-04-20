@@ -9,6 +9,7 @@ class Rule {
     public:
         Rule(){}
         Rule(const std::string& _name) : name(_name) {}
+        Rule(const std::vector<Branch>& _branches) : branches(_branches) {}
         ~Rule(){}
 
         std::string get_name() const {return name;}

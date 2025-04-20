@@ -31,15 +31,10 @@ equals, " = "
 
 - Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
 - Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr expr .... expr` in memory, 50 times. 
-- Any grammar rules that you want to be replaced with custom code or function calls should be written with at least one branch in the grammar. For instance, to write imports, I add `imports = PLACEHOLDER;` in the grammar. 
 
 ### Limitations
 
 The grammar parser can handle most of the BNF syntax, up to simple groupings with / without wildcards like `(term (expr)+ hello)*`. However, things like `term ("+" | "-") expr` are tokenised, but not parsed correctly. 
-
-### Major TODOS
-These are limitations that turned out to be quite a pain, so are important to get fixed
-- [x] `circuit = circuit_def qreg+ statement+;` does not work as expected. In general consecutive wildcards seem to be buggy. This has to be broken down into `circuit = circuit_def qregs statements;`. 
 
 ## AST builder
 

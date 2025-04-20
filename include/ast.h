@@ -49,7 +49,7 @@ class Node {
         /// @brief A node is terminal if it is a syntax node, or if it is a pointer pointing to nothing
         /// @return 
         bool is_terminal() const {
-            return term.is_syntax() || !num_children;
+            return term.is_syntax();
         }
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
