@@ -29,8 +29,8 @@ double_ampersand, "&&"
 equals, " = "
 ```
 
-- Gates can also be written the same way in the grammar. See [`pytket.bnf`](examples/pytket.bnf).
-- Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr expr .... expr` in memory, 50 times. 
+- Gates, imports, compiler calls, float literals, qubit register names, qubit register sizes, qubits can also be written in the grammar but not defined. These are replaced with actual values while parsing the AST. See [`pytket.bnf`](examples/pytket.bnf).
+- Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr | expr expr | .... | expr ... expr (50 times)` in memory. 
 
 ### Limitations
 
