@@ -100,6 +100,9 @@ namespace Common {
         // THREE QUBIT GATES    
         u3 = 631767319800400729ULL,
 
+        // OTHER GATES
+        u = 12638200394695180528ULL,
+
         // RULE NAMES
         program = 6292337549112776011ULL,
         imports = 5522660700275282789ULL,
@@ -122,6 +125,8 @@ namespace Common {
         gate_application = 2267869270411795151ULL,
         gate_application_kind = 6595164713576809234ULL,
         statement = 7142774524121430294ULL,
+        qreg_decl = 3677861984610038255ULL,
+        qreg_append = 8492996956615407539ULL,
     };
 
     extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;
