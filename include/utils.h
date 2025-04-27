@@ -17,6 +17,7 @@
 #define WILDCARD_MAX 50
 #define UNUSED(x) (void)(x)
 #define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
+#define PLACEHOLDER(x) "[PLACEHOLDER] " x
 
 using U64 = uint64_t;
 
@@ -77,8 +78,8 @@ namespace Common {
             }
 
         private:
-            std::string name;
-            size_t size;
+            std::string name = PLACEHOLDER("qubit_name");
+            size_t size = 0;
     };
 
     struct Qreg_definitions{
@@ -104,6 +105,10 @@ namespace Common {
                 }
             }
 
+            bool defined(){
+                return ((size_t)qreg_pointer < qregs.size());
+            }
+
             inline Qreg get_next_qreg(){
                 return qregs.at(qreg_pointer++);
             }
@@ -118,7 +123,6 @@ namespace Common {
             int qreg_pointer = 0;
 
     };
-
 
     void setup_qregs(Qreg_definitions& qreg_defs);
 
@@ -163,7 +167,6 @@ namespace Common {
         circuit = 18088473315674432532ULL,
         circuit_name = 5389401364268778602ULL,
         circuit_def = 17654104105659481736ULL,
-        int_literal = 12222978820271297122ULL,
         float_literal = 6014115549703600901ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,

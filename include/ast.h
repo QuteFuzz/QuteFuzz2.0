@@ -16,18 +16,22 @@ class Node {
         /// @brief Create node from a term. 
         /// @param _term 
         /// @param _depth 
-        Node(const Term& _term, int _depth) : term(_term), depth(_depth){}
+        Node(const Term& _term) : term(_term){}
 
-        Node(const std::string syntax, int _depth){
+        Node(const std::string syntax){
             term.set(syntax);
-            depth = _depth;
         }
+        
+        /// @brief Used to create the AST root from the entry point into the grammar
+        /// @param rule 
+        /// @param _depth 
         Node(const std::shared_ptr<Rule> rule, int _depth) {
             term.set(rule);
             depth = _depth;
         }
         
         void add_child(const std::shared_ptr<Node> child){
+            child->set_depth(depth+1);
             children.push_back(child);
             num_children++;
         }
@@ -102,19 +106,9 @@ class Ast{
             entry = _entry;
         }   
 
-        /// @brief Pick a branch that satisfies some constraint
-        /// @param rule 
-        /// @param c 
-        /// @return 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        /// @brief Default constraint adder does nothing
-        /// @param node 
-        /// @param constraints 
-        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
-            UNUSED(node);
-            UNUSED(constraints);
-        }
+        void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
         void write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
@@ -139,6 +133,14 @@ class Ast{
         virtual void ast_to_program(fs::path& path);
 
     protected:
+        virtual std::string imports(){
+            return "";
+        }
+
+        virtual std::string compiler_call(){
+            return "";
+        }
+
         /// @brief Simplest writer simply prints all terminals, or loops through all children until it eaches a terminal
         /// @param stream 
         /// @param node 
@@ -179,6 +181,9 @@ class Ast{
         std::random_device rd;
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
+
+        Common::Qreg_definitions qreg_defs;
+        Common::Qreg qreg_to_write = Common::Qreg();
 };
 
 #endif
