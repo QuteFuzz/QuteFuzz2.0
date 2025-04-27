@@ -15,6 +15,7 @@
 #include <cstdint>
 
 #define WILDCARD_MAX 50
+#define UNUSED(x) (void)(x)
 
 using U64 = uint64_t;
 
@@ -68,7 +69,7 @@ namespace Common {
 
     void setup_qregs(std::vector<Qreg>& qregs);
 
-    enum Common_token : U64 {
+    enum Rule_hash : U64 {
         // TOKENS
         lparen = 8662532954183415845ULL,
         rparen = 4240811817421387563ULL,
@@ -123,13 +124,13 @@ namespace Common {
         statement = 7142774524121430294ULL,
     };
 
-    extern const std::unordered_map<Common_token, std::string> COMMON_TOKEN_STR;
+    extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;
 
-    bool is_common(const Common_token& hashed_str);
+    bool is_common(const Rule_hash& hashed_str);
 
     bool is_common(const std::string& str);
 
-    std::string terminal_value(const Common_token& hashed_str);
+    std::string terminal_value(const Rule_hash& hashed_str);
 }
 
 template<typename A, typename B>

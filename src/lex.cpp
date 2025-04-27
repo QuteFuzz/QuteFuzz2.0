@@ -80,7 +80,12 @@ void Lexer::Lexer::lex(){
                 tokens.push_back(Token::Token{.kind = Token::RULE, .value = matched_string});
 
             } else if (string_is(matched_string, SYNTAX)){
-                tokens.push_back(Token::Token{.kind = Token::SYNTAX, .value = remove_decorators(matched_string)});
+
+                if(matched_string == "\"\\n\""){
+                    tokens.push_back(Token::Token{.kind = Token::SYNTAX, .value = "\n"});
+                } else {
+                    tokens.push_back(Token::Token{.kind = Token::SYNTAX, .value = remove_decorators(matched_string)});
+                }
 
             } else if (string_is(matched_string, DIGIT)){
                 tokens.push_back(Token::Token{.kind = Token::SYNTAX, .value = matched_string});

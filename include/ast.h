@@ -95,7 +95,10 @@ class Ast{
         /// @brief Default constraint adder does nothing
         /// @param node 
         /// @param constraints 
-        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){}
+        virtual void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
+            UNUSED(node);
+            UNUSED(constraints);
+        }
 
         void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
 
@@ -120,20 +123,33 @@ class Ast{
         virtual void ast_to_program(fs::path& path);
 
     protected:
+        /// @brief Simplest writer simply prints all terminals, or loops through all children until it eaches a terminal
+        /// @param stream 
+        /// @param node 
+        /// @return 
         virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
-            std::cout << "This grammar has no AST builder defined for it. Default builder has been used to create this AST" << std::endl;
-            std::cout << "AST: \n" << node << std::endl;
+            std::string str = node.get_string();
+
+            if(node.is_terminal()){
+                stream << str;            
+                return stream;    
+            } else {
+                write_children(stream, node);
+            }
         
             return stream;
         };
 
-        /// @brief Loop through and call `write` on each child 
+        /// @brief Loop through and call `write` on each child of the given node
         /// @param stream 
-        /// @param children 
+        /// @param node
+        /// @param end_string a string to write at the end of each call to `write` (Optional)
         /// @return 
-        std::ofstream& write_children(std::ofstream& stream, const std::vector<std::shared_ptr<Node>> children){
+        std::ofstream& write_children(std::ofstream& stream, const Node& node, const std::string end_string = ""){
+            std::vector<std::shared_ptr<Node>> children = node.get_children();
+
             for(auto child : children){
-                write(stream, *child);
+                write(stream, *child) << end_string;
             }
 
             return stream;

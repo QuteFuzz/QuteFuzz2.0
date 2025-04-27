@@ -217,6 +217,8 @@ void Grammar::build_grammar(){
                 extend_current_branches(token);
                 break;
 
+            case Token::LBRACE: case Token::RBRACE: break;
+
             default:
                 throw std::runtime_error("[ERROR] Unknown token!"); 
             

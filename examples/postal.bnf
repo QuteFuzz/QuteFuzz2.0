@@ -11,6 +11,7 @@ Can even write multiline comments.
 <street-address> = <house-num> " " <street-name> " " <opt-apt-num> "\n"; 
 <zip-part> = <town-name> ", " <state-code> " " <ZIP-code> "\n" ;
 <opt-suffix-part> = "Sr." | "Jr." | <roman-numeral> | "" ;
+
 <opt-apt-num> = <apt-num> | "";
 
 # Test data 

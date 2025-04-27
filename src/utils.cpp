@@ -2,7 +2,7 @@
 
 int Common::Qreg::count = 0;
 
-const std::unordered_map<Common::Common_token, std::string> Common::COMMON_TOKEN_STR = {
+const std::unordered_map<Common::Rule_hash, std::string> Common::COMMON_TOKEN_STR = {
     {lparen, "("},
     {rparen, ")"},
     {comma, ","},
@@ -15,16 +15,16 @@ const std::unordered_map<Common::Common_token, std::string> Common::COMMON_TOKEN
     {equals, " = "},
 };
 
-bool Common::is_common(const Common_token& hashed_str){
+bool Common::is_common(const Rule_hash& hashed_str){
     return COMMON_TOKEN_STR.find(hashed_str) != COMMON_TOKEN_STR.end();
 }
 
 bool Common::is_common(const std::string& str){
-    Common_token hashed_str = (Common_token)hash_rule_name(str);
+    Rule_hash hashed_str = (Rule_hash)hash_rule_name(str);
     return is_common(hashed_str);
 }
 
-std::string Common::terminal_value(const Common_token& hashed_str){
+std::string Common::terminal_value(const Rule_hash& hashed_str){
     return COMMON_TOKEN_STR.at(hashed_str);
 }
 

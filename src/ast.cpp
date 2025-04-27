@@ -58,13 +58,17 @@ void Ast::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Const
 }
 
 void Ast::ast_to_program(fs::path& path) {
-    std::ofstream stream(path.string());
 
     Result<Node, std::string> maybe_ast_root = build();
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
+        std::ofstream stream(path.string());
+
         write(stream, ast_root);
+
+        std::cout << ast_root << std::endl;
+        std::cout << "Written to " << path.string() << std::endl;
 
     } else {
         std::cout << "[ERROR] " << maybe_ast_root.get_error() << std::endl; 

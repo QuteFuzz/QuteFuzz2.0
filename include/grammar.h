@@ -31,7 +31,7 @@ class Grammar{
         inline void add_current_branches_to_rule(){
             // add all current branches to current rule, reset current branches
             for(Branch& current_branch : current_branches){
-                #ifdef DEBUG
+                #if 0
                 std::cout << "Lazily adding ";
                 current_branch.print(std::cout);
                 std::cout << std::endl;

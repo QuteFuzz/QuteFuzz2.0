@@ -19,7 +19,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                     spec.grammar = std::make_shared<Grammar>(grammar);
                     
                     if(name == "pytket"){
-                        spec.builder = std::make_shared<Pytket::Pytket>();
+                        spec.builder = std::make_shared<Pytket>();
                         spec.extension = ".py";
 
                     } else {
