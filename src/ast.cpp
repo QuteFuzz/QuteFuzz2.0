@@ -23,18 +23,25 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             node->add_child(std::make_shared<Node>(compiler_call()));
             break;
 
-        case Common::qreg_name: {
-            node->add_child(std::make_shared<Node>(qreg_to_write.get_name()));
+        case Common::qreg_name:
+            node->add_child(std::make_shared<Node>(qreg_to_write->get_name()));
             break;
-        }
 
-        case Common::qreg_size: {
-            node->add_child(std::make_shared<Node>(qreg_to_write.get_size_as_string()));
+        case Common::qreg_size:
+            node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
             break;   
-        }
+
+        case Common::qubit_name: 
+            node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
+            break;
+        
+        case Common::qubit_index:
+            node->add_child(std::make_shared<Node>(qubit_to_write->get_index_as_string()));
+            break;   
 
         case Common::lparen: case Common::rparen: case Common::comma: case Common::space: case Common::dot: 
         case Common::single_quote: case Common::double_pipe: case Common::double_quote: case Common::double_ampersand: case Common::equals:
+        case Common::lbrack: case Common::rbrack: case Common::lbrace: case Common::rbrace: case Common::newline:
             node->add_child(std::make_shared<Node>(Common::terminal_value(hash)));
             break;
 
@@ -53,12 +60,11 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             break;            
 
         case Common::qreg_def:
-            if(qreg_defs.defined()) qreg_to_write = qreg_defs.get_next_qreg();
+            qreg_to_write = qreg_defs.get_next_qreg();
             break;
 
         case Common::qubit:
-            // choose random qubit
-            node->add_child(std::make_shared<Node>(str)); //TODO
+            qubit_to_write = qreg_defs.get_random_qubit();
             break;
 
         case Common::float_literal:
@@ -67,7 +73,6 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         
         /*
             GATES. Make child for a syntax term that's just the name of the gate. Add constraint on the number of qubits that are chosen
-        
         */
         case Common::h: case Common::x: case Common::y: case Common::z:
             node->add_child(std::make_shared<Node>(str));
@@ -147,7 +152,7 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
             Branch branch = maybe_branch.get_ok();
     
             for(const Term& t : branch.get_terms()){
-                std::shared_ptr<Node> child = std::make_shared<Node>(t);
+                std::shared_ptr<Node> child = std::make_shared<Node>(t, node->get_depth() + 1);
                 
                 write_branch(child, constraints);
     
@@ -155,7 +160,7 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
             }
     
         } else {
-            std::cout << maybe_branch.get_error() << std::endl;
+            ERROR(maybe_branch.get_error());
         }
 
     }
@@ -172,11 +177,14 @@ void Ast::ast_to_program(fs::path& path) {
 
         write(stream, ast_root);
 
-        std::cout << ast_root << std::endl;
+        stream << "\"\"\" \n AST:\n" << std::endl;
+        stream << ast_root << std::endl;
+        stream << "\"\"\" " << std::endl;;
+
         std::cout << "Written to " << path.string() << std::endl;
 
     } else {
-        std::cout << "[ERROR] " << maybe_ast_root.get_error() << std::endl; 
+        ERROR(maybe_ast_root.get_error()); 
     }
 
 };
