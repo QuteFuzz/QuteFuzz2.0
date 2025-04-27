@@ -13,12 +13,20 @@ class Node {
     public:
         Node(){}
 
+        /// @brief Create node from a term. 
+        /// @param _term 
+        /// @param _depth 
         Node(const Term& _term, int _depth) : term(_term), depth(_depth){}
 
-        Node(const std::shared_ptr<Rule> rule) {
-            term.set(rule);
+        Node(const std::string syntax, int _depth){
+            term.set(syntax);
+            depth = _depth;
         }
-
+        Node(const std::shared_ptr<Rule> rule, int _depth) {
+            term.set(rule);
+            depth = _depth;
+        }
+        
         void add_child(const std::shared_ptr<Node> child){
             children.push_back(child);
             num_children++;
@@ -68,6 +76,14 @@ class Node {
             return children;
         }
 
+        int get_depth(){
+            return depth;
+        }
+
+        void set_depth(int _depth){
+            depth = _depth;
+        }
+
     private:
         Term term;
         int depth = 0;
@@ -100,7 +116,7 @@ class Ast{
             UNUSED(constraints);
         }
 
-        void write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints);
+        void write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
@@ -110,11 +126,11 @@ class Ast{
                 return res;
         
             } else {
-                std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry);
+                std::shared_ptr<Node> root_ptr = std::make_shared<Node>(entry, 0);
 
                 Constraints::Constraints constraints;
 
-                write_branch(root_ptr, 1, constraints);
+                write_branch(root_ptr, constraints);
                 res.set_ok(*root_ptr);
                 return res;
             }

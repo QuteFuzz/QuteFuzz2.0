@@ -1,12 +1,12 @@
 # trying to fix up a pytket grammar that could be used
 
-program = imports circuit compiler_call;
+program = imports "\n" circuit "\n" compiler_call;
 
-circuit     = circuit_def qreg_defs statements;
+circuit     = circuit_def "\n" qreg_defs "\n" statements "\n";
 
-qreg_defs = (qreg_def)+;
+qreg_defs = (qreg_def "\n")+;
 
-statements = (statement)+;
+statements = (statement "\n")+;
 
 circuit_def = circuit_name " = Circuit()";
 

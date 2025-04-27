@@ -85,8 +85,8 @@ float random_float(float max, float min){
     }
 }
 
-void Common::setup_qregs(std::vector<Qreg>& qregs){
-    qregs.clear();
+void Common::setup_qregs(Qreg_definitions& qreg_defs){
+    qreg_defs.reset();
 
     Qreg::count = 0;
 
@@ -94,7 +94,7 @@ void Common::setup_qregs(std::vector<Qreg>& qregs){
     
     while(num_qubits > 0){
         size_t qreg_size = random_int(MIN_QUBITS, 1);
-        qregs.push_back(Qreg(qreg_size));
+        qreg_defs.push_back(Qreg(qreg_size));
 
         num_qubits -= qreg_size;
     }

@@ -74,7 +74,11 @@ namespace Token {
                     std::cerr << "Unknown token kind" << std::endl;
             }
         
-            stream << " " << t.value;
+            if(t.value == "\n"){
+                stream << "NEWLINE";
+            } else {
+                stream << " " << t.value;
+            }
         
             return stream;
         }

@@ -9,6 +9,7 @@ void Term::set(std::shared_ptr<Rule> term){
 
 void Term::set(std::string syntax){
     value = syntax;
+    _name = syntax;
     hashed_name = hash_rule_name(syntax);
 }
 
@@ -44,7 +45,14 @@ bool Term::is_pointer() const {
 
 std::ostream& operator<<(std::ostream& stream, Term term){
     if(term.is_syntax()){
-        stream << "\"" << term._name << "\"";
+        if(term._name == "\n"){
+            stream << "\"NEWLINE\"";
+
+        } else {
+            stream << "\"" << term._name << "\"";
+    
+        }
+        
     } else {
         stream << term._name;
     }
