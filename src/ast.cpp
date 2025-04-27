@@ -30,7 +30,7 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
 /// @param node 
 /// @param depth 
 /// @param constraints 
-void Ast::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Constraints& constraints){
+void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
     Term t = node->get_term();
 
     if(t.is_pointer()){
@@ -42,9 +42,9 @@ void Ast::write_branch(std::shared_ptr<Node> node, int depth, Constraints::Const
             Branch branch = maybe_branch.get_ok();
     
             for(const Term& t : branch.get_terms()){
-                std::shared_ptr<Node> child = std::make_shared<Node>(t, depth);
+                std::shared_ptr<Node> child = std::make_shared<Node>(t, node->get_depth() + 1);
                 
-                write_branch(child, depth + 1, constraints);
+                write_branch(child, constraints);
     
                 node->add_child(child);
             }

@@ -16,6 +16,7 @@
 
 #define WILDCARD_MAX 50
 #define UNUSED(x) (void)(x)
+#define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
 
 using U64 = uint64_t;
 
@@ -33,7 +34,12 @@ namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
     constexpr int MIN_QUBITS = 4;
     constexpr int MAX_QUBITS = 15;
-    constexpr int MAX_QREGS = 5;
+    constexpr int MAX_QREGS = 4;
+
+    struct Qubit{
+        std::string as_str;
+        bool used = false;
+    };
 
     struct Qreg {
         static int count;
@@ -60,14 +66,61 @@ namespace Common {
 
             std::string get_name(){return name;}
 
-            size_t get_size(){return size;}
+            std::string get_size_as_string(){return std::to_string(size);}
+
+            /// @brief Add qubits to the given vector from the qreg
+            /// @param qubits 
+            void make_qubits(std::vector<Qubit>& qubits){
+                for(size_t i = 0; i < size; i++){
+                    qubits.push_back(Qubit{.as_str = name + "[" + std::to_string(i) + "]"});
+                }
+            }
 
         private:
             std::string name;
             size_t size;
     };
 
-    void setup_qregs(std::vector<Qreg>& qregs);
+    struct Qreg_definitions{
+
+        public:
+
+            Qreg_definitions(){}
+
+            void push_back(Qreg qreg){
+                qregs.push_back(qreg);
+                qreg.make_qubits(qubits);
+            }
+
+            void reset(){
+                qregs.clear();
+                qubits.clear();
+                qreg_pointer = 0;
+            }
+
+            void reset_qubits(){
+                for(size_t i = 0; i < qubits.size(); i++){
+                    qubits[i].used = false;
+                }
+            }
+
+            inline Qreg get_next_qreg(){
+                return qregs.at(qreg_pointer++);
+            }
+
+            inline size_t num_qregs(){
+                return qregs.size();
+            }
+
+        private:
+            std::vector<Qreg> qregs;
+            std::vector<Qubit> qubits;
+            int qreg_pointer = 0;
+
+    };
+
+
+    void setup_qregs(Qreg_definitions& qreg_defs);
 
     enum Rule_hash : U64 {
         // TOKENS
