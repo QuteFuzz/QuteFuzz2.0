@@ -97,7 +97,12 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         case Common::u3:    
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(3, true);            
-            break;   
+            break;
+            
+        case Common::u:
+            node->add_child(std::make_shared<Node>(str));
+            constraints.add_n_qubit_constrait(3, true);
+            break;
 
         default:
             break;
