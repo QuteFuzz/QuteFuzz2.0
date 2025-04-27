@@ -30,7 +30,7 @@ An idea for where QuteFuzz 2.0 might head.
     NEWLINE = "\n";
     ```
 
-    Because now the counter considers `NEWLINE` as well. So it will pick a branch that looks like `qreg \n qreg` instead of `qreg qreg`.
+    Because now the counter considers `NEWLINE` as well. So it will pick a branch that looks like `qreg \n` instead of `qreg qreg`.
 
     Basically, we need a way of properly skipping over rules pointing to single branches that are syntax nodes, but for now, just writing `NEWLINE` works because it is defined in the program as common.
 
