@@ -111,7 +111,7 @@ void Lexer::Lexer::lex(){
 void Lexer::Lexer::print_tokens() const {
 
     if(result.is_error()){
-        std::cout << result.get_error() << std::endl; 
+        ERROR(result.get_error()); 
         
     } else {
         std::vector<Token::Token> tokens = result.get_ok();
