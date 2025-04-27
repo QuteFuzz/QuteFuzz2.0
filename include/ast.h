@@ -16,7 +16,7 @@ class Node {
         /// @brief Create node from a term. 
         /// @param _term 
         /// @param _depth 
-        Node(const Term& _term) : term(_term){}
+        Node(const Term& _term, int _depth) : term(_term), depth(_depth){}
 
         Node(const std::string syntax){
             term.set(syntax);
@@ -70,7 +70,7 @@ class Node {
                 << std::endl;
 
             for(auto child : n.children){
-                stream << n.indent() << "->" << *child;
+                stream << child->indent() << "->" << *child;
             }
 
             return stream;
@@ -183,7 +183,8 @@ class Ast{
         std::uniform_real_distribution<float> float_dist;
 
         Common::Qreg_definitions qreg_defs;
-        Common::Qreg qreg_to_write = Common::Qreg();
+        std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
+        std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
 };
 
 #endif

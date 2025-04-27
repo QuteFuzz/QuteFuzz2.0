@@ -18,6 +18,7 @@
 #define UNUSED(x) (void)(x)
 #define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
 #define PLACEHOLDER(x) "[PLACEHOLDER] " x
+#define ERROR(x) std::cout << "[ERROR] " << x << std::endl
 
 using U64 = uint64_t;
 
@@ -35,11 +36,26 @@ namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
     constexpr int MIN_QUBITS = 4;
     constexpr int MAX_QUBITS = 15;
-    constexpr int MAX_QREGS = 4;
 
     struct Qubit{
-        std::string as_str;
-        bool used = false;
+        public:
+            Qubit(){}
+            Qubit(std::string name, std::string _index) : qubit_name(name), index(_index) {}
+            void reset(){used = false;}
+            void set_used(){used = true;}
+            bool is_used(){return used;}
+            inline std::string get_name(){return qubit_name;}
+            inline std::string get_index_as_string(){return index;}
+
+            friend std::ostream& operator<<(std::ostream& stream, Qubit qb){
+                stream << qb.qubit_name << "[" << qb.index << "]";
+                return stream;
+            }
+
+        private:
+            std::string qubit_name = PLACEHOLDER("qubit_name");
+            std::string index = PLACEHOLDER("qubit_index");
+            bool used = false;
     };
 
     struct Qreg {
@@ -58,7 +74,7 @@ namespace Common {
                     stream << q.name << "[0]";
 
                 } else {
-                    stream << q.name << "[" << q.size - 1 << ":0]";
+                    stream << q.name << "[0: " << q.size - 1 << "]";
 
                 }
 
@@ -73,7 +89,7 @@ namespace Common {
             /// @param qubits 
             void make_qubits(std::vector<Qubit>& qubits){
                 for(size_t i = 0; i < size; i++){
-                    qubits.push_back(Qubit{.as_str = name + "[" + std::to_string(i) + "]"});
+                    qubits.push_back(Qubit(name, std::to_string(i)));
                 }
             }
 
@@ -81,6 +97,9 @@ namespace Common {
             std::string name = PLACEHOLDER("qubit_name");
             size_t size = 0;
     };
+
+    const std::shared_ptr<Qubit> DEFAULT_QUBIT = std::make_shared<Qubit>(Qubit());
+    const std::shared_ptr<Qreg> DEFAULT_QREG = std::make_shared<Qreg>(Qreg());
 
     struct Qreg_definitions{
 
@@ -100,17 +119,53 @@ namespace Common {
             }
 
             void reset_qubits(){
-                for(size_t i = 0; i < qubits.size(); i++){
-                    qubits[i].used = false;
+                for(Qubit& qb : qubits){
+                    qb.reset();
+                }
+            }
+        
+            inline std::shared_ptr<Qreg> get_next_qreg(){
+                if((size_t)qreg_pointer < qregs.size()){
+                    return std::make_shared<Qreg>(qregs[qreg_pointer++]);
+                } else {
+                    return DEFAULT_QREG;
                 }
             }
 
-            bool defined(){
-                return ((size_t)qreg_pointer < qregs.size());
+            inline std::shared_ptr<Qubit> get_random_qubit(){
+                if(qubits.size()){
+                    int index = random_int(qubits.size() - 1);
+                    Qubit* qubit = &qubits[index];
+
+                    while(qubit->is_used()){
+                        index = random_int(qubits.size() - 1);
+                        qubit = &qubits[index];
+                    }
+
+                    qubit->set_used();
+                
+                    return std::make_shared<Qubit>(qubits[index]);
+                
+                } else {
+                    return DEFAULT_QUBIT;
+                }
             }
 
-            inline Qreg get_next_qreg(){
-                return qregs.at(qreg_pointer++);
+            friend std::ostream& operator<<(std::ostream& stream, Qreg_definitions defs){
+                stream << "Qregs " << std::endl;
+                for(const Qreg& qr : defs.qregs){
+                    stream << qr << std::endl;
+                }
+
+                stream << "=====================" << std::endl;
+                stream << "Qubits " << std::endl;
+                for(const Qubit& qb : defs.qubits){
+                    stream << qb << std::endl;
+                }
+
+                stream << "n_qubits: " << defs.qubits.size() << " n_qregs: " << defs.qregs.size() << std::endl;
+
+                return stream;
             }
 
             inline size_t num_qregs(){
@@ -130,6 +185,10 @@ namespace Common {
         // TOKENS
         lparen = 8662532954183415845ULL,
         rparen = 4240811817421387563ULL,
+        lbrack = 18386234719722393716ULL,
+        rbrack = 7671235843435343298ULL,
+        lbrace = 18386223724606111606ULL,
+        rbrace = 7671238042458599720ULL,
         comma = 7874411517935695704ULL,
         space = 4858524775536387045ULL,
         dot = 14604936204231399584ULL,
@@ -138,6 +197,7 @@ namespace Common {
         double_quote = 8080484409244937479ULL,
         double_ampersand = 5535872232892287956ULL,
         equals = 3453683047558497236ULL,
+        newline = 18437749844794859691ULL,
 
         // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
@@ -183,6 +243,8 @@ namespace Common {
         statement = 7142774524121430294ULL,
         qreg_decl = 3677861984610038255ULL,
         qreg_append = 8492996956615407539ULL,
+        qubit_name = 8757953683662904688ULL,
+        qubit_index = 6830264791288854081ULL,
     };
 
     extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;

@@ -234,7 +234,7 @@ void Grammar::build_grammar(){
         build_grammar();
 
     } else {
-        throw std::runtime_error(curr_token.get_error());
+        ERROR(curr_token.get_error());
     }
 }
 

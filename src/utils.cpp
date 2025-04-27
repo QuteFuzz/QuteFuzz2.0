@@ -5,6 +5,10 @@ int Common::Qreg::count = 0;
 const std::unordered_map<Common::Rule_hash, std::string> Common::COMMON_TOKEN_STR = {
     {lparen, "("},
     {rparen, ")"},
+    {lbrack, "["},
+    {rbrack, "]"},
+    {lbrace, "{"},
+    {rbrace, "}"},
     {comma, ","},
     {space, " "},
     {dot, "."},
@@ -13,6 +17,7 @@ const std::unordered_map<Common::Rule_hash, std::string> Common::COMMON_TOKEN_ST
     {double_quote, "\""},
     {double_ampersand, "&&"},
     {equals, " = "},
+    {newline, "\n"}
 };
 
 bool Common::is_common(const Rule_hash& hashed_str){
@@ -99,5 +104,9 @@ void Common::setup_qregs(Qreg_definitions& qreg_defs){
         qreg_defs.push_back(Qreg(qreg_size));
 
         num_qubits -= qreg_size;
-    }
+    }  
+
+    #if 0
+    std::cout << qreg_defs;
+    #endif
 }

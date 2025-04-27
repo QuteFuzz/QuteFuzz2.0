@@ -1,14 +1,20 @@
 # trying to fix up a pytket grammar that could be used
 
-NEWLINE  = "\n";
+(*
+    DO NOT try something like:
+    NEWLINE = "\n";
+    qreg_defs = (qreg_def NEWLINE)+;
 
-program = imports "\n" circuit "\n" compiler_call;
+    See README under the "Grammar parser" section for why
+*)
 
-circuit     = circuit_def "\n" qreg_defs "\n" statements "\n";
+program = imports NEWLINE circuit NEWLINE compiler_call;
 
-qreg_defs = (qreg_def "\n")+;
+circuit     = circuit_def NEWLINE qreg_defs NEWLINE statements NEWLINE;
 
-statements = (statement "\n")+;
+qreg_defs = (qreg_def NEWLINE)+; # def /n | def /n def /n | def /n def /n def /n .....
+
+statements = (statement NEWLINE)+;
 
 circuit_def = circuit_name " = Circuit()";
 
@@ -27,6 +33,7 @@ gate_application_kind =
 
 gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list  = qubit (COMMA SPACE qubit)*;
+qubit = qubit_name "[" qubit_index "]";
 
 parameter_list = parameter (COMMA SPACE parameter)*;
 parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;

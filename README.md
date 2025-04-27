@@ -13,21 +13,26 @@ An idea for where QuteFuzz 2.0 might head.
 
 ### How to use
 - Write grammar in BNF syntax. 
-- As a convention, I use lower case for rules, and uppercase for syntax tokens. This isn't needed for functionality.
-- The tokens below are known as "common" syntax tokens, and therefore do not need to be defined in the grammar. 
-Use the names below (case-agnostic), and the corresponding token will be written to the program:
-```
-lparen, "("
-rparen, ")"
-comma, ","
-space, " "
-dot, "."
-single_quote, "\'"
-double_pipe, "||"
-double_quote, "\""
-double_ampersand, "&&"
-equals, " = "
-```
+- As a convention, I use lower case for rules, and uppercase for syntax tokens. This isn't needed for functionality. The tokens are defined in the program and can be used without defining them in the grammar. See [here](src/utils.cpp#L5-#L21). The names are case-agnostic. 
+
+**Why the commons?**
+
+1. It's convenient, and allows those tokens to be resued across all grammar definitions in the program.
+2. It solves a sneaky issue (that will be fixed later):
+
+    In the constraints resolver, there's code which returns a branch that has a given number of children. Only pointer nodes are considered when making this comparison. 
+    So, if you have:
+    `qregs = (qreg)+;`
+
+    You can constrain `qregs` to pick a branch with 2 `qreg` terms. An issue arrises if something like this is done:
+    ```
+    qregs = (qreg NEWLINE)+;
+    NEWLINE = "\n";
+    ```
+
+    Because now the counter considers `NEWLINE` as well. So it will pick a branch that looks like `qreg \n qreg` instead of `qreg qreg`.
+
+    Basically, we need a way of properly skipping over rules pointing to single branches that are syntax nodes, but for now, just writing `NEWLINE` works because it is defined in the program as common.
 
 - Gates, imports, compiler calls, float literals, qubit register names, qubit register sizes, qubits can also be written in the grammar but not defined. These are replaced with actual values while parsing the AST. See [`pytket.bnf`](examples/pytket.bnf).
 - Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr | expr expr | .... | expr ... expr (50 times)` in memory. 
