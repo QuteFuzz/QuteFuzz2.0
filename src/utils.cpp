@@ -85,6 +85,8 @@ float random_float(float max, float min){
     }
 }
 
+/// @brief Create qregs and qubit definitions
+/// @param qreg_defs 
 void Common::setup_qregs(Qreg_definitions& qreg_defs){
     qreg_defs.reset();
 

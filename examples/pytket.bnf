@@ -1,5 +1,7 @@
 # trying to fix up a pytket grammar that could be used
 
+NEWLINE  = "\n";
+
 program = imports "\n" circuit "\n" compiler_call;
 
 circuit     = circuit_def "\n" qreg_defs "\n" statements "\n";
