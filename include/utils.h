@@ -245,8 +245,6 @@ namespace Common {
         qreg_append = 8492996956615407539ULL,
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
-        qreg_decl = 3677861984610038255ULL,
-        qreg_append = 8492996956615407539ULL,
     };
 
     extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;

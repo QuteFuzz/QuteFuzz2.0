@@ -11,7 +11,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
     switch(hash){
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
-        case Common::qreg_defs: case Common::gate_application: case Common::gate_application_kind: case Common::statement:
+        case Common::qreg_defs: case Common::qreg_decl: case Common::qreg_append: case Common::gate_application: case Common::gate_application_kind: case Common::statement:
             // THESE ARE ACTUAL RULES IN THE GRAMMAR. Any constraints are already in the grammar definition
             break;
 
@@ -29,7 +29,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
 
         case Common::qreg_size:
             node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
-            break;   
+            break;
 
         case Common::qubit_name: 
             node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
