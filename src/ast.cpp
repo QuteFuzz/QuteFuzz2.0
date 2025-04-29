@@ -44,8 +44,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
             break;
 
-        case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
-            constraints.clear(); 
+        case Common::gate_name:  case Common::arg_gate_name: case Common::phase_gate_name:
             qreg_defs.reset_qubits();
             break;
 
