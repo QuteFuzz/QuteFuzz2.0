@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "pytket.h"
 #include "qiskit.h"
+#include "cirq.h"
 #include <sstream>
 
 

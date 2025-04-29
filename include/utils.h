@@ -208,14 +208,20 @@ namespace Common {
         rx = 638468843173022199ULL,
         ry = 638467743661393988ULL,
         u1 = 631765120777144307ULL,
+        s = 12638206991764949794ULL,
+        t = 12638201494206808739ULL,
+        phasedxpowgate = 11832025932794728373ULL,
 
         // TWO QUBIT GATES
         cx = 622136697450792830ULL,
         ccx = 17716034042247149281ULL,
         u2 = 631766220288772518ULL,
+        cz = 622134498427536408ULL,
+        cnot = 352634892887392207ULL,
     
         // THREE QUBIT GATES    
         u3 = 631767319800400729ULL,
+        cswap = 9091793091986225957ULL,
 
         // OTHER GATES
         u = 12638200394695180528ULL,
@@ -245,6 +251,11 @@ namespace Common {
         qreg_append = 8492996956615407539ULL,
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
+        InsertStrategy = 9472000366263819549ULL,
+        arg_gate_name = 3264921562381107747ULL,
+        phase_gate_name = 12512458278741438740ULL,
+        arg_gate_application = 13921932069523118606ULL,
+        phase_gate_application = 10453516286525280623ULL,
     };
 
     extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;

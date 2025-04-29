@@ -1,0 +1,39 @@
+# Cirq grammar?
+
+program = imports NEWLINE circuit NEWLINE compiler_call;
+
+circuit     = qreg_defs NEWLINE circuit_def NEWLINE statements NEWLINE;
+
+qreg_defs = (qreg_def NEWLINE)+;
+
+statements = (statement NEWLINE)+;
+
+circuit_def = circuit_name " = Circuit()";
+
+qreg_def    = qreg_name EQUALS "NamedQubit.range" LPAREN qreg_size COMMA " prefix" EQUALS DOUBLE_QUOTE "q" DOUBLE_QUOTE RPAREN NEWLINE;
+
+statement   = gate_application;
+
+gate_application = 
+    circuit_name ".append" LPAREN gate_name gate_application_kind RPAREN
+    | circuit_name ".append" LPAREN gate_name gate_application_kind COMMA " strategy" EQUALS "InsertStrategy" DOT InsertStrategy RPAREN
+    | circuit_name ".append" LPAREN arg_gate_name arg_gate_application COMMA " strategy" EQUALS "InsertStrategy" DOT InsertStrategy RPAREN
+    | circuit_name ".append" LPAREN phase_gate_name phase_gate_application COMMA " strategy" EQUALS "InsertStrategy" DOT InsertStrategy RPAREN
+    ;
+
+gate_application_kind = LPAREN qubit_list RPAREN;
+arg_gate_application = LPAREN float_literal RPAREN DOT "on" LPAREN qubit_list RPAREN;
+phase_gate_application = LPAREN "phase_exponent" EQUALS float_literal RPAREN DOT "on" LPAREN qubit_list RPAREN;
+
+InsertStrategy = "EARLIEST" | "NEW_THEN_INLINE" | "NEW" | "INLINE";
+
+# 3 Different kinds of gates with different syntax and are not interchangeable
+gate_name   = X | Y | Z | S | T | CZ | CSWAP | CNOT;
+arg_gate_name =  rz | rx | ry;
+phase_gate_name = PhasedXPowGate;
+
+qubit_list  = qubit (COMMA SPACE qubit)*;
+qubit = qubit_name "[" qubit_index "]";
+
+parameter_list = parameter (COMMA SPACE parameter)*;
+parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;

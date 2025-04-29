@@ -12,6 +12,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
         case Common::qreg_defs: case Common::qreg_decl: case Common::qreg_append: case Common::gate_application: case Common::gate_application_kind: case Common::statement:
+        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application:
             // THESE ARE ACTUAL RULES IN THE GRAMMAR. Any constraints are already in the grammar definition
             break;
 
@@ -49,7 +50,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
             break;
 
-        case Common::gate_name: 
+        case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
             constraints.clear(); 
             qreg_defs.reset_qubits();
             break;
@@ -74,22 +75,22 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         /*
             GATES. Make child for a syntax term that's just the name of the gate. Add constraint on the number of qubits that are chosen
         */
-        case Common::h: case Common::x: case Common::y: case Common::z:
+        case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(1);
             break;
         
-        case Common::cx:
+        case Common::cx: case Common::cz: case Common::cnot:
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(2);
             break;
 
-        case Common::ccx:
+        case Common::ccx: case Common::cswap:
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(3);
             break;
 
-        case Common::u1: case Common::rx: case Common::ry: case Common::rz:
+        case Common::u1: case Common::rx: case Common::ry: case Common::rz: case Common::phasedxpowgate:
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(1, true);
             break;
@@ -99,16 +100,11 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             constraints.add_n_qubit_constrait(2, true);            
             break;
 
-        case Common::u3:    
+        case Common::u3: case Common::u:
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(3, true);            
             break;
             
-        case Common::u:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(3, true);
-            break;
-
         default:
             break;
 
