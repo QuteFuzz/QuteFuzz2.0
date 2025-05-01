@@ -39,12 +39,6 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             node->add_child(std::make_shared<Node>(qubit_to_write->get_index_as_string()));
             break;   
 
-        case Common::lparen: case Common::rparen: case Common::comma: case Common::space: case Common::dot: 
-        case Common::single_quote: case Common::double_pipe: case Common::double_quote: case Common::double_ampersand: case Common::equals:
-        case Common::lbrack: case Common::rbrack: case Common::lbrace: case Common::rbrace: case Common::newline:
-            node->add_child(std::make_shared<Node>(Common::terminal_value(hash)));
-            break;
-
         case Common::circuit_name:
             node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
             break;

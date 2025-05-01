@@ -83,6 +83,26 @@ class Grammar{
 
         inline std::string get_path(){return path.string();}
 
+        inline void mark_as_commons_grammar(){
+            for(auto& [f, s] : rule_pointers){
+                s->mark_as_common();
+            }
+        }
+
+        std::unordered_map<std::string, std::shared_ptr<Rule>> get_rule_pointers() const {
+            return rule_pointers;
+        }
+
+        Grammar& operator+=(const Grammar& other){
+            std::unordered_map<std::string, std::shared_ptr<Rule>> other_rule_pointers = other.get_rule_pointers();
+
+            for(const auto& [k ,v]: other_rule_pointers){
+                rule_pointers.insert_or_assign(k, v);
+            }
+        
+            return *this;
+        }
+
     private:
         std::vector<Token::Token> tokens;
         size_t num_tokens = 0;

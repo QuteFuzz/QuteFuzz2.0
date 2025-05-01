@@ -19,6 +19,7 @@
 #define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
 #define PLACEHOLDER(x) "[PLACEHOLDER] " x
 #define ERROR(x) std::cout << "[ERROR] " << x << std::endl
+#define TOKENS_GRAMMAR_NAME "tokens"
 
 using U64 = uint64_t;
 
@@ -182,23 +183,6 @@ namespace Common {
     void setup_qregs(Qreg_definitions& qreg_defs);
 
     enum Rule_hash : U64 {
-        // TOKENS
-        lparen = 8662532954183415845ULL,
-        rparen = 4240811817421387563ULL,
-        lbrack = 18386234719722393716ULL,
-        rbrack = 7671235843435343298ULL,
-        lbrace = 18386223724606111606ULL,
-        rbrace = 7671238042458599720ULL,
-        comma = 7874411517935695704ULL,
-        space = 4858524775536387045ULL,
-        dot = 14604936204231399584ULL,
-        single_quote = 11907393312445673822ULL,
-        double_pipe = 6606020031733204521ULL,
-        double_quote = 8080484409244937479ULL,
-        double_ampersand = 5535872232892287956ULL,
-        equals = 3453683047558497236ULL,
-        newline = 18437749844794859691ULL,
-
         // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
         x = 12638214688346347271ULL,
@@ -241,14 +225,6 @@ namespace Common {
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
     };
-
-    extern const std::unordered_map<Rule_hash, std::string> COMMON_TOKEN_STR;
-
-    bool is_common(const Rule_hash& hashed_str);
-
-    bool is_common(const std::string& str);
-
-    std::string terminal_value(const Rule_hash& hashed_str);
 }
 
 template<typename A, typename B>
