@@ -5,6 +5,8 @@ void Rule::print(std::ostream& os) const {
         elem.print(os);
         os << "| ";
     }
+
+    os << " common: " << common;
 }
 
 void Rule::assign_prob(const float _prob){

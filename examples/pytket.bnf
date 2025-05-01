@@ -1,11 +1,7 @@
 # trying to fix up a pytket grammar that could be used
 
 (*
-    DO NOT try something like:
-    NEWLINE = "\n";
-    qreg_defs = (qreg_def NEWLINE)+;
-
-    See README under the "Grammar parser" section for why
+    tokens like NEWLINE and RPAREN are defined in the tokens.bnf file
 *)
 
 program = imports NEWLINE circuit NEWLINE compiler_call;

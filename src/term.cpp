@@ -4,13 +4,12 @@
 void Term::set(std::shared_ptr<Rule> term){
     value = term;
     _name = term->get_name();
-    hashed_name = hash_rule_name(_name);
+    hashed_name = term->get_hash();
 }
 
 void Term::set(std::string syntax){
     value = syntax;
     _name = syntax;
-    hashed_name = hash_rule_name(syntax);
 }
 
 std::shared_ptr<Rule> Term::get_rule() const {
@@ -41,6 +40,10 @@ bool Term::is_syntax() const {
 
 bool Term::is_pointer() const {
     return std::holds_alternative<std::shared_ptr<Rule>>(value);
+}
+
+bool Term::is_defined_in_common() const {
+    return get_rule()->is_marked_as_common();
 }
 
 std::ostream& operator<<(std::ostream& stream, Term term){
