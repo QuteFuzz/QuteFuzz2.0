@@ -49,6 +49,10 @@ case Common::gate_application:
         break;
 ```
 
+## AST modification
+
+If we want to do polymorphic testing, we need a way to detect specific patterns of gates in the circuit. Perhaps we could use the same functionality to detect repeatign bits of gate application in the main circuit, then use that to generate the subroutines? Seems like a cool idea.
+
 ## Running
 
 Build with:
