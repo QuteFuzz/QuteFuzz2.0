@@ -11,7 +11,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
     switch(hash){
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
-        case Common::qreg_defs: case Common::qreg_decl: case Common::qreg_append: case Common::gate_application: case Common::gate_application_kind: case Common::statement:
+        case Common::qreg_defs: case Common::qreg_decl: case Common::qreg_append: case Common::gate_application_kind: case Common::statement:
         case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application:
             // THESE ARE ACTUAL RULES IN THE GRAMMAR. Any constraints are already in the grammar definition
             break;
@@ -52,7 +52,12 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         case Common::circuit:
             Common::setup_qregs(qreg_defs);
             constraints.add_constraint(Constraints::Constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, qreg_defs.num_qregs()));
-            break;            
+            break;      
+            
+        case Common::gate_application:
+            constraints.clear();
+            // constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
+            break;
 
         case Common::qreg_def:
             qreg_to_write = qreg_defs.get_next_qreg();

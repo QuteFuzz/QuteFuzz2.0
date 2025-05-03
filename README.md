@@ -32,12 +32,22 @@ A constraint system ensures that the AST is well formed.
 
 ```C++
 case Common::h: case Common::x: case Common::y: case Common::z:
-        constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
-        constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 1)); 
+        node->add_child(std::make_shared<Node>(str));
+        constraints.add_n_qubit_constrait(1);
         break;
 ```
 
+Definition of [`add_n_qubit_contraint`](include/constraints.h).
+
 Where `gate_application` and `qubit_list` are rules defined in the grammar.
+
+- Here's an example of contraints added to implement swarm testing:
+```C++
+case Common::gate_application:
+        constraints.clear();
+        constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
+        break;
+```
 
 ## Running
 

@@ -240,6 +240,7 @@ namespace Common {
         phase_gate_name = 12512458278741438740ULL,
         arg_gate_application = 13921932069523118606ULL,
         phase_gate_application = 10453516286525280623ULL,
+        subroutines = 3276487754481867520ULL,
     };
 }
 

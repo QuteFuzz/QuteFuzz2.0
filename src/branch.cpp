@@ -59,3 +59,18 @@ bool Branch::pointer_terms_match(std::vector<U64> term_hashes) const {
         return false;
     }
 }
+
+bool Branch::pointer_terms_in(std::vector<U64> term_hashes) const {
+    for(const U64& term_hash : term_hashes){
+
+        auto it = std::find_if(pointer_terms.begin(), pointer_terms.end(), [term_hash](const std::shared_ptr<Term>& ptr){
+            return ptr && (*ptr == term_hash);
+        });
+
+        if(it != pointer_terms.end()){
+            return true;
+        }
+    }
+
+    return false;
+}
