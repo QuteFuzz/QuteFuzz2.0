@@ -50,6 +50,8 @@ class Branch {
 
         bool pointer_terms_match(std::vector<U64> term_hashes) const ;
 
+        bool pointer_terms_in(std::vector<U64> term_hashes) const ; 
+
         bool is_empty() const {return terms.empty();}
 
         std::vector<Term> get_terms(){return terms;} 

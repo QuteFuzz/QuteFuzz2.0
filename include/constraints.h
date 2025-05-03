@@ -6,11 +6,12 @@
 /// @brief A constraint on some property of a branch
 namespace Constraints {
     enum Type {
-        NUM_RULES_MINIMUM,
+        NUM_RULES_MINIMUM = 1,
         NUM_RULES_MAXIMUM,
         NUM_RULES_EQUALS,
         BRANCH_IS_NON_RECURSIVE,
         BRANCH_EQUALS,
+        BRANCH_IN,
     };
 
     struct Constraint {
@@ -38,7 +39,7 @@ namespace Constraints {
             node = _node;
             value = node_hashes;
 
-            if(t == BRANCH_EQUALS){
+            if((t == BRANCH_EQUALS) || (t == BRANCH_IN)){
                 type = t;
 
             }
@@ -56,6 +57,8 @@ namespace Constraints {
                 case NUM_RULES_EQUALS: return not_relevant(_node)  || (pts_size == std::get<size_t>(value));
                 case BRANCH_IS_NON_RECURSIVE: return !b.get_recursive_flag();
                 case BRANCH_EQUALS: return not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<U64>>(value));
+                case BRANCH_IN: return not_relevant(_node) || b.pointer_terms_in(std::get<std::vector<U64>>(value));
+                default: return true;
             }
 
             return false;
@@ -87,6 +90,7 @@ namespace Constraints {
             /// @param n number of qubits
             /// @param is_rotation whether or not the gate requires an argument
             void add_n_qubit_constrait(size_t n, bool is_rotation = false){
+                
                 if(is_rotation){
                     add_arg_constraint();
                 

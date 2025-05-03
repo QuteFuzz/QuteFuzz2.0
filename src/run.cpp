@@ -129,7 +129,7 @@ void Run::loop(){
             if(tokens.size() == 2){
                 set_grammar();
             } else {
-                std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL" << std::endl;
+                std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;
 
             }
         }

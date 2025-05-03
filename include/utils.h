@@ -224,6 +224,7 @@ namespace Common {
         statement = 7142774524121430294ULL,
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
+        subroutines = 3276487754481867520ULL,
     };
 }
 
