@@ -6,6 +6,7 @@
 #include "constraints.h"
 
 #define MAX_RECURSIONS 5
+#define INDENT_STR "---"
 
 /// @brief A node is a term with pointers to other nodes
 class Node {
@@ -37,13 +38,13 @@ class Node {
         }
 
         std::string indent() const {
-            std::string tabs = "";
+            std::string str = "";
 
             for(int i = 0; i < depth; ++i){
-                tabs += "\t";
+                str += INDENT_STR;
             }
 
-            return tabs;
+            return str;
         }
 
         U64 get_hash() const {
@@ -67,10 +68,10 @@ class Node {
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.num_children
                 << " depth: " << n.depth
-                << std::endl;
+                << "\n|\n";
 
             for(auto child : n.children){
-                stream << child->indent() << "->" << *child;
+                stream << "|" << child->indent() << ">" << *child;
             }
 
             return stream;
