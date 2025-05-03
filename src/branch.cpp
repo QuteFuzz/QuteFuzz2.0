@@ -13,7 +13,7 @@ void Branch::print(std::ostream& os) const {
 void Branch::add(const Term& term){
     size_t size = terms.size();
 
-    if(term.is_pointer() && !Common::is_common(term.get_string())) pointer_terms.push_back(std::make_shared<Term>(term));
+    if(term.is_pointer() && !term.is_defined_in_common()) pointer_terms.push_back(std::make_shared<Term>(term));
 
     if(size){
         auto last_term = terms.end()-1; // reference to the last term in the branch
@@ -58,4 +58,19 @@ bool Branch::pointer_terms_match(std::vector<U64> term_hashes) const {
     } else {
         return false;
     }
+}
+
+bool Branch::pointer_terms_in(std::vector<U64> term_hashes) const {
+    for(const U64& term_hash : term_hashes){
+
+        auto it = std::find_if(pointer_terms.begin(), pointer_terms.end(), [term_hash](const std::shared_ptr<Term>& ptr){
+            return ptr && (*ptr == term_hash);
+        });
+
+        if(it != pointer_terms.end()){
+            return true;
+        }
+    }
+
+    return false;
 }

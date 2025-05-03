@@ -5,17 +5,34 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
     try{
 
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
+            Grammar commons_grammar;
+
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().extension() == ".bnf")){
+                if(file.is_regular_file() && (file.path().stem() == TOKENS_GRAMMAR_NAME)){
                     Grammar grammar(file);
+                    grammar.build_grammar();
+
+                    commons_grammar = grammar;
+                    commons_grammar.mark_as_commons_grammar();
+
+                    break;
+                }
+            }
+
+            for(auto& file : fs::directory_iterator(grammars_dir)){
+
+                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
+
+                    Grammar grammar(file);
+                    grammar += commons_grammar;
                     grammar.build_grammar();
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;
-
+             
                     Program_Spec spec;
-
+                    
                     spec.grammar = std::make_shared<Grammar>(grammar);
                     
                     if(name == "pytket"){
@@ -30,7 +47,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                     specs[name] = std::make_shared<Program_Spec>(spec);
                     
                 }
+
             }
+
         }
 
         // prepare outputs directory
@@ -110,7 +129,7 @@ void Run::loop(){
             if(tokens.size() == 2){
                 set_grammar();
             } else {
-                std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL" << std::endl;
+                std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;
 
             }
         }

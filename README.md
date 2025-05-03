@@ -13,27 +13,8 @@ An idea for where QuteFuzz 2.0 might head.
 
 ### How to use
 - Write grammar in BNF syntax. 
-- As a convention, I use lower case for rules, and uppercase for syntax tokens. This isn't needed for functionality. The tokens are defined in the program and can be used without defining them in the grammar. See [here](src/utils.cpp#L5-#L21). The names are case-agnostic. 
-
-**Why the commons?**
-
-1. It's convenient, and allows those tokens to be resued across all grammar definitions in the program.
-2. It solves a sneaky issue (that will be fixed later):
-
-    In the constraints resolver, there's code which returns a branch that has a given number of children. Only pointer nodes are considered when making this comparison. 
-    So, if you have:
-    `qregs = (qreg)+;`
-
-    You can constrain `qregs` to pick a branch with 2 `qreg` terms. An issue arrises if something like this is done:
-    ```
-    qregs = (qreg NEWLINE)+;
-    NEWLINE = "\n";
-    ```
-
-    Because now the counter considers `NEWLINE` as well. So it will pick a branch that looks like `qreg \n` instead of `qreg qreg`.
-
-    Basically, we need a way of properly skipping over rules pointing to single branches that are syntax nodes, but for now, just writing `NEWLINE` works because it is defined in the program as common.
-
+- As a convention, I use lower case for rules, and uppercase for syntax tokens. This isn't needed for functionality. 
+- `tokens.bnf` should be used for any tokens. This gets parsed first, and its grammar is added to the definitions of all other grammars.
 - Gates, imports, compiler calls, float literals, qubit register names, qubit register sizes, qubits can also be written in the grammar but not defined. These are replaced with actual values while parsing the AST. See [`pytket.bnf`](examples/pytket.bnf).
 - Wildcards are expanded out, with a maximum set to 50. So `expr+` becomes `expr | expr expr | .... | expr ... expr (50 times)` in memory. 
 
@@ -51,12 +32,26 @@ A constraint system ensures that the AST is well formed.
 
 ```C++
 case Common::h: case Common::x: case Common::y: case Common::z:
-        constraints.add_constraint(Constraints::Constraint(gate_application, Constraints::BRANCH_SIZE_EQUALS, 1)); 
-        constraints.add_constraint(Constraints::Constraint(qubit_list, Constraints::BRANCH_SIZE_EQUALS, 1)); 
+        node->add_child(std::make_shared<Node>(str));
+        constraints.add_n_qubit_constrait(1);
         break;
 ```
 
+Definition of [`add_n_qubit_contraint`](include/constraints.h).
+
 Where `gate_application` and `qubit_list` are rules defined in the grammar.
+
+- Here's an example of contraints added to implement swarm testing:
+```C++
+case Common::gate_application:
+        constraints.clear();
+        constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
+        break;
+```
+
+## AST modification
+
+If we want to do polymorphic testing, we need a way to detect specific patterns of gates in the circuit. Perhaps we could use the same functionality to detect repeatign bits of gate application in the main circuit, then use that to generate the subroutines? Seems like a cool idea.
 
 ## Running
 
