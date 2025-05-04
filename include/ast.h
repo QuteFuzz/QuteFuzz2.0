@@ -37,12 +37,22 @@ class Node {
             num_children++;
         }
 
-        std::string indent() const {
-            std::string str = "";
-
+        void extend_str(std::string& str, std::string repeat, std::string end = "") const {
             for(int i = 0; i < depth; ++i){
-                str += INDENT_STR;
+                str += repeat;
             }
+
+            str += end;
+        }
+
+        std::string indent() const {
+            std::string str = "\n";
+
+            extend_str(str, "\t", "|\n");
+
+            extend_str(str, "\t", "|");
+
+            extend_str(str, "---", ">");
 
             return str;
         }
@@ -67,11 +77,10 @@ class Node {
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.num_children
-                << " depth: " << n.depth
-                << "\n|\n";
+                << " depth: " << n.depth;
 
             for(auto child : n.children){
-                stream << "|" << child->indent() << ">" << *child;
+                stream << child->indent() << *child;
             }
 
             return stream;
