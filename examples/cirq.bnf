@@ -10,7 +10,7 @@ statements = (statement NEWLINE)+;
 
 circuit_def = circuit_name " = Circuit()";
 
-qreg_def    = qreg_name EQUALS "NamedQubit.range" LPAREN qreg_size COMMA " prefix" EQUALS DOUBLE_QUOTE "q" DOUBLE_QUOTE RPAREN NEWLINE;
+qreg_def    = qreg_name EQUALS "NamedQubit.range" LPAREN qreg_size COMMA " prefix" EQUALS '"q"' RPAREN NEWLINE;
 
 statement   = gate_application;
 
