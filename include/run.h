@@ -4,7 +4,10 @@
 #include "grammar.h"
 #include "ast.h"
 #include "pytket.h"
+#include "qiskit.h"
+#include "cirq.h"
 #include <sstream>
+
 
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
 

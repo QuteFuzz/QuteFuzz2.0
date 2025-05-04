@@ -39,6 +39,14 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                         spec.builder = std::make_shared<Pytket>();
                         spec.extension = ".py";
 
+                    } else if(name == "qiskit"){
+                        spec.builder = std::make_shared<Qiskit>();
+                        spec.extension = ".py";
+
+                    } else if(name == "cirq"){
+                        spec.builder = std::make_shared<Cirq>();
+                        spec.extension = ".py";
+                        
                     } else {
                         spec.builder = std::make_shared<Ast>();
                         spec.extension = ".txt";
