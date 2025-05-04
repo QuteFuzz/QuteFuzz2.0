@@ -30,7 +30,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
 
         case Common::qreg_size:
             node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
-            break;
+            break;   
 
         case Common::qubit_name: 
             node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
@@ -51,7 +51,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         case Common::circuit:
             Common::setup_qregs(qreg_defs);
             constraints.add_constraint(Constraints::Constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, qreg_defs.num_qregs()));
-            break;      
+            break;       
             
         case Common::gate_application:
             constraints.clear();
@@ -102,7 +102,6 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             node->add_child(std::make_shared<Node>(str));
             constraints.add_n_qubit_constrait(3, true);            
             break;
-            
         default:
             break;
 

@@ -137,7 +137,6 @@ namespace Common {
                 if(qubits.size()){
                     int index = random_int(qubits.size() - 1);
                     Qubit* qubit = &qubits[index];
-
                     while(qubit->is_used()){
                         index = random_int(qubits.size() - 1);
                         qubit = &qubits[index];
