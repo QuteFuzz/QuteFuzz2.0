@@ -29,7 +29,7 @@ Node_build_state Ast::node_ready_to_done(std::shared_ptr<Node> node, Branch& cho
                 nd.set_initiator_done();
             }
         }
-        
+
         node->set_build_state(NB_DONE);
         return NB_DONE;
     }
@@ -78,7 +78,6 @@ Node_build_state Ast::node_stall_to_ready(std::shared_ptr<Node> node, Constraint
 }
 
 /// @brief These are additional constraints on nodes which we cannot add directly in the grammar. 
-/// This is why only "placeholder" nodes are considered in this switch statement
 /// @param node 
 /// @param constraints 
 void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
@@ -89,8 +88,8 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
         case Common::qreg_decl: case Common::qreg_append: case Common::gate_application_kind: case Common::statement:
-        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application:
-            // THESE ARE ACTUAL RULES IN THE GRAMMAR. Any constraints are already in the grammar definition
+        case Common::qreg_defs:
+        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: case Common::circuit: 
             break;
 
         case Common::imports:
@@ -122,22 +121,15 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             break;
 
         case Common::gate_name:  case Common::arg_gate_name: case Common::phase_gate_name:
-            qreg_defs.reset_qubits();
+            qreg_defs.reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
             break;
 
         case Common::subroutines:
+            // TODO?
             break;
 
-        case Common::qreg_defs:
-            break;
-
-        case Common::circuit:
-            Common::setup_qregs(qreg_defs, 0);
-            constraints.add_constraint(Constraints::Constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, qreg_defs.num_qregs()));
-            break; 
-            
         case Common::gate_application:
-            constraints.clear();
+            constraints.safe_clear();
             // constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
             break;
 
@@ -223,8 +215,6 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
 /// @param constraints 
 void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
 
-    add_constraint(node, constraints);
-
     if(node->is_syntax() || (node->build_state() == NB_DONE)){
         node->set_build_state(NB_DONE);
         return;
@@ -250,6 +240,7 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
         
     } else if (node->build_state() == NB_STALL){
         Term t = node->get_term();
+        add_constraint(node, constraints);
 
         if(!node->has_chosen_branch()) {
             node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());

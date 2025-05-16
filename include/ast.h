@@ -226,6 +226,11 @@ struct Node_dependency {
 
         size_t get_num_completer_node_children(){return num_completer_node_children;}
 
+        void reset(){
+            initiator_done = false;
+            completer_children_set = false;
+        }
+
     private:
         U64 initiator_hash = 0ULL;
         U64 completer_hash = 0ULL;
@@ -283,6 +288,8 @@ class Ast{
             Result<Node, std::string> res;
 
             add_node_dependency(Common::qreg_defs, Common::statements);
+
+            reset();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -304,6 +311,14 @@ class Ast{
         /// @return 
         std::shared_ptr<const Node> find(Common::Rule_hash hash){            
             return root_ptr->find(hash);
+        }
+
+        void reset(){
+            // constraints.safe_clear();
+
+            for(Node_dependency& nd : node_deps){
+                nd.reset();
+            }
         }
 
         virtual void ast_to_program(fs::path& path);

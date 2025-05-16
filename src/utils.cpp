@@ -77,6 +77,7 @@ size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_statements){
     int num_qubits = get_num_qubits_from_num_statements(num_statements);
 
     std::cout << "qubits:" << num_qubits << std::endl;
+    std::cout << "statements:" << num_statements << std::endl;
     
     while(num_qubits > 0){
         size_t qreg_size;

@@ -18,16 +18,21 @@ namespace Constraints {
         U64 node = 0; // constraint on a branch from a particular node
         Type type;
         std::variant<size_t, std::vector<U64>> value;
+        bool satisfied_once = false;
+        bool global = false;
 
-        Constraint(Type t){
+        Constraint(Type t, bool _global = false){
+            global = _global;
+
             if(t == BRANCH_IS_NON_RECURSIVE){
                 type = t;
             }
         }
 
-        Constraint(U64 _node, Type t, size_t val) {
+        Constraint(U64 _node, Type t, size_t val, bool _global = false) {
             node = _node;
             value = val;
+            global = _global;
 
             if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
                 type = t;
@@ -35,15 +40,20 @@ namespace Constraints {
             }
         }
 
-        Constraint(U64 _node, Type t, std::vector<U64> node_hashes){
+        Constraint(U64 _node, Type t, std::vector<U64> node_hashes, bool _global = false){
             node = _node;
             value = node_hashes;
+            global = _global;
 
             if((t == BRANCH_EQUALS) || (t == BRANCH_IN)){
                 type = t;
 
             }
         }
+
+        /// @brief TODO: re-think constraint satisfaction and deletion
+        /// @return 
+        bool can_delete_constraint(){return true;}
 
         bool not_relevant(const U64 _node) const {return _node != node;}
 
@@ -71,7 +81,7 @@ namespace Constraints {
         public:
             Constraints(){}
 
-            /// @brief Check that all constraints on this branch are satisfied
+            /// @brief TODO: Re-think constraint satisfaction and deletion
             /// @param b 
             /// @return 
             bool are_satisfied(const U64 _node, const Branch& b) const {
@@ -99,8 +109,14 @@ namespace Constraints {
                 constraints.push_back(Constraint(Common::qubit_list, NUM_RULES_EQUALS, n)); 
             }
             
-            void clear(){
-                constraints.clear();
+            /// @brief Only removes constraints that have been satisfied once already and have not been marked as global
+            void safe_clear(){
+                constraints.erase(
+                    std::remove_if(constraints.begin(), constraints.end(), [](Constraint& c){
+                        return c.can_delete_constraint();
+                    } ),  
+                    constraints.end()
+                );
             }
         
         private:
