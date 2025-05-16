@@ -13,7 +13,7 @@ void Branch::print(std::ostream& os) const {
 void Branch::add(const Term& term){
     size_t size = terms.size();
 
-    if(term.is_pointer() && !term.is_defined_in_common()) pointer_terms.push_back(std::make_shared<Term>(term));
+    if(term.is_rule_pointer()) pointer_terms.push_back(std::make_shared<Term>(term));
 
     if(size){
         auto last_term = terms.end()-1; // reference to the last term in the branch

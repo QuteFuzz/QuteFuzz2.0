@@ -29,6 +29,8 @@ class Term {
 
         bool is_defined_in_common() const;
 
+        bool is_rule_pointer() const;
+
         friend std::ostream& operator<<(std::ostream& stream, Term term);
 
         void set_nesting_depth(unsigned int nd);
