@@ -15,66 +15,85 @@ namespace Constraints {
     };
 
     struct Constraint {
-        U64 node = 0; // constraint on a branch from a particular node
-        Type type;
-        std::variant<size_t, std::vector<U64>> value;
-        bool satisfied_once = false;
-        bool global = false;
 
-        Constraint(Type t, bool _global = false){
-            global = _global;
+        public:
+            bool must_satisfy;
 
-            if(t == BRANCH_IS_NON_RECURSIVE){
-                type = t;
-            }
-        }
+            Constraint(Type t, bool _global = false){
+                global = _global;
+                must_satisfy = global;
 
-        Constraint(U64 _node, Type t, size_t val, bool _global = false) {
-            node = _node;
-            value = val;
-            global = _global;
-
-            if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
-                type = t;
-
-            }
-        }
-
-        Constraint(U64 _node, Type t, std::vector<U64> node_hashes, bool _global = false){
-            node = _node;
-            value = node_hashes;
-            global = _global;
-
-            if((t == BRANCH_EQUALS) || (t == BRANCH_IN)){
-                type = t;
-
-            }
-        }
-
-        /// @brief TODO: re-think constraint satisfaction and deletion
-        /// @return 
-        bool can_delete_constraint(){return true;}
-
-        bool not_relevant(const U64 _node) const {return _node != node;}
-
-        bool is_satisfied(const U64 _node, const Branch& b) const {
-
-            size_t pts_size = b.num_pointer_terms();
-
-            switch(type){
-                case NUM_RULES_MAXIMUM: return not_relevant(_node) || (pts_size <= std::get<size_t>(value));
-                case NUM_RULES_MINIMUM: return not_relevant(_node) || (pts_size >= std::get<size_t>(value));
-                case NUM_RULES_EQUALS: return not_relevant(_node)  || (pts_size == std::get<size_t>(value));
-                case BRANCH_IS_NON_RECURSIVE: return !b.get_recursive_flag();
-                case BRANCH_EQUALS: return not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<U64>>(value));
-                case BRANCH_IN: return not_relevant(_node) || b.pointer_terms_in(std::get<std::vector<U64>>(value));
-                default: return true;
+                if(t == BRANCH_IS_NON_RECURSIVE){
+                    type = t;
+                }
             }
 
-            return false;
-        }
+            Constraint(U64 _node, Type t, size_t val, bool _global = false) {
+                node = _node;
+                value = val;
+                global = _global;
+                must_satisfy = global;
+
+                if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
+                    type = t;
+
+                }
+            }
+
+            Constraint(U64 _node, Type t, std::vector<U64> node_hashes, bool _global = false){
+                node = _node;
+                value = node_hashes;
+                global = _global;
+                must_satisfy = global;
+
+                if((t == BRANCH_EQUALS) || (t == BRANCH_IN)){
+                    type = t;
+
+                }
+            }
+
+            bool not_relevant(const U64 _node) const {return (_node != node) || !must_satisfy;}
+
+            bool is_satisfied(const U64 _node, const Branch& b) {
+
+                size_t pts_size = b.num_pointer_terms();
+                bool satisfied = false;
+
+                switch(type){
+                    case NUM_RULES_MAXIMUM: satisfied = not_relevant(_node) || (pts_size <= std::get<size_t>(value)); break;
+                    case NUM_RULES_MINIMUM: satisfied = not_relevant(_node) || (pts_size >= std::get<size_t>(value)); break;
+                    case NUM_RULES_EQUALS: satisfied = not_relevant(_node)  || (pts_size == std::get<size_t>(value)); break;
+                    case BRANCH_IS_NON_RECURSIVE: satisfied = !b.get_recursive_flag(); break;
+                    case BRANCH_EQUALS: satisfied = not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<U64>>(value)); break;
+                    case BRANCH_IN: satisfied = not_relevant(_node) || b.pointer_terms_in(std::get<std::vector<U64>>(value)); break;
+                    default: break;
+                }
+
+                // reset non-global constraint
+                if(satisfied && !global) must_satisfy = false; 
+
+                return satisfied;
+            }
+
+            bool on(U64 node_hash, Type t, size_t n){
+                if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
+                    return (node_hash == node) && (n == std::get<size_t>(value));
+                } else {
+                    ERROR("Should only call on for rule constraints");
+                    return false;
+                }
+            }
+
+        private:
+            U64 node = 0; // constraint on a branch from a particular node
+            Type type;
+            std::variant<size_t, std::vector<U64>> value;
+            bool global = false;
 
     };
+
+    #define ON_RULES_CONSTRAINT(node_hash, type, n) (Constraint(node_hash, type, n))
+    #define N_QUBIT_CONSTRAINT(n) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_RULES_EQUALS, n))
 
     struct Constraints {
         
@@ -84,47 +103,65 @@ namespace Constraints {
             /// @brief TODO: Re-think constraint satisfaction and deletion
             /// @param b 
             /// @return 
-            bool are_satisfied(const U64 _node, const Branch& b) const {
+            bool are_satisfied(const U64 _node, const Branch& b) {
                 
-                for(const Constraint& c : constraints){
-                    if(!c.is_satisfied(_node, b)) return false;
+                for(auto& constraint : constraints){
+                    if(!constraint.is_satisfied(_node, b)) return false;
                 }
                 return true;
             }
 
-            void add_constraint(Constraint c){
-                constraints.push_back(c);
+            /// @brief This should be used for potentially new constraints on number of rules a branch should have. If the constraint already exists, it will be set for satisfaction.
+            /// If not, a new one is added for that node and number of rules
+            /// @param c 
+            void add_rules_constraint(U64 node_hash, Type t, size_t n){
+                bool found = false;
+
+                for(auto& constraint : constraints){
+                    if (constraint.on(node_hash, t, n)){
+                        constraint.must_satisfy = true;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found){
+                    Constraint c = ON_RULES_CONSTRAINT(node_hash, t, n);
+                    c.must_satisfy = true;
+                    constraints.push_back(c);
+                }
             }
 
             /// @brief Add a constraint on the number of qubits that should be picked for a gate
             /// @param n number of qubits
             /// @param is_rotation whether or not the gate requires an argument
-            void add_n_qubit_constrait(size_t n, bool is_rotation = false){
+            void add_n_qubit_constraint(size_t n, bool is_rotation = false){
                 
+                switch(n){
+                    case 1: constraints[0].must_satisfy = true; break;
+                    case 2: constraints[1].must_satisfy = true; break;
+                    case 3: constraints[2].must_satisfy = true; break;
+                    default: ERROR("Constraint for " + std::to_string(n) + " qubits not supported"); break;                
+                }
+
                 if(is_rotation){
-                    add_arg_constraint();
-                
-                }  
+                    constraints[3].must_satisfy = true;
+                }
+            }
 
-                constraints.push_back(Constraint(Common::qubit_list, NUM_RULES_EQUALS, n)); 
+            void add_recursion_constraint(){
+                constraints[4].must_satisfy = true;
             }
-            
-            /// @brief Only removes constraints that have been satisfied once already and have not been marked as global
-            void safe_clear(){
-                constraints.erase(
-                    std::remove_if(constraints.begin(), constraints.end(), [](Constraint& c){
-                        return c.can_delete_constraint();
-                    } ),  
-                    constraints.end()
-                );
-            }
-        
+    
         private:
-            void add_arg_constraint(){
-                constraints.push_back(Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list})); 
-            }
-
-            std::vector<Constraint> constraints = {};
+    
+            std::vector<Constraint> constraints = {
+                N_QUBIT_CONSTRAINT(1),
+                N_QUBIT_CONSTRAINT(2),
+                N_QUBIT_CONSTRAINT(3),
+                Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
+                Constraint(BRANCH_IS_NON_RECURSIVE),
+            };
 
     };
 }

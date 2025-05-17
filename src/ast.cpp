@@ -7,7 +7,7 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, Node_dependen
     if((nd.get_initiator_hash() == Common::qreg_defs) && (nd.get_completer_hash() == Common::statements)){
         auto num_qreg_defs = Common::setup_qregs(qreg_defs, n_completer_children);
 
-        constraints.add_constraint(Constraints::Constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, num_qreg_defs));
+        constraints.add_rules_constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, num_qreg_defs);
 
         initiator_node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
     }
@@ -129,8 +129,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             break;
 
         case Common::gate_application:
-            constraints.safe_clear();
-            // constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
+            // constraints.safe_clear();
             break;
 
         case Common::qreg_def:
@@ -150,32 +149,32 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         */
         case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(1);
+            constraints.add_n_qubit_constraint(1);
             break;
         
         case Common::cx: case Common::cz: case Common::cnot:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(2);
+            constraints.add_n_qubit_constraint(2);
             break;
 
         case Common::ccx: case Common::cswap:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(3);
+            constraints.add_n_qubit_constraint(3);
             break;
 
         case Common::u1: case Common::rx: case Common::ry: case Common::rz: case Common::phasedxpowgate:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(1, true);
+            constraints.add_n_qubit_constraint(1, true);
             break;
 
         case Common::u2:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(2, true);            
+            constraints.add_n_qubit_constraint(2, true);            
             break;
 
         case Common::u3: case Common::u:
             node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constrait(3, true);            
+            constraints.add_n_qubit_constraint(3, true);            
             break;
         default:
             break;
@@ -198,7 +197,7 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
     
     // if we have done a set number of recursions already and this rule has a non recursive branch, choose that instead
     if ((recursions <= 0) && rule->get_recursive_flag()){
-        constraints.add_constraint(Constraints::Constraint(Constraints::BRANCH_IS_NON_RECURSIVE));
+        constraints.add_recursion_constraint();
         result.set_ok(rule->pick_branch(constraints));   
         return result;
     }
@@ -222,6 +221,10 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
     } else if (node->build_state() == NB_READY){
         Branch branch = node->get_branch();
         size_t num_children = node->get_num_children();
+
+        // std::cout << *node << " " << num_children << std::endl;
+
+        // getchar();
 
         for(size_t i = 0; i < branch.size(); i++){
             std::shared_ptr<Node> child_node;

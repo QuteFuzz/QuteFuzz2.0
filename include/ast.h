@@ -314,8 +314,6 @@ class Ast{
         }
 
         void reset(){
-            // constraints.safe_clear();
-
             for(Node_dependency& nd : node_deps){
                 nd.reset();
             }
