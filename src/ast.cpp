@@ -222,10 +222,6 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
         Branch branch = node->get_branch();
         size_t num_children = node->get_num_children();
 
-        // std::cout << *node << " " << num_children << std::endl;
-
-        // getchar();
-
         for(size_t i = 0; i < branch.size(); i++){
             std::shared_ptr<Node> child_node;
 
@@ -245,6 +241,10 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
         Term t = node->get_term();
         add_constraint(node, constraints);
 
+        // std::cout << t << std::endl;
+        // constraints.print();
+        // getchar();
+        
         if(!node->has_chosen_branch()) {
             node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
         }

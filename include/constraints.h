@@ -52,27 +52,35 @@ namespace Constraints {
                 }
             }
 
-            bool not_relevant(const U64 _node) const {return (_node != node) || !must_satisfy;}
-
             bool is_satisfied(const U64 _node, const Branch& b) {
+                bool constraint_on_this_node = (_node == node);
 
-                size_t pts_size = b.num_pointer_terms();
-                bool satisfied = false;
+                if(must_satisfy && constraint_on_this_node){
+                    size_t pts_size = b.num_pointer_terms();
+                    bool satisfied = false;
+                    
+                    switch(type){ 
+                        case NUM_RULES_MAXIMUM: satisfied = pts_size <= std::get<size_t>(value); break;
+                        case NUM_RULES_MINIMUM: satisfied = pts_size >= std::get<size_t>(value); break;
+                        case NUM_RULES_EQUALS: satisfied = pts_size == std::get<size_t>(value); break;
+                        case BRANCH_IS_NON_RECURSIVE: satisfied = !b.get_recursive_flag(); break;
+                        case BRANCH_EQUALS: satisfied = b.pointer_terms_match(std::get<std::vector<U64>>(value)); break;
+                        case BRANCH_IN: satisfied = b.pointer_terms_in(std::get<std::vector<U64>>(value)); break;
+                        default: satisfied = true; break;
+                    }
 
-                switch(type){
-                    case NUM_RULES_MAXIMUM: satisfied = not_relevant(_node) || (pts_size <= std::get<size_t>(value)); break;
-                    case NUM_RULES_MINIMUM: satisfied = not_relevant(_node) || (pts_size >= std::get<size_t>(value)); break;
-                    case NUM_RULES_EQUALS: satisfied = not_relevant(_node)  || (pts_size == std::get<size_t>(value)); break;
-                    case BRANCH_IS_NON_RECURSIVE: satisfied = !b.get_recursive_flag(); break;
-                    case BRANCH_EQUALS: satisfied = not_relevant(_node) || b.pointer_terms_match(std::get<std::vector<U64>>(value)); break;
-                    case BRANCH_IN: satisfied = not_relevant(_node) || b.pointer_terms_in(std::get<std::vector<U64>>(value)); break;
-                    default: break;
+                    if(satisfied && !global){
+                        must_satisfy = false;
+                        // std::cout << "Constraint satisfied" << std::endl;
+                    }
+
+                    // std::cout << "waiting" << std::endl;
+
+                    return satisfied;
+
+                } else {
+                    return true;
                 }
-
-                // reset non-global constraint
-                if(satisfied && !global) must_satisfy = false; 
-
-                return satisfied;
             }
 
             bool on(U64 node_hash, Type t, size_t n){
@@ -146,11 +154,19 @@ namespace Constraints {
 
                 if(is_rotation){
                     constraints[3].must_satisfy = true;
+                } else {
+                    constraints[4].must_satisfy = true;
                 }
             }
 
             void add_recursion_constraint(){
                 constraints[4].must_satisfy = true;
+            }
+
+            void print(){
+                for(auto& c : constraints){
+                    std::cout << c.must_satisfy << std::endl;
+                }
             }
     
         private:
@@ -160,6 +176,7 @@ namespace Constraints {
                 N_QUBIT_CONSTRAINT(2),
                 N_QUBIT_CONSTRAINT(3),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
+                Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::qubit_list}),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
             };
 

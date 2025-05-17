@@ -16,8 +16,8 @@
 
 #define WILDCARD_MAX 50
 #define UNUSED(x) (void)(x)
-#define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
-#define PLACEHOLDER(x) "[PLACEHOLDER] " x
+#define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
+#define PLACEHOLDER(x) ("<" x ">")
 #define ERROR(x) std::cout << "[ERROR] " << x << std::endl
 #define TOKENS_GRAMMAR_NAME "tokens"
 
