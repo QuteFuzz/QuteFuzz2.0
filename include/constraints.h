@@ -178,6 +178,7 @@ namespace Constraints {
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::qubit_list}),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
+                Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
             };
 
     };

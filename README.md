@@ -24,30 +24,36 @@ The grammar parser can handle most of the BNF syntax, up to simple groupings wit
 
 ## AST builder
 
-A constraint system ensures that the AST is well formed. 
+With an AST, we have the potential to do some cool techniques we couldn't have done before. 
 
-- The AST builder follows the grammar, picking a branch at random as long as it satisfies a set of constraints. The default AST which just follows the grammar blindly has only one constraint which prevents infinite recursion. See [`src/ast.cpp`](src/ast.cpp#L16-#L21)
+There's 2 nice things about this AST builder, the constriant system and the dependency system. 
 
-- The pytket AST has other interesting constraints. Constraints are added depending on which node in the AST is being built. For instance, here's a set of constraints for single qubit gates:
+- We can add constraints on particular nodes such that the corresponding rule in the grammar picks branches with certain [characteristics](include/constraints.h#L8). 
+- There's a set of constraints defined, which can be flagged to activate them. When the constraint is satisfied, its flag is reset (constraint deactivated), unless it is a "global" constraint, which means that it must always be specified regardless of context. For instance, a constraint on the gateset that gates should come from is always the same regardless of context, while a constraint on the number of qubits the rule `qubit_list` must choose is dependent on the gate that has been picked.
+- The dependency system allows us to define node dependencies that must be satisfied while the AST is being built. There's the concept of an initiator and a completer of a dependency, where the only dependency is that the number of children the initiator node picks is dependent on the number of children the completer picks, regardless of the order in which they are defined in the grammar. There can be many initiators, but only one completer.
+- There's a dependency defined in the builder between `qreg_defs`(initiator) and `statements`(completer), such that the number of qubits generated in the AST is a function of the number of statements.
 
+These are the [constraints](include/constraints.h) defined, 
 ```C++
-case Common::h: case Common::x: case Common::y: case Common::z:
-        node->add_child(std::make_shared<Node>(str));
-        constraints.add_n_qubit_constrait(1);
-        break;
+#define ON_RULES_CONSTRAINT(node_hash, type, n) (Constraint(node_hash, type, n))
+#define N_QUBIT_CONSTRAINT(n) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_RULES_EQUALS, n))
+
+/* 
+        .........
+*/
+
+std::vector<Constraint> constraints = {
+        N_QUBIT_CONSTRAINT(1),
+        N_QUBIT_CONSTRAINT(2),
+        N_QUBIT_CONSTRAINT(3),
+        Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
+        Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::qubit_list}),
+        Constraint(BRANCH_IS_NON_RECURSIVE),
+        Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
+};
 ```
 
-Definition of [`add_n_qubit_contraint`](include/constraints.h).
-
-Where `gate_application` and `qubit_list` are rules defined in the grammar.
-
-- Here's an example of contraints added to implement swarm testing:
-```C++
-case Common::gate_application:
-        constraints.clear();
-        constraints.add_constraint(Constraints::Constraint(Common::gate_name, Constraints::BRANCH_IN, {Common::h, Common::ccx, Common::cx}));
-        break;
-```
+which are activated as required by the context. The last one is global (true argument), so is "always activated". This is what allows us to set a gateset. 
 
 ## Running
 

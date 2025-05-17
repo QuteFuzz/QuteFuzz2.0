@@ -88,7 +88,7 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
         case Common::qreg_decl: case Common::qreg_append: case Common::gate_application_kind: case Common::statement:
-        case Common::qreg_defs:
+        case Common::qreg_defs: case Common::gate_application:
         case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: case Common::circuit: 
             break;
 
@@ -126,10 +126,6 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
 
         case Common::subroutines:
             // TODO?
-            break;
-
-        case Common::gate_application:
-            // constraints.safe_clear();
             break;
 
         case Common::qreg_def:

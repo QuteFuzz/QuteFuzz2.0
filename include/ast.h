@@ -289,7 +289,7 @@ class Ast{
 
             add_node_dependency(Common::qreg_defs, Common::statements);
 
-            reset();
+            reset_dependency_flags();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -313,7 +313,8 @@ class Ast{
             return root_ptr->find(hash);
         }
 
-        void reset(){
+        /// @brief Reset flags on new AST build that control dependency resolution
+        void reset_dependency_flags(){
             for(Node_dependency& nd : node_deps){
                 nd.reset();
             }
