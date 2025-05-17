@@ -16,8 +16,8 @@
 
 #define WILDCARD_MAX 50
 #define UNUSED(x) (void)(x)
-#define NOT_IMPLEMENTED(x) "# [" x "] NOT IMPLEMENTED! \n"
-#define PLACEHOLDER(x) "[PLACEHOLDER] " x
+#define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
+#define PLACEHOLDER(x) ("<" x ">")
 #define ERROR(x) std::cout << "[ERROR] " << x << std::endl
 #define TOKENS_GRAMMAR_NAME "tokens"
 
@@ -108,6 +108,10 @@ namespace Common {
 
             Qreg_definitions(){}
 
+            size_t size(){
+                return qregs.size();
+            }
+
             void push_back(Qreg qreg){
                 qregs.push_back(qreg);
                 qreg.make_qubits(qubits);
@@ -137,6 +141,7 @@ namespace Common {
                 if(qubits.size()){
                     int index = random_int(qubits.size() - 1);
                     Qubit* qubit = &qubits[index];
+                    
                     while(qubit->is_used()){
                         index = random_int(qubits.size() - 1);
                         qubit = &qubits[index];
@@ -179,7 +184,9 @@ namespace Common {
 
     };
 
-    void setup_qregs(Qreg_definitions& qreg_defs);
+    size_t setup_qregs(Qreg_definitions& qreg_defs, int num_statements);
+
+    int get_num_qubits_from_num_statements(int num_statements);
 
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES

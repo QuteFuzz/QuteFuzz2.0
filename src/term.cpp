@@ -46,10 +46,14 @@ bool Term::is_defined_in_common() const {
     return get_rule()->is_marked_as_common();
 }
 
+bool Term::is_rule_pointer() const {
+    return is_pointer() && !is_defined_in_common();
+}
+
 std::ostream& operator<<(std::ostream& stream, Term term){
     if(term.is_syntax()){
         if(term._name == "\n"){
-            stream << "\"NEWLINE\"";
+            stream << "\"\\n\"";
 
         } else {
             stream << "\"" << term._name << "\"";

@@ -11,7 +11,7 @@ SPACE: " ";
 DOT: ".";
 SINGLE_QUOTE: "\'";
 DOUBLE_PIPE: "||";
-DOUBLE_QUOTE: '"'; # TODO: Issue with quote escaping
+DOUBLE_QUOTE: "\""; # TODO: Issue with quote escaping
 DOUBLE_AMPERSAND: "&&";
 EQUALS: " = ";
 NEWLINE: "\n";
