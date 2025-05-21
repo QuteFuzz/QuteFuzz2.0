@@ -184,9 +184,7 @@ namespace Common {
 
     };
 
-    size_t setup_qregs(Qreg_definitions& qreg_defs, int num_statements);
-
-    int get_num_qubits_from_num_statements(int num_statements);
+    size_t setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications);
 
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES

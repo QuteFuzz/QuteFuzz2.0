@@ -30,8 +30,8 @@ There's 2 nice things about this AST builder, the constriant system and the depe
 
 - We can add constraints on particular nodes such that the corresponding rule in the grammar picks branches with certain [characteristics](include/constraints.h#L8). 
 - There's a set of constraints defined, which can be flagged to activate them. When the constraint is satisfied, its flag is reset (constraint deactivated), unless it is a "global" constraint, which means that it must always be specified regardless of context. For instance, a constraint on the gateset that gates should come from is always the same regardless of context, while a constraint on the number of qubits the rule `qubit_list` must choose is dependent on the gate that has been picked.
-- The dependency system allows us to define node dependencies that must be satisfied while the AST is being built. There's the concept of an initiator and a completer of a dependency, where the only dependency is that the number of children the initiator node picks is dependent on the number of children the completer picks, regardless of the order in which they are defined in the grammar. There can be many initiators, but only one completer.
-- There's a dependency defined in the builder between `qreg_defs`(initiator) and `statements`(completer), such that the number of qubits generated in the AST is a function of the number of statements.
+- The dependency system allows us to define node dependencies that must be satisfied while the AST is being built. There's only support for one set of node dependencies in the AST, which is defined by having one completer and a set of initialisers. Completers are the nodes which give information which is used by initiators to build their parts of the AST. 
+- There's dependencies defined in the builder between `qreg_defs`, `subroutines`(initiators) and `gate_application`(completer), such that the number of qubits, and subroutine size generated in the AST is a function of the number of gate applications.
 
 These are the [constraints](include/constraints.h) defined, 
 ```C++

@@ -59,25 +59,19 @@ float random_float(float max, float min){
     }
 }
 
-/// @brief Num qubits is a function of number of statements
-/// @param num_statements 
-/// @return 
-int Common::get_num_qubits_from_num_statements(int num_statements){
-    float frac = (float)num_statements / (float)WILDCARD_MAX;
-    return MIN_QUBITS + (frac * (MAX_QUBITS - MIN_QUBITS));
-}
 
 /// @brief Create qregs and qubit definitions
 /// @param qreg_defs 
-size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_statements){
+size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications){
     qreg_defs.reset();
 
     Qreg::count = 0;
 
-    int num_qubits = get_num_qubits_from_num_statements(num_statements);
+    float frac = (float)num_gate_applications / (float)WILDCARD_MAX;
+    int num_qubits = MIN_QUBITS + (frac * (MAX_QUBITS - MIN_QUBITS));
 
     std::cout << "qubits:" << num_qubits << std::endl;
-    std::cout << "statements:" << num_statements << std::endl;
+    std::cout << "gate_applications:" << num_gate_applications << std::endl;
     
     while(num_qubits > 0){
         size_t qreg_size;

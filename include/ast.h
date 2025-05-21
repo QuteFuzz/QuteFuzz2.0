@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <memory>
+#include <stack>
 
 #include "term.h"
 #include "grammar.h"
@@ -11,6 +12,7 @@
 #define INDENT_STR "---"
 
 enum Node_build_state {
+    NB_INIT,
     NB_READY,
     NB_DONE,
     NB_STALL,
@@ -30,6 +32,7 @@ class Node : public std::enable_shared_from_this<Node> {
 
         Node(const std::string syntax){
             term.set(syntax);
+            nb = NB_DONE;
         }
         
         /// @brief Used to create the AST root from the entry point into the grammar
@@ -89,7 +92,20 @@ class Node : public std::enable_shared_from_this<Node> {
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.get_num_children()
-                << " depth: " << n.depth;
+                << " state: ";
+
+            if(n.nb == NB_STALL){
+                stream << "STALL";
+
+            } else if (n.nb == NB_DONE){
+                stream << "DONE";
+
+            } else if (n.nb == NB_READY){
+                stream << "READY";
+            
+            } else if (n.nb == NB_INIT){
+                stream << "INIT";
+            } 
 
             for(auto child : n.children){
                 stream << child->indent() << *child;
@@ -113,6 +129,23 @@ class Node : public std::enable_shared_from_this<Node> {
             return nullptr;
         }
 
+        /// @brief Count number of occurances of given node under this node
+        /// @param hash 
+        /// @return 
+        int count(Common::Rule_hash hash) const {
+            if(term.get_hash() == hash){
+                return 1;
+            }
+
+            int ret = 0;
+           
+            for(auto child : children){
+                ret += child->count(hash);
+            }
+
+            return ret;
+        }
+
         std::vector<std::shared_ptr<Node>> get_children() const {
             return children;
         }
@@ -123,6 +156,18 @@ class Node : public std::enable_shared_from_this<Node> {
             } else {
                 return nullptr;
             }
+        }
+
+        int get_children_in_state(Node_build_state nb) const {
+            int count = 0;
+
+            for(const auto& child : children){
+                if(child->build_state() == nb){
+                    count ++;
+                }
+            }
+
+            return count;
         }
 
         bool children_built() const {
@@ -159,8 +204,11 @@ class Node : public std::enable_shared_from_this<Node> {
             return nb;
         }
 
+        /// @brief If setting build state to stall, must also state which initialiser the node is stalling for
+        /// @param _nb 
+        /// @param _stalling_for 
         void set_build_state(Node_build_state _nb){
-            nb = _nb;        
+            nb = _nb;
         }
 
         /// @brief Get branch that was chosen while node was in stall state
@@ -187,63 +235,73 @@ class Node : public std::enable_shared_from_this<Node> {
         int depth = 0;
         std::vector<std::shared_ptr<Node>> children;
         size_t num_rule_pointer_nodes = 0;
-        Node_build_state nb = NB_STALL;
+        Node_build_state nb = NB_INIT;
         Branch chosen_branch;
         bool chosen_branch_flag = false;
 
 };
 
-
-struct Node_dependency {
-    public:
-        Node_dependency(U64 init, U64 comp){
-            initiator_hash = init;
-            completer_hash = comp;
-        }
-
-        bool node_is_completer(U64 node_hash) const {
-            return completer_hash == node_hash;
-        }
-
-        bool node_is_initiator(U64 node_hash) const {
-            return initiator_hash == node_hash;
-        }
-
-        U64 get_initiator_hash(){return initiator_hash;}
-
-        U64 get_completer_hash(){return completer_hash;}
-
-        bool is_initiator_done(){return initiator_done;}
-
-        bool is_completer_children_set(){return completer_children_set;}
-
-        void set_initiator_done(){initiator_done = true;}
-
-        void set_num_completer_node_children(size_t n){
-            num_completer_node_children = n;
-            completer_children_set = true;
-        }
-
-        size_t get_num_completer_node_children(){return num_completer_node_children;}
-
-        void reset(){
-            initiator_done = false;
-            completer_children_set = false;
-        }
-
-    private:
-        U64 initiator_hash = 0ULL;
-        U64 completer_hash = 0ULL;
-        bool initiator_done = false;
-        bool completer_children_set = false;
-        size_t num_completer_node_children = 0;
+enum ND_Node_kind {
+    ND_INIT,
+    ND_COMP,
 };
 
 
-/// @brief Relationship between initiators and completers is many to one
+struct Node_dependencies {
+    public:
+        Node_dependencies(U64 comp){
+            completer_hash = comp;
+        }
+
+        void add_initiator(U64 init){
+            if(!node_is(ND_INIT, init)){
+                initiator_hashes.push_back(init);
+                num_initiators ++;
+            }
+        }
+
+        bool node_is(ND_Node_kind kind, U64 node_hash) const {
+            switch(kind){
+                case ND_INIT: return std::find(initiator_hashes.begin(), initiator_hashes.end(), node_hash) != initiator_hashes.end();
+                case ND_COMP: return completer_hash == node_hash;
+                default: return false;
+            }
+        }
+
+        bool is_dependency_resolved(){return (num_initiators == 0);}
+
+        void untrack_dependency (){num_initiators--;}
+
+        void increment_info(){
+            info++;
+            info_set = true;
+        }
+
+        int get_info(){return info;}
+
+        bool is_info_set(){return info_set;}
+
+        void reset(){
+            num_initiators = initiator_hashes.size();
+            info_set = false;
+            info = 0;
+        }
+
+    private:
+        std::vector<U64> initiator_hashes;
+        size_t num_initiators = 0;
+        U64 completer_hash = 0ULL;
+        bool info_set = false;
+        int info = 0;
+};
+
+
 class Ast{
     public:
-        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
+        Ast() : gen(rd()), float_dist(0.0, 1.0), node_deps(Common::gate_application) {
+            node_deps.add_initiator(Common::qreg_defs);
+            node_deps.add_initiator(Common::subroutines);
+        }
 
         ~Ast() = default;
 
@@ -253,32 +311,16 @@ class Ast{
 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        /// @brief Ensures that many-to-one relationship between initiators and completers is maintained. (Cannot have repeating completers)
-        /// @param init 
-        /// @param comp 
-        void add_node_dependency(U64 init, U64 comp){
-            for(const Node_dependency& nd : node_deps){
-                if(nd.node_is_completer(comp)){return;}
-            }
-
-            node_deps.push_back(Node_dependency(init, comp));
+        void add_dependency(U64 init, U64 comp){
+            if(node_deps.node_is(ND_COMP, comp))
+                node_deps.add_initiator(init);
         }
 
-        void resolve_dependency(std::shared_ptr<Node> initiator_node, Node_dependency& nd, Constraints::Constraints& constraints);
+        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info, Constraints::Constraints& constraints);
 
-        size_t get_num_completer_node_children(U64 node_hash){
-            for(Node_dependency& nd : node_deps){
-                if(nd.node_is_initiator(node_hash)){
-                    return nd.get_num_completer_node_children();
-                }
-            }
+        Node_build_state transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch);
 
-            return 0;
-        }
-
-        Node_build_state node_ready_to_done(std::shared_ptr<Node> node, Branch& chosen_branch);
-
-        Node_build_state node_stall_to_ready(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        Node_build_state transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
         void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
 
@@ -287,9 +329,7 @@ class Ast{
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
 
-            add_node_dependency(Common::qreg_defs, Common::statements);
-
-            reset_dependency_flags();
+            node_deps.reset();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -311,13 +351,6 @@ class Ast{
         /// @return 
         std::shared_ptr<const Node> find(Common::Rule_hash hash){            
             return root_ptr->find(hash);
-        }
-
-        /// @brief Reset flags on new AST build that control dependency resolution
-        void reset_dependency_flags(){
-            for(Node_dependency& nd : node_deps){
-                nd.reset();
-            }
         }
 
         virtual void ast_to_program(fs::path& path);
@@ -378,7 +411,7 @@ class Ast{
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
 
-        std::vector<Node_dependency> node_deps;
+        Node_dependencies node_deps;        
 
 };
 
