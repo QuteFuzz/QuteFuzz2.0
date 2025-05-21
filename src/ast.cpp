@@ -1,16 +1,46 @@
 #include "../include/ast.h"
 
-void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, Node_dependency& nd, Constraints::Constraints& constraints){
-    int info = nd.get_info();
+void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_result, Constraints::Constraints& constraints){
     Term t = initiator_node->get_term();
+    U64 node_hash = initiator_node->get_hash();
 
-    if((nd.get(ND_INIT) == Common::qreg_defs) && (nd.get(ND_COMP) == Common::gate_application)){
-        auto num_qreg_defs = Common::setup_qregs(qreg_defs, info);
+    if(node_hash == Common::qreg_defs){
+        auto num_qreg_defs = Common::setup_qregs(qreg_defs, dependency_result);
 
         constraints.add_rules_constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, num_qreg_defs);
 
         initiator_node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
+
+    } else if (node_hash == Common::subroutines){
+        std::cout << "subs can use " << dependency_result << std::endl;
+
     }
+}
+
+/// @brief From init to ready, stall or init
+/// @param node 
+/// @param constraints 
+/// @return 
+Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
+    U64 node_hash = node->get_hash();
+
+    if(node_deps.node_is(ND_INIT, node_hash)){
+        if(node_deps.is_info_set()){
+            resolve_dependency(node, node_deps.get_info(), constraints);
+
+        } else {
+            return NB_INIT;
+        }
+    }
+
+    if(node_deps.node_is(ND_COMP, node_hash) && !node_deps.is_dependency_resolved()){
+        node_deps.increment_info();
+        node->set_build_state(NB_STALL);
+        return NB_STALL;
+    }
+
+    node->set_build_state(NB_READY);
+    return NB_READY;
 }
 
 /// @brief From ready to done, stall or ready
@@ -19,17 +49,11 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, Node_dependen
 /// @return 
 Node_build_state Ast::transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch){
 
-    // if all children are in done, this node is also in done,
-    // if not, this done goes to stall state
-
     if((chosen_branch.size() == 0) || node->children_built()){
-
-        // set flag for all dependencies where this node is an initiator, saying that it's done
         U64 node_hash = node->get_hash();
 
-        if(!dependencies_in_flight.empty()){
-            if(dependencies_in_flight.top()->node_is(ND_INIT, node_hash))
-                dependencies_in_flight.top()->set_initiator_done();
+        if(node_deps.node_is(ND_INIT, node_hash)){
+            node_deps.untrack_dependency();
         }
 
         node->set_build_state(NB_DONE);
@@ -43,42 +67,6 @@ Node_build_state Ast::transition_from_ready(std::shared_ptr<Node> node, Branch& 
         return NB_STALL;
     }
 
-    // condition that allows node to stay in ready
-}
-
-/// @brief From init to ready, stall or init
-/// @param node 
-/// @param constraints 
-/// @return 
-Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
-    U64 node_hash = node->get_hash();
-
-    for(Node_dependency& nd : node_deps){
-
-        if(nd.node_is(ND_INIT, node_hash)){
-            if(nd.is_info_set()){
-                resolve_dependency(node, nd, constraints);
-
-            } else {
-                // add new dependency in flight on top of stack
-                dependencies_in_flight.push(std::make_shared<Node_dependency>(nd));
-
-                return NB_INIT;
-            }
-        }
-
-
-        // if node is comp of any dependency, increment info of that dependency by 1, stay in stall state
-        if(nd.node_is(ND_COMP, node_hash) && !nd.is_initiator_done()){
-            nd.increment_info();
-            node->set_build_state(NB_STALL);
-
-            return NB_STALL;
-        }
-    }
-
-    node->set_build_state(NB_READY);
-    return NB_READY;
 }
 
 /// @brief These are additional constraints on nodes which we cannot add directly in the grammar. 
@@ -223,7 +211,7 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
 
     } else if (node->build_state() == NB_STALL){
         
-        if(dependencies_in_flight.top()->is_initiator_done()){
+        if(node_deps.is_dependency_resolved()){
             node->set_build_state(NB_READY);
         } else {
             return;

@@ -247,32 +247,30 @@ enum ND_Node_kind {
 };
 
 
-struct Node_dependency {
+struct Node_dependencies {
     public:
-        Node_dependency(U64 init, U64 comp){
-            initiator_hash = init;
+        Node_dependencies(U64 comp){
             completer_hash = comp;
+        }
+
+        void add_initiator(U64 init){
+            if(!node_is(ND_INIT, init)){
+                initiator_hashes.push_back(init);
+                num_initiators ++;
+            }
         }
 
         bool node_is(ND_Node_kind kind, U64 node_hash) const {
             switch(kind){
-                case ND_INIT: return initiator_hash == node_hash;
+                case ND_INIT: return std::find(initiator_hashes.begin(), initiator_hashes.end(), node_hash) != initiator_hashes.end();
                 case ND_COMP: return completer_hash == node_hash;
                 default: return false;
             }
         }
 
-        U64 get(ND_Node_kind kind) const {
-            switch(kind){
-                case ND_INIT: return initiator_hash;
-                case ND_COMP: return completer_hash;
-                default: return 0;
-            }
-        }
+        bool is_dependency_resolved(){return (num_initiators == 0);}
 
-        bool is_initiator_done(){return initiator_done;}
-
-        void set_initiator_done(){initiator_done = true;}
+        void untrack_dependency (){num_initiators--;}
 
         void increment_info(){
             info++;
@@ -284,24 +282,26 @@ struct Node_dependency {
         bool is_info_set(){return info_set;}
 
         void reset(){
-            initiator_done = false;
+            num_initiators = initiator_hashes.size();
             info_set = false;
             info = 0;
         }
 
     private:
-        U64 initiator_hash = 0ULL;
+        std::vector<U64> initiator_hashes;
+        size_t num_initiators = 0;
         U64 completer_hash = 0ULL;
-        bool initiator_done = false;
         bool info_set = false;
         int info = 0;
 };
 
 
-/// @brief Relationship between initiators and completers is many to one
 class Ast{
     public:
-        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
+        Ast() : gen(rd()), float_dist(0.0, 1.0), node_deps(Common::gate_application) {
+            node_deps.add_initiator(Common::qreg_defs);
+            node_deps.add_initiator(Common::subroutines);
+        }
 
         ~Ast() = default;
 
@@ -311,19 +311,12 @@ class Ast{
 
         Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
 
-        /// @brief Ensures that many-to-one relationship between initiators and completers is maintained. (Cannot have repeating completers)
-        /// @param init 
-        /// @param comp 
-        void add_node_dependency(U64 init, U64 comp){
-            for(const Node_dependency& nd : node_deps){
-                // cannot have the same initiator more than once
-                if(nd.node_is(ND_INIT, comp)){return;}
-            }
-
-            node_deps.push_back(Node_dependency(init, comp));
+        void add_dependency(U64 init, U64 comp){
+            if(node_deps.node_is(ND_COMP, comp))
+                node_deps.add_initiator(init);
         }
 
-        void resolve_dependency(std::shared_ptr<Node> initiator_node, Node_dependency& nd, Constraints::Constraints& constraints);
+        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info, Constraints::Constraints& constraints);
 
         Node_build_state transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch);
 
@@ -336,7 +329,7 @@ class Ast{
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
 
-            reset_dependency_flags();
+            node_deps.reset();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -358,15 +351,6 @@ class Ast{
         /// @return 
         std::shared_ptr<const Node> find(Common::Rule_hash hash){            
             return root_ptr->find(hash);
-        }
-
-        /// @brief Reset flags on new AST build that control dependency resolution
-        void reset_dependency_flags(){
-            for(Node_dependency& nd : node_deps){
-                nd.reset();
-            }
-
-            
         }
 
         virtual void ast_to_program(fs::path& path);
@@ -427,11 +411,7 @@ class Ast{
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
 
-        std::vector<Node_dependency> node_deps = {
-            Node_dependency(Common::qreg_defs, Common::gate_application),
-        };
-        std::stack<std::shared_ptr<Node_dependency>> dependencies_in_flight;
-        
+        Node_dependencies node_deps;        
 
 };
 
