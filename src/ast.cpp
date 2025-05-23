@@ -6,12 +6,9 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependenc
     size_t res = 0;
 
     if(node_hash == Common::qreg_defs){
-        std::cout << "qregs resolved" << std::endl;
         res = Common::setup_qregs(qreg_defs, dependency_result);
 
     } else if (node_hash == Common::subroutines){
-        std::cout << "subs resolved" << std::endl;
-        std::cout << "hello" << dependency_result << std::endl;
         res = get_amount(dependency_result, Common::MIN_SUBROUTINES, Common::MAX_SUBROUTINES);
 
     }
@@ -19,7 +16,7 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependenc
     constraints.add_rules_constraint(node_hash, Constraints::NUM_RULES_EQUALS, res);
     initiator_node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
 
-    node_deps.untrack_initiators(1);
+    node_deps.untrack_initiator();
 }
 
 /// @brief From init to ready, stall or init
@@ -29,12 +26,8 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependenc
 Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
     U64 node_hash = node->get_hash();
 
-    if(node_deps.node_is(ND_INIT, node_hash) && !node_deps.no_outstanding_dependencies()){
-        
-        std::cout << "one " << *node << std::endl;
-        
+    if(node_deps.node_is(ND_INIT, node_hash) && !node_deps.no_outstanding_dependencies()){    
         if(node_deps.is_info_set()){
-            std::cout << "two " << *node << std::endl;
             resolve_dependency(node, node_deps.get_info(), constraints);
 
         } else {
@@ -82,6 +75,7 @@ Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
 }
 
 /// @brief These are additional constraints on nodes which we cannot add directly in the grammar. 
+/// This function is only called when node is in NB_INIT
 /// @param node 
 /// @param constraints 
 void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
@@ -100,24 +94,22 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             if(subs_node == nullptr){
                 // subroutines rule not found 
             } else if (subs_node->build_state() == NB_READY){
-                // currently building subroutine, track qreg defs dependency for each circuit
-                node_deps.reset(1);
-                circuit_name = "sub" + std::to_string(current_subroutine++);
+                /*
+                    currently building subroutine, track qreg defs dependency for each circuit
+                    store current state to restore later
+                */
+                node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
                 constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, 4);
+                current_subroutine ++;
             
-            } else {
-                // we're back to main circuit node, untrack qreg_defs dependency
-                node_deps.untrack_initiators(1);
-                circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
-                current_subroutine = 0;
-
-            } 
-
+            }
+             
             break;
         }
 
         case Common::subroutines:
             subs_node = node;
+            main_circ_deps = node_deps;
             break;
 
         case Common::imports:
@@ -145,6 +137,13 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             break;   
 
         case Common::circuit_name:
+            if((subs_node != nullptr) && (subs_node->build_state() == NB_READY)){
+                circuit_name = "sub" + std::to_string(current_subroutine);
+            } else {
+                circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
+                current_subroutine = 0;
+            }
+
             node->add_child(std::make_shared<Node>(circuit_name));
             break;
 

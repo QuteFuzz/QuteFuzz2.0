@@ -1,8 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include <memory>
-
+#include <optional>
 #include "term.h"
 #include "grammar.h"
 #include "constraints.h"
@@ -44,6 +43,7 @@ class Ast{
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
 
+            node_deps = main_circ_deps.value_or(node_deps);
             node_deps.reset();
         
             if(entry == nullptr){
@@ -126,11 +126,12 @@ class Ast{
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
         std::string circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
+        
         std::shared_ptr<Node> subs_node = nullptr;
         int current_subroutine = 0;
 
         Node_dependencies node_deps;
-
+        std::optional<Node_dependencies> main_circ_deps; 
 };
 
 #endif

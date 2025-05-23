@@ -70,9 +70,9 @@ int get_amount(int from, int resmin, int resmax){
 /// @param qreg_defs 
 size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications){
     qreg_defs.reset();
-
+    
     Qreg::count = 0;
-
+    
     int num_qubits = get_amount(num_gate_applications, MIN_QUBITS, MAX_QUBITS);
 
     while(num_qubits > 0){

@@ -12,8 +12,16 @@ enum ND_Node_kind {
 
 struct Node_dependencies {
     public:
+        Node_dependencies(){}
+
         Node_dependencies(U64 comp){
             completer_hash = comp;
+        }
+
+        Node_dependencies(U64 init, U64 comp){
+            completer_hash = comp;
+            initiator_hashes.push_back(init);
+            num_initiators ++;
         }
 
         void add_initiator(U64 init){
@@ -33,8 +41,8 @@ struct Node_dependencies {
 
         bool no_outstanding_dependencies(){return (num_initiators == 0);}
 
-        void untrack_initiators(size_t n){
-            if(n <= num_initiators) num_initiators -= n;
+        void untrack_initiator(){
+            num_initiators -= 1;
         }
 
         void increment_info(){
@@ -46,13 +54,25 @@ struct Node_dependencies {
 
         bool is_info_set(){return info_set;}
 
-        void reset(size_t num_init = 0){
-            if(!num_init) num_init = initiator_hashes.size();
-            else if(num_init > initiator_hashes.size()) num_init = initiator_hashes.size();
-
-            num_initiators = num_init;
+        void reset(){
+            num_initiators = initiator_hashes.size();
             info_set = false;
             info = 0;
+        }
+
+        Node_dependencies get_subset(U64 initiator_hash){
+            return Node_dependencies(initiator_hash, completer_hash);
+        }
+
+        friend std::ostream& operator<<(std::ostream& stream, Node_dependencies nds){
+            stream << "Initiators" << std::endl;
+            for(U64 hash : nds.initiator_hashes){
+                stream << hash << std::endl;
+            }
+
+            stream << "completer " << nds.completer_hash << std::endl;
+
+            return stream;
         }
 
     private:
