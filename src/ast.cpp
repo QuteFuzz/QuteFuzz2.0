@@ -3,18 +3,23 @@
 void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_result, Constraints::Constraints& constraints){
     Term t = initiator_node->get_term();
     U64 node_hash = initiator_node->get_hash();
+    size_t res = 0;
 
     if(node_hash == Common::qreg_defs){
-        auto num_qreg_defs = Common::setup_qregs(qreg_defs, dependency_result);
-
-        constraints.add_rules_constraint(Common::qreg_defs, Constraints::NUM_RULES_EQUALS, num_qreg_defs);
-
-        initiator_node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
+        std::cout << "qregs resolved" << std::endl;
+        res = Common::setup_qregs(qreg_defs, dependency_result);
 
     } else if (node_hash == Common::subroutines){
-        std::cout << "subs can use " << dependency_result << std::endl;
+        std::cout << "subs resolved" << std::endl;
+        std::cout << "hello" << dependency_result << std::endl;
+        res = get_amount(dependency_result, Common::MIN_SUBROUTINES, Common::MAX_SUBROUTINES);
 
     }
+
+    constraints.add_rules_constraint(node_hash, Constraints::NUM_RULES_EQUALS, res);
+    initiator_node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
+
+    node_deps.untrack_initiators(1);
 }
 
 /// @brief From init to ready, stall or init
@@ -24,8 +29,12 @@ void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependenc
 Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
     U64 node_hash = node->get_hash();
 
-    if(node_deps.node_is(ND_INIT, node_hash)){
+    if(node_deps.node_is(ND_INIT, node_hash) && !node_deps.no_outstanding_dependencies()){
+        
+        std::cout << "one " << *node << std::endl;
+        
         if(node_deps.is_info_set()){
+            std::cout << "two " << *node << std::endl;
             resolve_dependency(node, node_deps.get_info(), constraints);
 
         } else {
@@ -33,7 +42,7 @@ Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constrain
         }
     }
 
-    if(node_deps.node_is(ND_COMP, node_hash) && !node_deps.is_dependency_resolved()){
+    if(node_deps.node_is(ND_COMP, node_hash) && !node_deps.no_outstanding_dependencies()){
         node_deps.increment_info();
         node->set_build_state(NB_STALL);
         return NB_STALL;
@@ -50,12 +59,6 @@ Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node, Constrain
 Node_build_state Ast::transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch){
 
     if((chosen_branch.size() == 0) || node->children_built()){
-        U64 node_hash = node->get_hash();
-
-        if(node_deps.node_is(ND_INIT, node_hash)){
-            node_deps.untrack_dependency();
-        }
-
         node->set_build_state(NB_DONE);
         return NB_DONE;
     
@@ -69,6 +72,15 @@ Node_build_state Ast::transition_from_ready(std::shared_ptr<Node> node, Branch& 
 
 }
 
+Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
+    if(node_deps.no_outstanding_dependencies()){
+        node->set_build_state(NB_READY);
+        return NB_READY;
+    } else {
+        return NB_STALL;
+    }
+}
+
 /// @brief These are additional constraints on nodes which we cannot add directly in the grammar. 
 /// @param node 
 /// @param constraints 
@@ -78,10 +90,34 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
 
     switch(hash){
         
-        case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: case Common::parameter: case Common::statements: 
-        case Common::qreg_decl: case Common::qreg_append: case Common::gate_application_kind: case Common::statement:
-        case Common::qreg_defs: case Common::gate_application:
-        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: case Common::circuit: 
+        case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: 
+        case Common::parameter: case Common::statements: case Common::qreg_decl: case Common::qreg_append: 
+        case Common::gate_application_kind: case Common::statement: case Common::qreg_defs: case Common::gate_application:
+        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
+            break;
+
+        case Common::circuit: {
+            if(subs_node == nullptr){
+                // subroutines rule not found 
+            } else if (subs_node->build_state() == NB_READY){
+                // currently building subroutine, track qreg defs dependency for each circuit
+                node_deps.reset(1);
+                circuit_name = "sub" + std::to_string(current_subroutine++);
+                constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, 4);
+            
+            } else {
+                // we're back to main circuit node, untrack qreg_defs dependency
+                node_deps.untrack_initiators(1);
+                circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
+                current_subroutine = 0;
+
+            } 
+
+            break;
+        }
+
+        case Common::subroutines:
+            subs_node = node;
             break;
 
         case Common::imports:
@@ -109,15 +145,11 @@ void Ast::add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& c
             break;   
 
         case Common::circuit_name:
-            node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
+            node->add_child(std::make_shared<Node>(circuit_name));
             break;
 
         case Common::gate_name:  case Common::arg_gate_name: case Common::phase_gate_name:
             qreg_defs.reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
-            break;
-
-        case Common::subroutines:
-            // TODO?
             break;
 
         case Common::qreg_def:
@@ -202,20 +234,15 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule, C
 /// @param constraints 
 void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints){
 
-    // std::cout << *node << std::endl;
-    // getchar(); 
 
-    if(node->is_syntax() || (node->build_state() == NB_DONE)){
+    Node_build_state new_build_state = NB_DONE, old_build_state = node->build_state();
+
+    if(node->is_syntax() || (old_build_state == NB_DONE)){
         node->set_build_state(NB_DONE);
-        return;
+        new_build_state = NB_DONE;
 
     } else if (node->build_state() == NB_STALL){
-        
-        if(node_deps.is_dependency_resolved()){
-            node->set_build_state(NB_READY);
-        } else {
-            return;
-        }
+        new_build_state = transition_from_stall(node);
 
     } else if (node->build_state() == NB_READY){
         Branch branch = node->get_branch();
@@ -234,8 +261,7 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
             write_branch(child_node, constraints);
         }
 
-        transition_from_ready(node, branch);
-
+        new_build_state = transition_from_ready(node, branch);
 
     } else if (node->build_state() == NB_INIT){
         Term t = node->get_term();
@@ -245,8 +271,23 @@ void Ast::write_branch(std::shared_ptr<Node> node, Constraints::Constraints& con
             node->save_branch(pick_branch(t.get_rule(), constraints).get_ok());
         }
 
-        if(transition_from_init(node, constraints) == NB_INIT) return;
-    } 
+        new_build_state = transition_from_init(node, constraints);
+    
+    } else {
+        ERROR("Unknown build state!");
+    }
+    
+
+    #if 0
+
+    std::cout << *node << std::endl;
+    getchar(); 
+
+    #endif
+
+    if((new_build_state != NB_READY) && (new_build_state == old_build_state)){
+        return;
+    }
     
     write_branch(node, constraints);
 }
@@ -263,7 +304,7 @@ void Ast::ast_to_program(fs::path& path) {
 
         stream << "\"\"\" \n AST:\n" << std::endl;
         stream << ast_root << std::endl;
-        stream << "\"\"\" " << std::endl;;
+        stream << "\"\"\" " << std::endl;
 
         std::cout << "Written to " << path.string() << std::endl;
 
