@@ -59,20 +59,22 @@ float random_float(float max, float min){
     }
 }
 
+int get_amount(int from, int resmin, int resmax){
+    float frac = (float)from / (float)WILDCARD_MAX;
+    int res = resmin + (frac * (resmax - resmin));
+    return res;
+}
+
 
 /// @brief Create qregs and qubit definitions
 /// @param qreg_defs 
 size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications){
     qreg_defs.reset();
-
-    Qreg::count = 0;
-
-    float frac = (float)num_gate_applications / (float)WILDCARD_MAX;
-    int num_qubits = MIN_QUBITS + (frac * (MAX_QUBITS - MIN_QUBITS));
-
-    std::cout << "qubits:" << num_qubits << std::endl;
-    std::cout << "gate_applications:" << num_gate_applications << std::endl;
     
+    Qreg::count = 0;
+    
+    int num_qubits = get_amount(num_gate_applications, MIN_QUBITS, MAX_QUBITS);
+
     while(num_qubits > 0){
         size_t qreg_size;
 

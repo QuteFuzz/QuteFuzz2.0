@@ -33,10 +33,15 @@ int random_int(int max, int min = 0);
 
 float random_float(float max, float min = 0.0);
 
+int get_amount(int from, int resmin, int resmax);
+
+
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
     constexpr int MIN_QUBITS = 4;
     constexpr int MAX_QUBITS = 15;
+    constexpr int MIN_SUBROUTINES = 0;
+    constexpr int MAX_SUBROUTINES = 5;
 
     struct Qubit{
         public:
