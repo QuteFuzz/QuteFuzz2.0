@@ -92,6 +92,40 @@ namespace Constraints {
                 }
             }
 
+            friend std::ostream& operator<<(std::ostream& stream, Constraint& constraint){
+                stream << "on: " << constraint.node << " ";
+
+                switch(constraint.type){ 
+                    case NUM_RULES_MAXIMUM: stream << "NUM_RULES_MAXIMUM " << std::get<size_t>(constraint.value); break;
+                    case NUM_RULES_MINIMUM: stream << "NUM_RULES_MINIMUM " << std::get<size_t>(constraint.value); break;
+                    case NUM_RULES_EQUALS: stream << "NUM_RULES_EQUALS " << std::get<size_t>(constraint.value); break;
+                    case BRANCH_IS_NON_RECURSIVE: stream << "BRANCH_IS_NON_RECURSIVE "; break;
+                    case BRANCH_EQUALS: {
+                        stream << "BRANCH_EQUALS ";
+
+                        for(const U64 hash : std::get<std::vector<U64>>(constraint.value)){
+                            stream << hash << " ";
+                        }    
+                
+                        break;
+                    }
+                    case BRANCH_IN: {
+                        stream << "BRANCH_IN ";
+
+                        for(const U64 hash : std::get<std::vector<U64>>(constraint.value)){
+                            stream << hash << " ";
+                        }    
+                
+                        break;
+                    }
+                    default: stream << "Unknown rule "; break;
+                }
+
+                stream << " must satisfy: " << constraint.must_satisfy << " global: " << constraint.global; 
+
+                return stream;
+            }
+
         private:
             U64 node = 0; // constraint on a branch from a particular node
             Type type;
@@ -163,10 +197,12 @@ namespace Constraints {
                 constraints[4].must_satisfy = true;
             }
 
-            void print(){
-                for(auto& c : constraints){
-                    std::cout << c.must_satisfy << std::endl;
+            friend std::ostream& operator<<(std::ostream& stream, Constraints constraints){
+                for(auto& c : constraints.constraints){
+                    stream << c << std::endl;
                 }
+
+                return stream;
             }
     
         private:

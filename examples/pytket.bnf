@@ -22,6 +22,7 @@ statement   = gate_application;
 
 gate_application = 
     circuit_name DOT gate_name gate_application_kind
+    # | circuit_name ".append(" subroutine COMMA LBRACK qubit_list RBRACK RPAREN   
     ;
 
 gate_application_kind = 

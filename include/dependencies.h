@@ -61,7 +61,13 @@ struct Node_dependencies {
         }
 
         Node_dependencies get_subset(U64 initiator_hash){
-            return Node_dependencies(initiator_hash, completer_hash);
+
+            if(node_is(ND_INIT, initiator_hash)){
+                return Node_dependencies(initiator_hash, completer_hash);
+            } else {
+                return Node_dependencies(completer_hash);
+            }
+
         }
 
         friend std::ostream& operator<<(std::ostream& stream, Node_dependencies nds){

@@ -21,24 +21,48 @@ class Ast{
             entry = _entry;
         }   
 
-        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
+        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule);
 
         void add_dependency(U64 init, U64 comp){
             if(node_deps.node_is(ND_COMP, comp))
                 node_deps.add_initiator(init);
         }
 
-        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info, Constraints::Constraints& constraints);
+        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info);
 
         Node_build_state transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch);
 
-        Node_build_state transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        Node_build_state transition_from_init(std::shared_ptr<Node> node);
 
         Node_build_state transition_from_stall(std::shared_ptr<Node> node);
 
-        void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        void add_constraint(std::shared_ptr<Node> node);
 
-        void write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        void write_branch(std::shared_ptr<Node> node);
+
+        std::optional<int> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
+            if(hash == Common::qreg_defs){
+                return Common::setup_qregs(qreg_defs, random_int(num_completer));
+
+            } else if (hash == Common::subroutines){
+                return get_amount(random_int(num_completer), Common::MIN_SUBROUTINES, Common::MAX_SUBROUTINES);
+
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        /// if node that would normally depend on another node for its setup isn't defined as an initiator, use this to set it up instead
+        bool inline initiator_default_setup(U64 hash){
+            std::optional<int> amount = initiator_amount(hash);
+
+            if(!node_deps.node_is(ND_INIT, hash) && amount.has_value()){
+                constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
+                return true;
+            }
+
+            return false;
+        }
 
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
@@ -53,8 +77,7 @@ class Ast{
             } else {
                 root_ptr = std::make_shared<Node>(entry, 0);
 
-                Constraints::Constraints constraints;
-                write_branch(root_ptr, constraints);
+                write_branch(root_ptr);
 
                 res.set_ok(*root_ptr);
                 return res;
@@ -129,6 +152,8 @@ class Ast{
         
         std::shared_ptr<Node> subs_node = nullptr;
         int current_subroutine = 0;
+
+        Constraints::Constraints constraints;
 
         Node_dependencies node_deps;
         std::optional<Node_dependencies> main_circ_deps; 
