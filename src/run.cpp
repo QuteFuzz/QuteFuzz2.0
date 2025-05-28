@@ -134,13 +134,42 @@ void Run::loop(){
         } else {
             tokenise(current_command);
 
+            // check if the command is a grammar command
             if(tokens.size() == 2){
                 set_grammar();
-            } else {
+            } else { // Prints the hash of the command for convenience
                 std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;
 
             }
         }
+    }
+}
+
+void Run::generate_circs(int num_circuits, const std::string& language) {
+    
+    // Reset tokens and set the grammar to the specified language
+    tokens.clear();
+    switch(language[0]) {
+        case 'c':
+            tokens.push_back("cirq");
+            break;
+        case 'q':
+            tokens.push_back("qiskit");
+            break;
+        case 'p':
+            tokens.push_back("pytket");
+            break;
+        default:
+            std::cout << "Unknown language: " << language << std::endl;
+            return;
+    }
+    tokens.push_back("program");
+    set_grammar();
+
+    for (int i = 1; i <= num_circuits; ++i) {
+        // e.g. output_0.py, output_1.py, etc.
+        fs::path output_path = output_dir / ("output_" + std::to_string(i) + current_spec->extension);
+        current_spec->builder->ast_to_program(output_path);
     }
 }
 
