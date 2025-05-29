@@ -19,36 +19,41 @@ namespace Constraints {
         public:
             bool must_satisfy;
 
-            Constraint(Type t, bool _global = false){
+            explicit Constraint(Type t, bool _global = false, bool _must_satisfy = false){
                 global = _global;
-                must_satisfy = global;
+                must_satisfy = (global ? true : _must_satisfy);
 
                 if(t == BRANCH_IS_NON_RECURSIVE){
-                    type = t;
+                    type = t;                
+                } else {
+                    ERROR("BRANCH_IS_NON_RECURSIVE constraint type expected");
                 }
+
             }
 
-            Constraint(U64 _node, Type t, size_t val, bool _global = false) {
+            explicit Constraint(U64 _node, Type t, size_t val, bool _global = false, bool _must_satisfy = false) {
                 node = _node;
                 value = val;
                 global = _global;
-                must_satisfy = global;
+                must_satisfy = (global ? true : _must_satisfy);
 
                 if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
-                    type = t;
-
+                    type = t;                
+                } else {
+                    ERROR("NUM_RULES_MAXIMUM, NUM_RULES_MINIMUM, NUM_RULES_EQUALS constraint types expected");
                 }
             }
 
-            Constraint(U64 _node, Type t, std::vector<U64> node_hashes, bool _global = false){
+            explicit Constraint(U64 _node, Type t, std::vector<U64> node_hashes, bool _global = false, bool _must_satisfy = false){
                 node = _node;
                 value = node_hashes;
                 global = _global;
-                must_satisfy = global;
+                must_satisfy = (global ? true : _must_satisfy);
 
                 if((t == BRANCH_EQUALS) || (t == BRANCH_IN)){
-                    type = t;
-
+                    type = t;                
+                } else {
+                    ERROR("BRANCH_EQUALS, BRANCH_IN constraint types expected");
                 }
             }
 
@@ -93,7 +98,7 @@ namespace Constraints {
             }
 
             friend std::ostream& operator<<(std::ostream& stream, Constraint& constraint){
-                stream << "on: " << constraint.node << " ";
+                stream << "on: " << constraint.node << " " << std::endl;
 
                 switch(constraint.type){ 
                     case NUM_RULES_MAXIMUM: stream << "NUM_RULES_MAXIMUM " << std::get<size_t>(constraint.value); break;
@@ -134,8 +139,8 @@ namespace Constraints {
 
     };
 
-    #define ON_RULES_CONSTRAINT(node_hash, type, n) (Constraint(node_hash, type, n))
-    #define N_QUBIT_CONSTRAINT(n) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_RULES_EQUALS, n))
+    #define ON_RULES_CONSTRAINT(node_hash, type, n, must_satisfy) (Constraint(node_hash, type, n, false, must_satisfy))
+    #define N_QUBIT_CONSTRAINT(n) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_RULES_EQUALS, n, false))
 
     struct Constraints {
         
@@ -168,9 +173,7 @@ namespace Constraints {
                 }
 
                 if(!found){
-                    Constraint c = ON_RULES_CONSTRAINT(node_hash, t, n);
-                    c.must_satisfy = true;
-                    constraints.push_back(c);
+                    constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, true));
                 }
             }
 
@@ -212,7 +215,7 @@ namespace Constraints {
                 N_QUBIT_CONSTRAINT(2),
                 N_QUBIT_CONSTRAINT(3),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
-                Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::qubit_list}),
+                Constraint(Common::gate_application_kind, BRANCH_EQUALS, std::vector<U64>({Common::qubit_list})),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
                 Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
             };

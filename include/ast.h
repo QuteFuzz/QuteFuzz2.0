@@ -40,9 +40,18 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> node);
 
+        std::shared_ptr<Common::Qreg_definitions> get_qreg_defs(){
+            if(all_qreg_defs.find(circuit_name) == all_qreg_defs.end()){
+                std::shared_ptr<Common::Qreg_definitions> ptr = std::make_shared<Common::Qreg_definitions>();
+                all_qreg_defs[circuit_name] = ptr;
+            }
+
+            return all_qreg_defs[circuit_name];
+        }
+
         std::optional<int> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
             if(hash == Common::qreg_defs){
-                return Common::setup_qregs(qreg_defs, random_int(num_completer));
+                return Common::setup_qregs(get_qreg_defs(), num_completer);
 
             } else if (hash == Common::subroutines){
                 return get_amount(random_int(num_completer), Common::MIN_SUBROUTINES, Common::MAX_SUBROUTINES);
@@ -53,15 +62,15 @@ class Ast{
         }
 
         /// if node that would normally depend on another node for its setup isn't defined as an initiator, use this to set it up instead
-        bool inline initiator_default_setup(U64 hash){
-            std::optional<int> amount = initiator_amount(hash);
+        void inline initiator_default_setup(U64 hash){
+            if(!node_deps.node_is(ND_INIT, hash)){
+                std::optional<int> amount = initiator_amount(hash);
 
-            if(!node_deps.node_is(ND_INIT, hash) && amount.has_value()){
-                constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
-                return true;
+                if(amount.has_value()){
+                    std::cout << "wrong" << std::endl;
+                    constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
+                }
             }
-
-            return false;
         }
 
         Result<Node, std::string> build(){
@@ -134,8 +143,6 @@ class Ast{
             return stream;
         }
 
-        Constraints::Constraints default_constraints;
-
         int recursions = 5;
         std::shared_ptr<Rule> entry = nullptr;
 
@@ -145,9 +152,10 @@ class Ast{
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
 
-        Common::Qreg_definitions qreg_defs;
+        std::unordered_map<std::string, std::shared_ptr<Common::Qreg_definitions>> all_qreg_defs;
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
+
         std::string circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
         
         std::shared_ptr<Node> subs_node = nullptr;

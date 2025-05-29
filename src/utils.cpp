@@ -68,9 +68,9 @@ int get_amount(int from, int resmin, int resmax){
 
 /// @brief Create qregs and qubit definitions
 /// @param qreg_defs 
-size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications){
-    qreg_defs.reset();
-    
+size_t Common::setup_qregs(std::shared_ptr<Qreg_definitions> qreg_defs, int num_gate_applications){
+    qreg_defs->reset();
+
     Qreg::count = 0;
     
     int num_qubits = get_amount(num_gate_applications, MIN_QUBITS, MAX_QUBITS);
@@ -81,10 +81,12 @@ size_t Common::setup_qregs(Qreg_definitions& qreg_defs, int num_gate_application
         if(num_qubits > MIN_QUBITS) qreg_size = random_int(MIN_QUBITS, 1);
         else qreg_size = num_qubits;
         
-        qreg_defs.push_back(Qreg(qreg_size));
+        qreg_defs->push_back(Qreg(qreg_size));
 
         num_qubits -= qreg_size;
     }
 
-    return qreg_defs.size();
+    // std::cout << *qreg_defs << std::endl;
+
+    return qreg_defs->size();
 }

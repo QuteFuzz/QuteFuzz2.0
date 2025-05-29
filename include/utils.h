@@ -189,7 +189,7 @@ namespace Common {
 
     };
 
-    size_t setup_qregs(Qreg_definitions& qreg_defs, int num_gate_applications);
+    size_t setup_qregs(std::shared_ptr<Qreg_definitions> qreg_defs, int num_gate_applications);
 
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES

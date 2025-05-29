@@ -21,7 +21,6 @@ Node_build_state Ast::transition_from_init(std::shared_ptr<Node> node){
     if(node_deps.node_is(ND_INIT, node_hash) && !node_deps.no_outstanding_dependencies()){    
         if(node_deps.is_info_set()){
             resolve_dependency(node, node_deps.get_info());
-
         } else {
             return NB_INIT;
         }
@@ -73,8 +72,6 @@ Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
 void Ast::add_constraint(std::shared_ptr<Node> node){
     U64 hash = (Common::Rule_hash)node->get_hash(); 
     std::string str = node->get_string();
-
-    if(initiator_default_setup(hash)) return;
     
     switch(hash){
         
@@ -95,22 +92,18 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
                 node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
                 constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(5, 1));
                 current_subroutine ++;
-            
+
             }
              
             break;
         }
 
-        case Common::qreg_defs: {
-            initiator_default_setup(hash);
+        case Common::qreg_defs:
             break;
-        }
         
         case Common::subroutines:
             subs_node = node;
             main_circ_deps = node_deps;
-
-            initiator_default_setup(hash);
             break;
 
         case Common::subroutine:
@@ -152,15 +145,15 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
             break;
 
         case Common::gate_name:  case Common::arg_gate_name: case Common::phase_gate_name:
-            qreg_defs.reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
+            get_qreg_defs()->reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
             break;
 
         case Common::qreg_def:
-            qreg_to_write = qreg_defs.get_next_qreg();
+            qreg_to_write = get_qreg_defs()->get_next_qreg();
             break;
 
         case Common::qubit:
-            qubit_to_write = qreg_defs.get_random_qubit();
+            qubit_to_write = get_qreg_defs()->get_random_qubit();
             break;
 
         case Common::float_literal:
@@ -201,9 +194,11 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
             break;
 
         default:
-            break;
-
+            break;   
     }
+
+    initiator_default_setup(hash);
+
 }
 
 /// @brief Given a rule, pick one branch from that rule
