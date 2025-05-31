@@ -88,7 +88,7 @@ namespace Constraints {
                 }
             }
 
-            bool on(U64 node_hash, Type t, size_t n){
+            bool on(const U64 node_hash, Type t, size_t n){
                 if((t == NUM_RULES_MAXIMUM) || (t == NUM_RULES_MINIMUM) || (t == NUM_RULES_EQUALS)){
                     return (node_hash == node) && (n == std::get<size_t>(value));
                 } else {
@@ -169,44 +169,39 @@ namespace Constraints {
             /// If not, a new one is added for that node and number of rules
             /// @param c 
             void add_rules_constraint(U64 node_hash, Type t, size_t n){
-                bool found = false;
 
-                for(auto& constraint : constraints){
+                for(Constraint& constraint : constraints){
                     if (constraint.on(node_hash, t, n)){
                         constraint.must_satisfy = true;
-                        found = true;
-                        break;
+                        return;
                     }
                 }
 
-                if(!found){
-                    INFO("Constraint for " + std::to_string(n) + " rules added");
-                    constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, true));
-                }
+                INFO("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules added");
+                constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, true));
             }
 
             /// @brief Add a constraint on the number of qubits that should be picked for a gate
             /// @param n number of qubits
             /// @param is_rotation whether or not the gate requires an argument
             void add_n_qubit_constraint(size_t n, bool is_rotation = false){
-                
-                switch(n){
-                    case 1: constraints[0].must_satisfy = true; break;
-                    case 2: constraints[1].must_satisfy = true; break;
-                    case 3: constraints[2].must_satisfy = true; break;
-                    default: {
-                        constraints.push_back(N_QUBIT_CONSTRAINT(n));
-                        constraints.back().must_satisfy = true;
-                        INFO("Constraint for " + std::to_string(n) + " qubits added");
-                        break;   
-                    }                 
-                }
 
                 if(is_rotation){
                     constraints[3].must_satisfy = true;
                 } else {
                     constraints[4].must_satisfy = true;
                 }
+
+                for(Constraint& constraint : constraints){
+                    if(constraint.on(Common::qubit_list, NUM_RULES_EQUALS, n)){
+                        constraint.must_satisfy = true;
+                        return;
+                    }
+                }
+
+                constraints.push_back(N_QUBIT_CONSTRAINT(n));
+                constraints.back().must_satisfy = true;
+                INFO("Constraint for " + std::to_string(n) + " qubits added");
             }
 
             void add_recursion_constraint(){

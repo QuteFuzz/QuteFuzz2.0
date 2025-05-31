@@ -70,6 +70,14 @@ class Node : public std::enable_shared_from_this<Node> {
             return term;
         }
 
+        void set_circuit_name(std::string name){
+            circuit_name = name;
+        }
+
+        std::string get_circuit_name(){
+            return circuit_name;
+        }
+
         std::string get_string() const {
             return term.get_string();
         }
@@ -230,6 +238,7 @@ class Node : public std::enable_shared_from_this<Node> {
         Node_build_state nb = NB_INIT;
         Branch chosen_branch;
         bool chosen_branch_flag = false;
+        std::string circuit_name;
 
 };
 

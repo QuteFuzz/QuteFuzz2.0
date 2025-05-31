@@ -76,7 +76,8 @@ struct Node_dependencies {
                 stream << hash << std::endl;
             }
 
-            stream << "completer " << nds.completer_hash << std::endl;
+            stream << "completer \n" << nds.completer_hash << std::endl;
+            stream << "unresolved: " << nds.num_initiators << std::endl;
 
             return stream;
         }

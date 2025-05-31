@@ -69,153 +69,157 @@ Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
 /// This function is only called when node is in NB_INIT
 /// @param node 
 /// @param constraints 
-void Ast::add_constraint(std::shared_ptr<Node> node){
-    U64 hash = (Common::Rule_hash)node->get_hash(); 
-    std::string str = node->get_string();
-    
-    switch(hash){
-        
-        case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: 
-        case Common::parameter: case Common::qreg_decl: case Common::qreg_append: 
-        case Common::gate_application_kind: case Common::statement:
-        case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
-            break;
+void Ast::prepare_node(std::shared_ptr<Node> node){
 
-        case Common::circuit: {
-            if(subs_node == nullptr){
-                // subroutines rule not found 
-            } else if (subs_node->build_state() == NB_READY){
-                /*
-                    currently building subroutine, track qreg defs dependency for each circuit
-                    store current state to restore later
-                */
-                node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
-                constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(WILDCARD_MAX, 1));
-                current_subroutine ++;
-            }
-             
-            break;
-        }
+	U64 hash = (Common::Rule_hash)node->get_hash(); 
 
-        case Common::qreg_defs:
-            break;
+	if(node->build_state() == NB_INIT){
 
-        case Common::gate_application:
-            break;
+		std::string str = node->get_string();
 
-        case Common::statements:
-            constraints.allow_subroutines(can_apply_subroutines());
-            // std::cout << constraints << std::endl;
+		switch(hash){
+			
+			case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: 
+			case Common::parameter: case Common::qreg_decl: case Common::qreg_append: 
+			case Common::gate_application_kind: case Common::statement:
+			case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
+				break;
 
-            for(const auto& qreg_defs : all_qreg_defs){
-                std::cout << *qreg_defs << std::endl;
-            }
-            break;
-            
-        case Common::subroutines:
-            subs_node = node;
-            main_circ_deps = node_deps;
-            break;
+			case Common::circuit: {
+				if(subs_node == nullptr){
+					// subroutines rule not found 
+				} else if (subs_node->build_state() == NB_READY){
+					/*
+						currently building subroutine, track qreg defs dependency for each circuit
+						store current state to restore later
+					*/
+					node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
+					constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(WILDCARD_MAX, 1));
+					node->set_circuit_name("sub"+std::to_string(current_subroutine++));
 
-        case Common::subroutine: {
-            auto sub = get_random_subroutine();
-            constraints.add_n_qubit_constraint(sub->num_qubits());
-            get_qreg_defs()->reset_qubits();
+				} else {
+					/*
+						this is the main circuit
+					*/
+					node->set_circuit_name(Common::TOP_LEVEL_CIRCUIT_NAME);
+					current_subroutine = 0;
+				}
 
-            node->add_child(std::make_shared<Node>(sub->owner()));
-            break;
-        }
+				current_circuit_node = node;
+				
+				break;
+			}
 
-        case Common::imports:
-            node->add_child(std::make_shared<Node>(imports()));
-            break;
+			case Common::qreg_defs:
+				break;
 
-        case Common::compiler_call:
-            node->add_child(std::make_shared<Node>(compiler_call()));
-            break;
+			case Common::gate_application:
+				break;
 
-        case Common::qreg_name:
-            node->add_child(std::make_shared<Node>(qreg_to_write->get_name()));
-            break;
+			case Common::statements:
+				constraints.allow_subroutines(can_apply_subroutines());
+				break;
+				
+			case Common::subroutines:
+				subs_node = node;
+				main_circ_deps = node_deps;
+				break;
 
-        case Common::qreg_size:
-            node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
-            break;   
+			case Common::subroutine: {
+				auto sub = get_random_subroutine();
+				constraints.add_n_qubit_constraint(sub->num_qubits());
+				get_qreg_defs()->reset_qubits();
 
-        case Common::qubit_name: 
-            node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
-            break;
-        
-        case Common::qubit_index:
-            node->add_child(std::make_shared<Node>(qubit_to_write->get_index_as_string()));
-            break;   
+				node->add_child(std::make_shared<Node>(sub->owner()));
+				break;
+			}
 
-        case Common::circuit_name:
-            if((subs_node != nullptr) && (subs_node->build_state() == NB_READY)){
-                circuit_name = "sub" + std::to_string(current_subroutine);
-            } else {
-                circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
-                current_subroutine = 0;
-            }
+			case Common::imports:
+				node->add_child(std::make_shared<Node>(imports()));
+				break;
 
-            node->add_child(std::make_shared<Node>(circuit_name));
-            break;
+			case Common::compiler_call:
+				node->add_child(std::make_shared<Node>(compiler_call()));
+				break;
 
-        case Common::gate_name:  case Common::arg_gate_name: case Common::phase_gate_name:
-            get_qreg_defs()->reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
-            break;
+			case Common::qreg_name:
+				node->add_child(std::make_shared<Node>(qreg_to_write->get_name()));
+				break;
 
-        case Common::qreg_def:
-            qreg_to_write = get_qreg_defs()->get_next_qreg();
-            break;
+			case Common::qreg_size:
+				node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
+				break;   
 
-        case Common::qubit:
-            qubit_to_write = get_qreg_defs()->get_random_qubit();
-            break;
+			case Common::qubit_name: 
+				node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
+				break;
+			
+			case Common::qubit_index:
+				node->add_child(std::make_shared<Node>(qubit_to_write->get_index_as_string()));
+				break;   
 
-        case Common::float_literal:
-            node->add_child(std::make_shared<Node>(std::to_string(random_float(0.5))));
-            break;
-        
-        /*
-            GATES. Make child for a syntax term that's just the name of the gate. Add constraint on the number of qubits that are chosen
-        */
-        case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(1);
-            break;
-        
-        case Common::cx: case Common::cz: case Common::cnot:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(2);
-            break;
+			case Common::circuit_name:
+				node->add_child(std::make_shared<Node>(current_circuit_node->get_circuit_name()));
+				break;
 
-        case Common::ccx: case Common::cswap:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(3);
-            break;
+			case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
+				get_qreg_defs()->reset_qubits();  // has to be called per gate name so that usability flags are reset before each gate application
+				break;
 
-        case Common::u1: case Common::rx: case Common::ry: case Common::rz: case Common::phasedxpowgate:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(1, true);
-            break;
+			case Common::qreg_def:
+				qreg_to_write = get_qreg_defs()->get_next_qreg();
+				break;
 
-        case Common::u2:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(2, true);            
-            break;
+			case Common::qubit:
+				qubit_to_write = get_qreg_defs()->get_random_qubit();
+				break;
 
-        case Common::u3: case Common::u:
-            node->add_child(std::make_shared<Node>(str));
-            constraints.add_n_qubit_constraint(3, true);            
-            break;
+			case Common::float_literal:
+				node->add_child(std::make_shared<Node>(std::to_string(random_float(0.5))));
+				break;
+			
+			case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(1);
+				break;
+			
+			case Common::cx: case Common::cz: case Common::cnot:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(2);
+				break;
 
-        default:
-            break;   
-    }
+			case Common::ccx: case Common::cswap:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(3);
+				break;
 
-    initiator_default_setup(hash);
+			case Common::u1: case Common::rx: case Common::ry: case Common::rz: case Common::phasedxpowgate:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(1, true);
+				break;
 
+			case Common::u2:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(2, true);            
+				break;
+
+			case Common::u3: case Common::u:
+				node->add_child(std::make_shared<Node>(str));
+				constraints.add_n_qubit_constraint(3, true);            
+				break;
+
+			default:
+				break;   
+		}
+
+		initiator_default_setup(hash);
+
+	} else if (hash == Common::statements) {
+		constraints.allow_subroutines(can_apply_subroutines());
+
+	} else if (hash == Common::circuit){
+		current_circuit_node = node;
+	}
 }
 
 /// @brief Given a rule, pick one branch from that rule
@@ -250,17 +254,18 @@ Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule){
 /// @param constraints 
 void Ast::write_branch(std::shared_ptr<Node> node){
 
-
     Node_build_state new_build_state = NB_DONE, old_build_state = node->build_state();
+
+	prepare_node(node);
 
     if(node->is_syntax() || (old_build_state == NB_DONE)){
         node->set_build_state(NB_DONE);
         new_build_state = NB_DONE;
 
-    } else if (node->build_state() == NB_STALL){
+    } else if (old_build_state == NB_STALL){
         new_build_state = transition_from_stall(node);
 
-    } else if (node->build_state() == NB_READY){
+    } else if (old_build_state == NB_READY){
         Branch branch = node->get_branch();
         size_t num_children = node->get_num_children();
 
@@ -279,9 +284,8 @@ void Ast::write_branch(std::shared_ptr<Node> node){
 
         new_build_state = transition_from_ready(node, branch);
 
-    } else if (node->build_state() == NB_INIT){
+    } else if (old_build_state == NB_INIT){
         Term t = node->get_term();
-        add_constraint(node);
         
         if(!node->has_chosen_branch()) {
             node->save_branch(pick_branch(t.get_rule()).get_ok());
@@ -296,7 +300,13 @@ void Ast::write_branch(std::shared_ptr<Node> node){
 
     #if 0
     std::cout << *node << std::endl;
+
+    for(const auto& qreg_defs : all_qreg_defs){
+        std::cout << *qreg_defs << std::endl;
+    }
+
     getchar(); 
+
     #endif
 
     if((new_build_state != NB_READY) && (new_build_state == old_build_state)){

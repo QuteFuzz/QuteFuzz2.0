@@ -36,7 +36,7 @@ class Ast{
 
         Node_build_state transition_from_stall(std::shared_ptr<Node> node);
 
-        void add_constraint(std::shared_ptr<Node> node);
+        void prepare_node(std::shared_ptr<Node> node);
 
         void write_branch(std::shared_ptr<Node> node);
 
@@ -67,9 +67,9 @@ class Ast{
         /// @brief Check whether current circuit can supply qubits to at least one of the defined subroutines that aren't itself
         /// @return 
         bool can_apply_subroutines(){
-
+            
             for(const auto& qreg_defs : all_qreg_defs){
-                if(!qreg_defs->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !qreg_defs->owned_by(circuit_name)){
+                if(!qreg_defs->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !qreg_defs->owned_by(current_circuit_node->get_circuit_name())){
                     return get_qreg_defs()->num_qubits() >= qreg_defs->num_qubits();
                 }
             }
@@ -84,7 +84,7 @@ class Ast{
             int random_index = random_int(all_qreg_defs.size() - 1);
             std::shared_ptr<Common::Qreg_definitions> ret = all_qreg_defs[random_index];
 
-            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(circuit_name)){
+            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(current_circuit_node->get_circuit_name())){
                 random_index = random_int(all_qreg_defs.size() - 1);
                 ret = all_qreg_defs[random_index];
             }
@@ -95,6 +95,7 @@ class Ast{
         /// @brief Get qreg defs of current circuit
         /// @return 
         std::shared_ptr<Common::Qreg_definitions> get_qreg_defs(){
+            std::string circuit_name = current_circuit_node->get_circuit_name();
 
             for(const auto& qreg_defs : all_qreg_defs){
                 if(qreg_defs->owned_by(circuit_name)){
@@ -191,10 +192,9 @@ class Ast{
         std::vector<std::shared_ptr<Common::Qreg_definitions>> all_qreg_defs;
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
-
-        std::string circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
         
         std::shared_ptr<Node> subs_node = nullptr;
+        std::shared_ptr<Node> current_circuit_node = nullptr;
         int current_subroutine = 0;
 
         Constraints::Constraints constraints;
