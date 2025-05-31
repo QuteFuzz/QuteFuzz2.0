@@ -14,11 +14,17 @@
 #include <cctype>
 #include <cstdint>
 
-#define WILDCARD_MAX 50
+#ifdef DEBUG 
+    #define WILDCARD_MAX 20
+#else
+    #define WILDCARD_MAX 50
+#endif
+
 #define UNUSED(x) (void)(x)
 #define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
 #define PLACEHOLDER(x) ("<" x ">")
 #define ERROR(x) std::cout << "[ERROR] " << x << std::endl
+#define INFO(x) std::cout << "[INFO] " << x << std::endl
 #define TOKENS_GRAMMAR_NAME "tokens"
 
 using U64 = uint64_t;
@@ -38,10 +44,8 @@ int get_amount(int from, int resmin, int resmax);
 
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
-    constexpr int MIN_QUBITS = 4;
-    constexpr int MAX_QUBITS = 15;
-    constexpr int MIN_SUBROUTINES = 0;
-    constexpr int MAX_SUBROUTINES = 5;
+    constexpr int MAX_QUBITS = (0.2 * WILDCARD_MAX);
+    constexpr int MAX_SUBROUTINES = (0.1 * WILDCARD_MAX);
 
     struct Qubit{
         public:
@@ -107,14 +111,18 @@ namespace Common {
     const std::shared_ptr<Qubit> DEFAULT_QUBIT = std::make_shared<Qubit>(Qubit());
     const std::shared_ptr<Qreg> DEFAULT_QREG = std::make_shared<Qreg>(Qreg());
 
-    struct Qreg_definitions{
+    struct Qreg_definitions {
 
         public:
 
-            Qreg_definitions(){}
+            Qreg_definitions(std::string _circuit) : circuit(_circuit) {}
 
-            size_t size(){
-                return qregs.size();
+            std::string owner(){
+                return circuit;
+            }
+
+            size_t num_qubits(){
+                return qubits.size();
             }
 
             void push_back(Qreg qreg){
@@ -162,6 +170,8 @@ namespace Common {
             }
 
             friend std::ostream& operator<<(std::ostream& stream, Qreg_definitions defs){
+                stream << "Owner " << defs.circuit << std::endl; 
+                stream << "=====================" << std::endl;
                 stream << "Qregs " << std::endl;
                 for(const Qreg& qr : defs.qregs){
                     stream << qr << std::endl;
@@ -181,8 +191,17 @@ namespace Common {
             inline size_t num_qregs(){
                 return qregs.size();
             }
+            
+            /// @brief Are these qreg definitions owned by this circuit?
+            /// @param circuit_name 
+            /// @return 
+            bool owned_by(std::string circuit_name){
+                return circuit == circuit_name;
+            }
+
 
         private:
+            std::string circuit;
             std::vector<Qreg> qregs;
             std::vector<Qubit> qubits;
             int qreg_pointer = 0;

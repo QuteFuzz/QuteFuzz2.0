@@ -76,8 +76,8 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
     switch(hash){
         
         case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: 
-        case Common::parameter: case Common::statements: case Common::qreg_decl: case Common::qreg_append: 
-        case Common::gate_application_kind: case Common::statement: case Common::gate_application:
+        case Common::parameter: case Common::qreg_decl: case Common::qreg_append: 
+        case Common::gate_application_kind: case Common::statement:
         case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
             break;
 
@@ -90,9 +90,8 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
                     store current state to restore later
                 */
                 node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
-                constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(5, 1));
+                constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(WILDCARD_MAX, 1));
                 current_subroutine ++;
-
             }
              
             break;
@@ -100,14 +99,32 @@ void Ast::add_constraint(std::shared_ptr<Node> node){
 
         case Common::qreg_defs:
             break;
-        
+
+        case Common::gate_application:
+            break;
+
+        case Common::statements:
+            constraints.allow_subroutines(can_apply_subroutines());
+            // std::cout << constraints << std::endl;
+
+            for(const auto& qreg_defs : all_qreg_defs){
+                std::cout << *qreg_defs << std::endl;
+            }
+            break;
+            
         case Common::subroutines:
             subs_node = node;
             main_circ_deps = node_deps;
             break;
 
-        case Common::subroutine:
+        case Common::subroutine: {
+            auto sub = get_random_subroutine();
+            constraints.add_n_qubit_constraint(sub->num_qubits());
+            get_qreg_defs()->reset_qubits();
+
+            node->add_child(std::make_shared<Node>(sub->owner()));
             break;
+        }
 
         case Common::imports:
             node->add_child(std::make_shared<Node>(imports()));
@@ -278,10 +295,8 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     
 
     #if 0
-
     std::cout << *node << std::endl;
     getchar(); 
-
     #endif
 
     if((new_build_state != NB_READY) && (new_build_state == old_build_state)){

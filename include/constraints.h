@@ -98,6 +98,7 @@ namespace Constraints {
             }
 
             friend std::ostream& operator<<(std::ostream& stream, Constraint& constraint){
+                stream << "============================================" << std::endl;
                 stream << "on: " << constraint.node << " " << std::endl;
 
                 switch(constraint.type){ 
@@ -126,9 +127,15 @@ namespace Constraints {
                     default: stream << "Unknown rule "; break;
                 }
 
-                stream << " must satisfy: " << constraint.must_satisfy << " global: " << constraint.global; 
+                stream << " must satisfy: " << constraint.must_satisfy << " global: " << constraint.global << std::endl; 
+                stream << "============================================" << std::endl;
 
                 return stream;
+            }
+
+            void set_global(bool flag){
+                global = flag; 
+                must_satisfy = flag;
             }
 
         private:
@@ -173,6 +180,7 @@ namespace Constraints {
                 }
 
                 if(!found){
+                    INFO("Constraint for " + std::to_string(n) + " rules added");
                     constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, true));
                 }
             }
@@ -186,7 +194,12 @@ namespace Constraints {
                     case 1: constraints[0].must_satisfy = true; break;
                     case 2: constraints[1].must_satisfy = true; break;
                     case 3: constraints[2].must_satisfy = true; break;
-                    default: ERROR("Constraint for " + std::to_string(n) + " qubits not supported"); break;                
+                    default: {
+                        constraints.push_back(N_QUBIT_CONSTRAINT(n));
+                        constraints.back().must_satisfy = true;
+                        INFO("Constraint for " + std::to_string(n) + " qubits added");
+                        break;   
+                    }                 
                 }
 
                 if(is_rotation){
@@ -198,6 +211,10 @@ namespace Constraints {
 
             void add_recursion_constraint(){
                 constraints[4].must_satisfy = true;
+            }
+
+            void allow_subroutines(bool flag){
+                constraints[7].set_global(!flag);
             }
 
             friend std::ostream& operator<<(std::ostream& stream, Constraints constraints){
@@ -218,6 +235,7 @@ namespace Constraints {
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, std::vector<U64>({Common::qubit_list})),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
                 Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
+                Constraint(Common::gate_application, BRANCH_EQUALS, {Common::circuit_name, Common::gate_name, Common::gate_application_kind}, true),
             };
 
     };

@@ -40,21 +40,12 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> node);
 
-        std::shared_ptr<Common::Qreg_definitions> get_qreg_defs(){
-            if(all_qreg_defs.find(circuit_name) == all_qreg_defs.end()){
-                std::shared_ptr<Common::Qreg_definitions> ptr = std::make_shared<Common::Qreg_definitions>();
-                all_qreg_defs[circuit_name] = ptr;
-            }
-
-            return all_qreg_defs[circuit_name];
-        }
-
         std::optional<int> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
             if(hash == Common::qreg_defs){
                 return Common::setup_qregs(get_qreg_defs(), num_completer);
 
             } else if (hash == Common::subroutines){
-                return get_amount(random_int(num_completer), Common::MIN_SUBROUTINES, Common::MAX_SUBROUTINES);
+                return get_amount(num_completer, 0, Common::MAX_SUBROUTINES);
 
             } else {
                 return std::nullopt;
@@ -67,10 +58,54 @@ class Ast{
                 std::optional<int> amount = initiator_amount(hash);
 
                 if(amount.has_value()){
-                    std::cout << "wrong" << std::endl;
+                    // std::cout << hash << " ==== " << amount.value() << std::endl;
                     constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
                 }
             }
+        }
+
+        /// @brief Check whether current circuit can supply qubits to at least one of the defined subroutines that aren't itself
+        /// @return 
+        bool can_apply_subroutines(){
+
+            for(const auto& qreg_defs : all_qreg_defs){
+                if(!qreg_defs->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !qreg_defs->owned_by(circuit_name)){
+                    return get_qreg_defs()->num_qubits() >= qreg_defs->num_qubits();
+                }
+            }
+
+            return false;
+        }
+
+
+        /// @brief This will only be called when it is known that at least one subroutine was generated. can safely loop until a subrountine is found
+        /// that isn't the current subroutine
+        std::shared_ptr<Common::Qreg_definitions> get_random_subroutine(){
+            int random_index = random_int(all_qreg_defs.size() - 1);
+            std::shared_ptr<Common::Qreg_definitions> ret = all_qreg_defs[random_index];
+
+            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(circuit_name)){
+                random_index = random_int(all_qreg_defs.size() - 1);
+                ret = all_qreg_defs[random_index];
+            }
+
+            return ret;
+        }
+
+        /// @brief Get qreg defs of current circuit
+        /// @return 
+        std::shared_ptr<Common::Qreg_definitions> get_qreg_defs(){
+
+            for(const auto& qreg_defs : all_qreg_defs){
+                if(qreg_defs->owned_by(circuit_name)){
+                    return qreg_defs;
+                }
+            }
+
+            std::shared_ptr<Common::Qreg_definitions> ptr = std::make_shared<Common::Qreg_definitions>(circuit_name);
+            all_qreg_defs.push_back(ptr);
+
+            return ptr;
         }
 
         Result<Node, std::string> build(){
@@ -78,6 +113,7 @@ class Ast{
 
             node_deps = main_circ_deps.value_or(node_deps);
             node_deps.reset();
+            all_qreg_defs.clear();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -152,7 +188,7 @@ class Ast{
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
 
-        std::unordered_map<std::string, std::shared_ptr<Common::Qreg_definitions>> all_qreg_defs;
+        std::vector<std::shared_ptr<Common::Qreg_definitions>> all_qreg_defs;
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
 
