@@ -21,30 +21,100 @@ class Ast{
             entry = _entry;
         }   
 
-        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule, Constraints::Constraints& constraints);
+        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule);
 
         void add_dependency(U64 init, U64 comp){
             if(node_deps.node_is(ND_COMP, comp))
                 node_deps.add_initiator(init);
         }
 
-        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info, Constraints::Constraints& constraints);
+        void resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_info);
 
         Node_build_state transition_from_ready(std::shared_ptr<Node> node, Branch& chosen_branch);
 
-        Node_build_state transition_from_init(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        Node_build_state transition_from_init(std::shared_ptr<Node> node);
 
         Node_build_state transition_from_stall(std::shared_ptr<Node> node);
 
-        void add_constraint(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        void prepare_node(std::shared_ptr<Node> node);
 
-        void write_branch(std::shared_ptr<Node> node, Constraints::Constraints& constraints);
+        void write_branch(std::shared_ptr<Node> node);
+
+        std::optional<int> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
+            if(hash == Common::qreg_defs){
+                return Common::setup_qregs(get_qreg_defs(), num_completer);
+
+            } else if (hash == Common::subroutines){
+                return get_amount(num_completer, 0, Common::MAX_SUBROUTINES);
+
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        /// if node that would normally depend on another node for its setup isn't defined as an initiator, use this to set it up instead
+        void inline initiator_default_setup(U64 hash){
+            if(!node_deps.node_is(ND_INIT, hash)){
+                std::optional<int> amount = initiator_amount(hash);
+
+                if(amount.has_value()){
+                    // std::cout << hash << " ==== " << amount.value() << std::endl;
+                    constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
+                }
+            }
+        }
+
+        /// @brief Check whether current circuit can supply qubits to at least one of the defined subroutines that aren't itself
+        /// @return 
+        bool can_apply_subroutines(){
+            
+            for(const auto& qreg_defs : all_qreg_defs){
+                if(!qreg_defs->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !qreg_defs->owned_by(current_circuit_node->get_circuit_name())){
+                    return get_qreg_defs()->num_qubits() >= qreg_defs->num_qubits();
+                }
+            }
+
+            return false;
+        }
+
+
+        /// @brief This will only be called when it is known that at least one subroutine was generated. can safely loop until a subrountine is found
+        /// that isn't the current subroutine
+        std::shared_ptr<Common::Qreg_definitions> get_random_subroutine(){
+            int random_index = random_int(all_qreg_defs.size() - 1);
+            std::shared_ptr<Common::Qreg_definitions> ret = all_qreg_defs[random_index];
+
+            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(current_circuit_node->get_circuit_name())){
+                random_index = random_int(all_qreg_defs.size() - 1);
+                ret = all_qreg_defs[random_index];
+            }
+
+            return ret;
+        }
+
+        /// @brief Get qreg defs of current circuit
+        /// @return 
+        std::shared_ptr<Common::Qreg_definitions> get_qreg_defs(){
+            std::string circuit_name = current_circuit_node->get_circuit_name();
+
+            for(const auto& qreg_defs : all_qreg_defs){
+                if(qreg_defs->owned_by(circuit_name)){
+                    return qreg_defs;
+                }
+            }
+
+            std::shared_ptr<Common::Qreg_definitions> ptr = std::make_shared<Common::Qreg_definitions>(circuit_name);
+            all_qreg_defs.push_back(ptr);
+
+            return ptr;
+        }
 
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
 
             node_deps = main_circ_deps.value_or(node_deps);
             node_deps.reset();
+            all_qreg_defs.clear();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
@@ -53,8 +123,7 @@ class Ast{
             } else {
                 root_ptr = std::make_shared<Node>(entry, 0);
 
-                Constraints::Constraints constraints;
-                write_branch(root_ptr, constraints);
+                write_branch(root_ptr);
 
                 res.set_ok(*root_ptr);
                 return res;
@@ -111,8 +180,6 @@ class Ast{
             return stream;
         }
 
-        Constraints::Constraints default_constraints;
-
         int recursions = 5;
         std::shared_ptr<Rule> entry = nullptr;
 
@@ -122,13 +189,15 @@ class Ast{
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
 
-        Common::Qreg_definitions qreg_defs;
+        std::vector<std::shared_ptr<Common::Qreg_definitions>> all_qreg_defs;
         std::shared_ptr<Common::Qreg> qreg_to_write = Common::DEFAULT_QREG;
         std::shared_ptr<Common::Qubit> qubit_to_write = Common::DEFAULT_QUBIT;
-        std::string circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
         
         std::shared_ptr<Node> subs_node = nullptr;
+        std::shared_ptr<Node> current_circuit_node = nullptr;
         int current_subroutine = 0;
+
+        Constraints::Constraints constraints;
 
         Node_dependencies node_deps;
         std::optional<Node_dependencies> main_circ_deps; 

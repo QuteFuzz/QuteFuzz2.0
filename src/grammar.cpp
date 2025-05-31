@@ -46,15 +46,12 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name){
 
     // lower(rule_name);
 
-    if(rule_pointers.find(rule_name) != rule_pointers.end()){
-        return rule_pointers[rule_name];
-    } else {
+    if(rule_pointers.find(rule_name) == rule_pointers.end()){
         std::shared_ptr<Rule> ptr = std::make_shared<Rule>(rule_name);
-
         rule_pointers[rule_name] = ptr;
-
-        return ptr;
     }
+
+    return rule_pointers[rule_name];
 }
 
 /// @brief Convert a single token into a term and add it to the given branch

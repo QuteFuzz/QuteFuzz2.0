@@ -55,6 +55,12 @@ std::vector<Constraint> constraints = {
 
 which are activated as required by the context. The last one is global (true argument), so is "always activated". This is what allows us to set a gateset. 
 
+## Ideas
+
+- [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
+- Automatic test reduction
+- How to generate loops that terminate?
+
 ## Running
 
 Build with:
