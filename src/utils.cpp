@@ -90,3 +90,12 @@ size_t Common::setup_qregs(std::shared_ptr<Qreg_definitions> qreg_defs, int num_
 
     return qreg_defs->num_qregs();
 }
+
+std::optional<int> safe_stoi(const std::string& str) {
+    try {
+        int ret = (str == "") ? 1 : std::stoi(str);
+        return std::optional<int>(ret);
+    } catch (const std::invalid_argument& e) {
+        return std::nullopt;
+    }
+}

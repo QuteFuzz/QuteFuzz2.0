@@ -1,6 +1,6 @@
-# QuteFuzz 2.0
+# QuteFuzz
 
-An idea for where QuteFuzz 2.0 might head. 
+A grammar to AST to program fuzzer. 
 
 ## Premise
 
@@ -33,37 +33,11 @@ There's 2 nice things about this AST builder, the constriant system and the depe
 - The dependency system allows us to define node dependencies that must be satisfied while the AST is being built. There's only support for one set of node dependencies in the AST, which is defined by having one completer and a set of initialisers. Completers are the nodes which give information which is used by initiators to build their parts of the AST. 
 - There's dependencies defined in the builder between `qreg_defs`, `subroutines`(initiators) and `gate_application`(completer), such that the number of qubits, and subroutine size generated in the AST is a function of the number of gate applications.
 
-These are the [constraints](include/constraints.h) defined, 
-```C++
-#define ON_RULES_CONSTRAINT(node_hash, type, n) (Constraint(node_hash, type, n))
-#define N_QUBIT_CONSTRAINT(n) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_RULES_EQUALS, n))
-
-/* 
-        .........
-*/
-
-std::vector<Constraint> constraints = {
-        N_QUBIT_CONSTRAINT(1),
-        N_QUBIT_CONSTRAINT(2),
-        N_QUBIT_CONSTRAINT(3),
-        Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
-        Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::qubit_list}),
-        Constraint(BRANCH_IS_NON_RECURSIVE),
-        Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
-};
-```
-
-which are activated as required by the context. The last one is global (true argument), so is "always activated". This is what allows us to set a gateset. 
-
-## Ideas
-
-- [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
-- Automatic test reduction
-- How to generate loops that terminate?
+These are the [constraints](include/constraints.h) defined, which are activated as required by the context.
 
 ## Running
 
-Build with:
+### Build with:
 
 ```sh
 mkdir build
@@ -72,33 +46,20 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
-Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info. 
+Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info, run with `./fuzzer`.
 
-Run with `./fuzzer`, and type `h` for help.
+### Commands:
+- `h` : help
+- `quit`: quit program
+- `print`: print grammar if any has been set
+- `print_tokens`: print tokenisation of grammar if any has been set
+- `<grammar> <entry_point>`: set grammar. For example, `pytket program` sets the `pytket` grammar an builds AST with `program` entry point
+- `<n>`: generate n programs from the set grammar
 
-An AST for [`testbed.bnf`](examples/testbed.bnf) can be produced by typing in the commands `testbed <entry_point>`.
+Grammars are written in `examples` folder. 
 
-Example result for `testbed expr`:
-```
-AST: 
-[] children: 1 depth: 0
-->[term] children: 1 depth: 1
-        ->[factor] children: 1 depth: 2
-                ->[integer] children: 1 depth: 3
-                        ->["4"] children: 0 depth: 4
-```
+## Ideas
 
-Example result for `testbed factor`:
-```
-AST: 
-[] children: 3 depth: 0
-->["("] children: 0 depth: 1
-->[expr] children: 1 depth: 1
-        ->[term] children: 1 depth: 2
-                ->[factor] children: 1 depth: 3
-                        ->[integer] children: 1 depth: 4
-                                ->["4"] children: 0 depth: 5
-->[")"] children: 0 depth: 1
-```
-
-An AST for [`pytket.bnf`](examples/pytket.bnf) can be produced in the same way. Since an AST builder is defined for it, a program will be written to `outputs/output.py`.  
+- [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
+- Automatic test reduction
+- How to generate loops that terminate?

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
+#include <optional>
 
 #ifdef DEBUG 
     #define WILDCARD_MAX 20
@@ -41,6 +42,7 @@ float random_float(float max, float min = 0.0);
 
 int get_amount(int from, int resmin, int resmax);
 
+std::optional<int> safe_stoi(const std::string& str);
 
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 

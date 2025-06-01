@@ -10,7 +10,7 @@ statements = (statement NEWLINE)+;
 
 circuit_def = circuit_name " = Circuit()";
 
-qreg_def    = qreg_name EQUALS "NamedQubit.range(" qreg_size ")" NEWLINE;
+qreg_def    = qreg_name EQUALS "NamedQubit.range(" qreg_size ")";
 
 statement   = gate_application;
 
