@@ -11,6 +11,8 @@ int main(){
     // testing the lexer
     // Lexer lexer(file.string());
     // lexer.print_tokens();
+    // Lexer lexer(file.string());
+    // lexer.print_tokens();
 
     // testing grammar builder
     // Grammar grammar(file);
