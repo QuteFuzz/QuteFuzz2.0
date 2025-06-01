@@ -8,14 +8,14 @@ int main(int argc, char* argv[]){
     
     fs::path file("../examples/testbed.bnf");
     // testing the lexer
-    //Lexer lexer(file.string());
-    //lexer.print_tokens();
+    // Lexer lexer(file.string());
+    // lexer.print_tokens();
 
     // testing grammar builder
-    //Grammar grammar(file);
-    //grammar.print_tokens();
-    //grammar.build_grammar();
-    //grammar.print_grammar();
+    // Grammar grammar(file);
+    // grammar.print_tokens();
+    // grammar.build_grammar();
+    // grammar.print_grammar();
 
     // Set default values for command line arguments
     bool debug_mode = false;
