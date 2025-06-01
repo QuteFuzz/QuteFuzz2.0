@@ -1,12 +1,13 @@
 # QuteFuzz
-# QuteFuzz
 
-A fuzzer for quantum compilers. 
+A grammar to AST to program fuzzer. 
 
-## How it works
-1. Provide a grammar. Grammar must define particular rules to guide the AST generation.
-2. Qutefuzz generates a well-formed AST from the grammar
-3. Qutefuzz prints the circuit from the AST. 
+## Premise
+
+- The program receives a path to grammar in BNF form then outputs text based on that grammar, see `examples` folder.
+- Each branch will be assigned equal probability of being picked.
+- The idea is that we have a grammar representation on top of which we can build other things. Here, the grammar is parsed to output text directly, but Dr Wickerson had spoken about making our circuit generation more "graph based". Perhaps we could write for each QSS: 1. `QSS Grammar -> QSS AST`, then we can play with the AST to edit the circuit in any way we want before doing 2. `QSS AST -> QSS Program`. 
+- The first step will probably be the hardest part, because I think this is where we do type checking and other checks to make sure the program is well formed
 
 ## Grammar parser
 - Write grammar in BNF syntax. 
@@ -19,24 +20,21 @@ A fuzzer for quantum compilers.
 The grammar parser can handle most of the BNF syntax, up to simple groupings with / without wildcards like `(term (expr)+ hello)*`. However, things like `term ("+" | "-") expr` are tokenised, but not parsed correctly. 
 
 ## AST builder
-Constraints are added depending on certain rules to limit which branches can be chosen from the grammar. 
 
-## QIG (Qubit Interaction Graph)
-When adding any 2 qubit gate, QuteFuzz will try all possible pairs of qubits it can use in the given circuit, score each pair, and choose that with the highest score. The score is a heuristic chosen to promote generation of circuits that stress test the compiler.
+With an AST, we have the potential to do some cool techniques we couldn't have done before. 
 
-### Hueristics (work in progress)
-- Diameter: The longest shortest path in the graph. 
-- Average Shortest Path: The average of all shortest paths in the graph. 
+There's 2 nice things about this AST builder, the constriant system and the dependency system. 
+
+- We can add constraints on particular nodes such that the corresponding rule in the grammar picks branches with certain [characteristics](include/constraints.h#L8). 
+- There's a set of constraints defined, which can be flagged to activate them. When the constraint is satisfied, its flag is reset (constraint deactivated), unless it is a "global" constraint, which means that it must always be specified regardless of context. For instance, a constraint on the gateset that gates should come from is always the same regardless of context, while a constraint on the number of qubits the rule `qubit_list` must choose is dependent on the gate that has been picked.
+- The dependency system allows us to define node dependencies that must be satisfied while the AST is being built. There's only support for one set of node dependencies in the AST, which is defined by having one completer and a set of initialisers. Completers are the nodes which give information which is used by initiators to build their parts of the AST. 
+- There's dependencies defined in the builder between `qreg_defs`, `subroutines`(initiators) and `gate_application`(completer), such that the number of qubits, and subroutine size generated in the AST is a function of the number of gate applications.
+
+These are the [constraints](include/constraints.h) defined, which are activated as required by the context.
 
 ## Running
 
-1. Run this script to setup differential testing library and install required dependencies.
-
-```sh
-pip install -r requirements.txt
-```
-
-2. Build with
+### Build with:
 
 ```sh
 mkdir build
@@ -47,8 +45,6 @@ make
 
 Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info, run with `./fuzzer`.
 
-3. `./fuzzer` to run the program generator.
-
 ### Commands:
 - `h` : help
 - `quit`: quit program
@@ -58,11 +54,6 @@ Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info
 - `<n>`: generate n programs from the set grammar
 
 Grammars are written in `examples` folder. 
-
-Output is a circuit, as well as the QIG for the main circuit in DOT language. This can be rendered using `dot`. For instance:
-```
-dot -Tpng ../outputs/output1.dot -o ../outputs/output1.png
-```
 
 ## Ideas
 
