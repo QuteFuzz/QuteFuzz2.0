@@ -56,19 +56,23 @@ Node_build_state Ast::transition_from_ready(std::shared_ptr<Node> node, Branch& 
 
 }
 
+/// @brief Completer nodes get stalled. This transitions to ready if dependencies have been resolved
+/// Picks another branch in case constraints have changed 
+/// @param node 
+/// @return 
 Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
     if(node_deps.no_outstanding_dependencies()){
+	    Term t = node->get_term();
+
         node->set_build_state(NB_READY);
+	    node->save_branch(pick_branch(t.get_rule()).get_ok());
+
         return NB_READY;
     } else {
         return NB_STALL;
     }
 }
 
-/// @brief These are additional constraints on nodes which we cannot add directly in the grammar. 
-/// This function is only called when node is in NB_INIT
-/// @param node 
-/// @param constraints 
 void Ast::prepare_node(std::shared_ptr<Node> node){
 
 	U64 hash = (Common::Rule_hash)node->get_hash(); 
@@ -299,14 +303,9 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     
 
     #if 0
+	std::cout << constraints << std::endl;
     std::cout << *node << std::endl;
-
-    for(const auto& qreg_defs : all_qreg_defs){
-        std::cout << *qreg_defs << std::endl;
-    }
-
     getchar(); 
-
     #endif
 
     if((new_build_state != NB_READY) && (new_build_state == old_build_state)){
