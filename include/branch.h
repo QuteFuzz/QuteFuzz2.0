@@ -48,7 +48,20 @@ class Branch {
 
         Term at(size_t index) const {return terms.at(index);}
 
-        inline size_t num_pointer_terms() const {return pointer_terms.size();}
+        inline size_t num_pointer_terms(U64 filter = 0ULL) const {
+            
+            if(filter == 0ULL){
+                return pointer_terms.size();
+            } else {
+                size_t count = 0;
+
+                for(const std::shared_ptr<Term>& term : pointer_terms){
+                    count += (term->get_hash() == filter);
+                }
+
+                return count;
+            }        
+        }
 
         bool pointer_terms_match(std::vector<U64> term_hashes) const ;
 

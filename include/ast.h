@@ -40,12 +40,14 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> node);
 
-        std::optional<int> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
+        std::optional<std::pair<int, U64>> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX){
             if(hash == Common::qreg_defs){
-                return Common::setup_qregs(get_qreg_defs(), num_completer);
+                auto res = std::make_pair<int, U64>(Common::setup_qregs(get_qreg_defs(), num_completer), Common::qreg_def);
+                return std::optional<std::pair<int, U64>>(res);
 
             } else if (hash == Common::subroutines){
-                return get_amount(num_completer, 0, Common::MAX_SUBROUTINES);
+                auto res = std::make_pair<int, U64>(get_amount(num_completer, 0, Common::MAX_SUBROUTINES), Common::circuit);
+                return std::optional<std::pair<int, U64>>(res);
 
             } else {
                 return std::nullopt;
@@ -55,11 +57,10 @@ class Ast{
         /// if node that would normally depend on another node for its setup isn't defined as an initiator, use this to set it up instead
         void inline initiator_default_setup(U64 hash){
             if(!node_deps.node_is(ND_INIT, hash)){
-                std::optional<int> amount = initiator_amount(hash);
+                std::optional<std::pair<int, U64>> amount = initiator_amount(hash);
 
                 if(amount.has_value()){
-                    // std::cout << hash << " ==== " << amount.value() << std::endl;
-                    constraints.add_rules_constraint(hash, Constraints::NUM_RULES_EQUALS, amount.value());
+                    constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, amount.value().first, amount.value().second);
                 }
             }
         }
