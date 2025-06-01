@@ -14,7 +14,7 @@ class Pytket : public Ast {
                 "from helpers.pytket_helpers import test_circuit_on_passes \n" \
                 "from pathlib import Path \n" \
                 "from pytket import Circuit, Qubit, Bit \n" \
-                "from pytket.circuit import Op, OpType, MultiplexorBox \n";
+                "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox \n";
         }
 
         std::string compiler_call() override {

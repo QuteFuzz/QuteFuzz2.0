@@ -3,9 +3,9 @@
 void Ast::resolve_dependency(std::shared_ptr<Node> initiator_node, int dependency_result){
     Term t = initiator_node->get_term();
     U64 node_hash = initiator_node->get_hash();
-    size_t res = initiator_amount(node_hash, dependency_result).value();
+    std::pair<int, U64> res = initiator_amount(node_hash, dependency_result).value();
 
-    constraints.add_rules_constraint(node_hash, Constraints::NUM_RULES_EQUALS, res);
+    constraints.add_rules_constraint(node_hash, Constraints::NUM_GIVEN_RULE_EQUALS, res.first, res.second);
     initiator_node->save_branch(pick_branch(t.get_rule()).get_ok());
 
     node_deps.untrack_initiator();
@@ -75,6 +75,11 @@ Node_build_state Ast::transition_from_stall(std::shared_ptr<Node> node){
 
 void Ast::prepare_node(std::shared_ptr<Node> node){
 
+	#if 0
+    std::cout << *node << std::endl;
+    getchar(); 
+    #endif
+
 	U64 hash = (Common::Rule_hash)node->get_hash(); 
 
 	if(node->build_state() == NB_INIT){
@@ -98,7 +103,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 						store current state to restore later
 					*/
 					node_deps = main_circ_deps.value_or(node_deps).get_subset(Common::qreg_defs);
-					constraints.add_rules_constraint(Common::statements, Constraints::NUM_RULES_EQUALS, random_int(WILDCARD_MAX, 1));
+					constraints.add_rules_constraint(Common::statements, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 1), Common::statement);
 					node->set_circuit_name("sub"+std::to_string(current_subroutine++));
 
 				} else {
@@ -301,12 +306,6 @@ void Ast::write_branch(std::shared_ptr<Node> node){
         ERROR("Unknown build state!");
     }
     
-
-    #if 0
-	std::cout << constraints << std::endl;
-    std::cout << *node << std::endl;
-    getchar(); 
-    #endif
 
     if((new_build_state != NB_READY) && (new_build_state == old_build_state)){
         return;
