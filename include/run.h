@@ -52,7 +52,6 @@ class Run{
         void tokenise(const std::string& command);
 
         void loop();
-        void generate_circs(int num_circuits, const std::string& language);
 
     private:
         fs::path grammars_dir;
