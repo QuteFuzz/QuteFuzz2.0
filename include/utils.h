@@ -272,6 +272,7 @@ namespace Common {
         phase_gate_application = 10453516286525280623ULL,
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
+        compiler_pass = 3974794937176199188ULL,
     };
 }
 

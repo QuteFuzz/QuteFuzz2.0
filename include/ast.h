@@ -122,6 +122,8 @@ class Ast{
                 return res;
         
             } else {
+                builds += 1;
+
                 root_ptr = std::make_shared<Node>(entry, 0);
 
                 write_branch(root_ptr);
@@ -182,6 +184,7 @@ class Ast{
         }
 
         int recursions = 5;
+        int builds = 0;
         std::shared_ptr<Rule> entry = nullptr;
 
         std::shared_ptr<Node> root_ptr = nullptr;
