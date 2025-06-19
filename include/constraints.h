@@ -230,7 +230,8 @@ namespace Constraints {
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, std::vector<U64>({Common::qubit_list})),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
-                Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
+                // Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
+                Constraint(Common::gate_name, BRANCH_IN, {Common::cx, Common::cz, Common::cnot}, true),
                 Constraint(Common::gate_application, BRANCH_EQUALS, {Common::circuit_name, Common::gate_name, Common::gate_application_kind}, true),
             };
 
