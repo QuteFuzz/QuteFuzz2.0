@@ -8,7 +8,6 @@ enum Node_build_state {
     NB_INIT,
     NB_READY,
     NB_DONE,
-    NB_STALL,
 };
 
 /// @brief A node is a term with pointers to other nodes
@@ -70,14 +69,6 @@ class Node : public std::enable_shared_from_this<Node> {
             return term;
         }
 
-        void set_circuit_name(std::string name){
-            circuit_name = name;
-        }
-
-        std::string get_circuit_name(){
-            return circuit_name;
-        }
-
         std::string get_string() const {
             return term.get_string();
         }
@@ -93,11 +84,8 @@ class Node : public std::enable_shared_from_this<Node> {
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
             stream << "[" << n.term << "]" << " children: " << n.get_num_children()
                 << " state: ";
-
-            if(n.nb == NB_STALL){
-                stream << "STALL";
-
-            } else if (n.nb == NB_DONE){
+            
+            if (n.nb == NB_DONE){
                 stream << "DONE";
 
             } else if (n.nb == NB_READY){
@@ -238,7 +226,6 @@ class Node : public std::enable_shared_from_this<Node> {
         Node_build_state nb = NB_INIT;
         Branch chosen_branch;
         bool chosen_branch_flag = false;
-        std::string circuit_name;
 
 };
 

@@ -54,7 +54,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 					currently building subroutine, track qreg defs dependency for each circuit
 					store current state to restore later
 				*/
-				constraints.add_rules_constraint(Common::statements, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 1), Common::statement);
+				constraints.add_rules_constraint(Common::statements, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 5), Common::statement);
 				current_circuit_name = "sub"+std::to_string(current_subroutine++);
 
 			} else {
@@ -130,10 +130,10 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::qreg_defs: {
 			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
 
-			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, current_defs->setup_qregs((in_subroutine() ? 2 : get_max_defined_qubits())), Common::qreg_def);
+			int min_qubits = (in_subroutine() ? 2 : get_max_defined_qubits());
+			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, current_defs->setup_qregs(min_qubits), Common::qreg_def);
 
 			qig = Graph(current_defs->num_qubits());
-
 			break;
 		}
 
@@ -254,6 +254,14 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     }
         
     write_branch(node);
+
+	// for(const auto& p : all_qreg_defs){
+	// 	std::cout << *p.second << std::endl;
+	// }
+
+	// std::cout << "======================" << std::endl;
+
+	// std::cout << *node << std::endl;
 }
 
 void Ast::ast_to_program(fs::path& path) {
@@ -271,6 +279,12 @@ void Ast::ast_to_program(fs::path& path) {
         stream << "\"\"\" " << std::endl;
 
         std::cout << "Written to " << path.string() << std::endl;
+
+		fs::path dot_path = path.replace_extension(fs::path(".dot"));
+		
+		qig.write_dot_file(dot_path.string());
+
+		std::cout << "QIG in DOT form written to " << dot_path.string() << std::endl;
 
     } else {
         ERROR(maybe_ast_root.get_error()); 

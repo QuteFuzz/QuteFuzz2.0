@@ -18,7 +18,7 @@ struct Qubit{
         inline std::string get_index_as_string(){return index;}
 
         friend std::ostream& operator<<(std::ostream& stream, Qubit qb){
-            stream << qb.qubit_name << "[" << qb.index << "]";
+            stream << qb.qubit_name << "[" << qb.index << "] used: " << qb.used;
             return stream;
         }
 
@@ -132,7 +132,6 @@ struct Qreg_definitions {
                     Qubit* qubit = &qubits[index];
                     
                     while(qubit->is_used()){
-                        std::cout << "fr" << std::endl;
                         index = random_int(qubits.size() - 1);
                         qubit = &qubits[index];
                     }

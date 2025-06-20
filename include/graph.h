@@ -2,6 +2,7 @@
 #define GRAPH_H
 
 #include "utils.h"
+#include <fstream>
 
 class Graph {
 

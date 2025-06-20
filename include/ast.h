@@ -38,8 +38,8 @@ class Ast{
             std::shared_ptr<Qreg_definitions> current_qreg_defs = all_qreg_defs[current_circuit_name];
             
             for(const auto& pair : all_qreg_defs){
-                if((pair.first != Common::TOP_LEVEL_CIRCUIT_NAME) && (pair.first != current_circuit_name)){
-                    return current_qreg_defs->num_qubits() >= pair.second->num_qubits();
+                if((pair.first != Common::TOP_LEVEL_CIRCUIT_NAME) && (pair.first != current_circuit_name) && (current_qreg_defs->num_qubits() >= pair.second->num_qubits())){
+                    return true;
                 }
             }
 
@@ -47,14 +47,15 @@ class Ast{
         }
 
 
-        /// @brief This will only be called when it is known that at least one subroutine was generated. can safely loop until a subrountine is found
-        /// that isn't the current subroutine
+        /// @brief This will only be called when it is known that at least one subroutine was generated which uses less qubits than those defined in 
+        /// the circuit currently being generated
+        /// can safely loop until a subrountine is found
         std::shared_ptr<Qreg_definitions> get_random_subroutine(){            
             std::unordered_map<std::string, std::shared_ptr<Qreg_definitions>>::iterator it = all_qreg_defs.begin();
             std::advance(it, random_int(all_qreg_defs.size() - 1));
             std::shared_ptr<Qreg_definitions> ret = it->second;
 
-            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(current_circuit_name)){                
+            while(ret->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || ret->owned_by(current_circuit_name) || (ret->num_qubits() > get_current_qreg_defs()->num_qubits())){                
                 it = all_qreg_defs.begin();
                 std::advance(it, random_int(all_qreg_defs.size() - 1));
                 ret = it->second;
@@ -92,14 +93,14 @@ class Ast{
 
         Result<Node, std::string> build(){
             Result<Node, std::string> res;
-
-            all_qreg_defs.clear();
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
                 return res;
         
             } else {
+                all_qreg_defs.clear();
+
                 root_ptr = std::make_shared<Node>(entry, 0);
 
                 write_branch(root_ptr);
