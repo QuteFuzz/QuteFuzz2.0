@@ -9,31 +9,6 @@ void Ast::transition_from_ready(std::shared_ptr<Node> node){
 	node->set_build_state(NB_DONE);
 }
 
-void Ast::set_best_qubit_pair(){
-	std::vector<std::pair<int, int>> pairs = N_QUBIT_TO_PAIRINGS_MAP[get_current_qreg_defs()->num_qubits()];
-	int score = -1000000;
-
-	for(const auto& pair : pairs){
-		// add entanglement to qig
-		qig.add_edge(pair.first, pair.second);
-
-		int curr_score = qig.score();
-
-		if(curr_score > score){
-			score = curr_score;
-			best_qubit_pair = std::make_optional<std::pair<int, int>>(pair);
-		}
-
-		// make best pair if score is better than current best
-		qig.remove_edge(pair.first, pair.second);
-	}
-
-	if(best_qubit_pair.has_value()){
-		// commit best pair to qig
-		qig.add_edge(best_qubit_pair.value().first, best_qubit_pair.value().second);
-	}
-}
-
 void Ast::prepare_node(std::shared_ptr<Node> node){
 
 	U64 hash = (Common::Rule_hash)node->get_hash(); 
@@ -69,9 +44,11 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 		}
 
-		case Common::statements:
+		case Common::statements: {
 			constraints.allow_subroutines(can_apply_subroutines());
+			qig = Graph(get_current_qreg_defs()->num_qubits());
 			break;
+		}
 			
 		case Common::subroutines:
 			subs_node = node;
@@ -88,10 +65,10 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			int num_sub_qubits = sub->num_qubits();
 
 			if(num_sub_qubits == 2) {
-				set_best_qubit_pair();
+				best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
 			}
 
-			constraints.add_n_qubit_constraint(sub->num_qubits());
+			constraints.add_n_qubit_constraint(num_sub_qubits);
 			node->add_child(std::make_shared<Node>(sub->owner()));
 			break;
 		}
@@ -132,8 +109,6 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 
 			int min_qubits = (in_subroutine() ? 2 : get_max_defined_qubits());
 			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, current_defs->setup_qregs(min_qubits), Common::qreg_def);
-
-			qig = Graph(current_defs->num_qubits());
 			break;
 		}
 
@@ -157,7 +132,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::cx: case Common::cz: case Common::cnot:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
-			set_best_qubit_pair();
+			best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
 			break;
 
 		case Common::ccx: case Common::cswap:
@@ -254,14 +229,6 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     }
         
     write_branch(node);
-
-	// for(const auto& p : all_qreg_defs){
-	// 	std::cout << *p.second << std::endl;
-	// }
-
-	// std::cout << "======================" << std::endl;
-
-	// std::cout << *node << std::endl;
 }
 
 void Ast::ast_to_program(fs::path& path) {
@@ -278,12 +245,10 @@ void Ast::ast_to_program(fs::path& path) {
         stream << ast_root << std::endl;
         stream << "\"\"\" " << std::endl;
 
-        std::cout << "Written to " << path.string() << std::endl;
-
-		fs::path dot_path = path.replace_extension(fs::path(".dot"));
-		
+		fs::path dot_path = path.replace_extension(fs::path(".dot"));		
 		qig.write_dot_file(dot_path.string());
 
+        std::cout << "Program written to " << path.string() << std::endl;
 		std::cout << "QIG in DOT form written to " << dot_path.string() << std::endl;
 
     } else {

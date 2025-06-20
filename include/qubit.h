@@ -3,10 +3,6 @@
 
 #include "utils.h"
 
-extern std::unordered_map<int, std::vector<std::pair<int, int>>> N_QUBIT_TO_PAIRINGS_MAP;
-
-void set_n_qubit_to_pairings_map();
-
 struct Qubit{
     public:
         Qubit(){}
@@ -112,39 +108,7 @@ struct Qreg_definitions {
             }
         }
 
-        inline std::shared_ptr<Qubit> get_random_qubit(std::optional<std::pair<int, int>> pair){
-
-            if(pair.has_value()){
-                std::pair<int, int> p = pair.value();
-                Qubit* qubit = &qubits[p.first];
-
-                if(qubit->is_used()){
-                    qubit = &qubits[p.second];
-                }
-
-                qubit->set_used();
-                return std::make_shared<Qubit>(*qubit);
-
-            } else {
-
-                if(qubits.size()){
-                    int index = random_int(qubits.size() - 1);
-                    Qubit* qubit = &qubits[index];
-                    
-                    while(qubit->is_used()){
-                        index = random_int(qubits.size() - 1);
-                        qubit = &qubits[index];
-                    }
-
-                    qubit->set_used();
-                
-                    return std::make_shared<Qubit>(qubits[index]);
-                
-                } else {
-                    return DEFAULT_QUBIT;
-                }
-            }
-        }
+        std::shared_ptr<Qubit> get_random_qubit(std::optional<std::pair<int, int>> pair);
 
         friend std::ostream& operator<<(std::ostream& stream, Qreg_definitions defs){
             stream << "Owner " << defs.circuit << std::endl; 

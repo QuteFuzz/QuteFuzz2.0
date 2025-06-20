@@ -30,8 +30,6 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> node);
 
-        std::optional<std::pair<int, U64>> initiator_amount(U64 hash, int num_completer = WILDCARD_MAX);
-
         /// @brief Check whether current circuit can supply qubits to at least one of the defined subroutines that aren't itself
         /// @return 
         bool can_apply_subroutines(){
@@ -84,8 +82,6 @@ class Ast{
 
             return res;
         }
-
-        void set_best_qubit_pair();
 
         bool in_subroutine(){
             return (subs_node != nullptr) && (subs_node->build_state() == NB_READY);

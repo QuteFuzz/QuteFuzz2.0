@@ -3,18 +3,20 @@
 
 #include "utils.h"
 #include <fstream>
+#include "assert.h"
+#include <limits>
 
 class Graph {
 
     public:
         Graph(){}
 
-        Graph(int _vertices) : vertices(_vertices), graph(vertices, std::vector<int>(vertices, 0)), shortest_distances(vertices, std::vector<int>(vertices, 0)){
-            for(int i = 0; i < vertices; i++){
-                for(int j = i+1; j < vertices; j++){
-                    num_pairs += 1;
-                }
-            }
+        Graph(int _vertices) :
+        vertices(_vertices), 
+        possible_pairs(n_choose_2(vertices)), 
+        graph(vertices, std::vector<int>(vertices, 0)), 
+        shortest_distances(vertices, std::vector<int>(vertices, 0)){
+            assert(vertices >= 2);
         }
 
         std::vector<int> djikstras(int source_node);
@@ -45,6 +47,8 @@ class Graph {
 
         int score();
 
+        std::pair<int, int> get_best_edge();
+
         void reset(){
             for(int i = 0; i < vertices; i++){
                 for(int j = 0; j < vertices; j++){
@@ -54,11 +58,22 @@ class Graph {
             }
         }
 
+        friend std::ostream& operator<<(std::ostream& stream, Graph g){
+            for(int i = 0; i < g.vertices; i++){
+                for(int j = 0; j < g.vertices; j++){
+                    std::cout << g.graph[i][j] << " ";
+                }
+                std::cout << "\n";
+            }
+
+            return stream;
+        }
+
         void write_dot_file(const std::string& filename);
 
     private:
         int vertices = 0;
-        int num_pairs = 0;
+        std::vector<std::pair<int, int>> possible_pairs;
         std::vector<std::vector<int>> graph;
         std::vector<std::vector<int>> shortest_distances;
 };

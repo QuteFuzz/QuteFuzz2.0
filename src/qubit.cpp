@@ -2,14 +2,6 @@
 
 int Qreg::count = 0;
 
-std::unordered_map<int, std::vector<std::pair<int, int>>> N_QUBIT_TO_PAIRINGS_MAP;
-
-void set_n_qubit_to_pairings_map(){
-    for(int i = 2; i < Common::MAX_QUBITS; i++){
-        N_QUBIT_TO_PAIRINGS_MAP[i] = n_choose_2(i);
-    }
-}
-
 /// @brief Create qregs and qubit definitions
 /// @param qreg_defs 
 size_t Qreg_definitions::setup_qregs(int minimum_num_qubits){
@@ -31,4 +23,38 @@ size_t Qreg_definitions::setup_qregs(int minimum_num_qubits){
     // std::cout << qreg_defs << std::endl;
 
     return num_qregs();
+}
+
+std::shared_ptr<Qubit> Qreg_definitions::get_random_qubit(std::optional<std::pair<int, int>> pair){
+
+    if(pair.has_value()){
+        std::pair<int, int> p = pair.value();
+        Qubit* qubit = &qubits[p.first];
+
+        if(qubit->is_used()){
+            qubit = &qubits[p.second];
+        }
+
+        qubit->set_used();
+        return std::make_shared<Qubit>(*qubit);
+
+    } else {
+
+        if(qubits.size()){
+            int index = random_int(qubits.size() - 1);
+            Qubit* qubit = &qubits[index];
+            
+            while(qubit->is_used()){
+                index = random_int(qubits.size() - 1);
+                qubit = &qubits[index];
+            }
+
+            qubit->set_used();
+        
+            return std::make_shared<Qubit>(qubits[index]);
+        
+        } else {
+            return DEFAULT_QUBIT;
+        }
+    }
 }

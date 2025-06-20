@@ -57,7 +57,7 @@ int Graph::ASP(){
         sum += vector_sum(shortest_distances[i]);
     }
 
-    return sum / num_pairs;
+    return sum / possible_pairs.size();
 }
 
 /// @brief Longest shortest path in the graph
@@ -77,7 +77,31 @@ int Graph::diameter(){
 int Graph::score(){
     shortest_distance_between_all_pairs();
 
-    return -ASP() + diameter();
+    // return diameter() - ASP();
+
+    return 0;
+}
+
+std::pair<int, int> Graph::get_best_edge(){
+    int best_score = -INT32_MAX;
+    std::pair<int, int> res;
+
+	for(const auto& pair : possible_pairs){
+		add_edge(pair.first, pair.second);
+
+		int curr_score = score();
+
+		if(curr_score > best_score){
+			best_score = curr_score;
+			res = pair;
+		}
+
+		remove_edge(pair.first, pair.second);
+	}
+
+    add_edge(res.first, res.second);
+
+    return res;
 }
 
 
@@ -89,6 +113,6 @@ void Graph::write_dot_file(const std::string& filename) {
     for (int i = 0; i < n; ++i)
         for (int j = i+1; j < n; ++j)
             if (graph[i][j])
-                fout << "  " << i << " -- " << j << " [label=" << graph[i][j] << "];\n";
+                fout << "  " << i << " -- " << j << " [label=" << graph[i][j] << ", color=\"blue\", penwidth=2];\n";
     fout << "}\n";
 }

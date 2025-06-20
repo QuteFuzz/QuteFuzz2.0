@@ -74,9 +74,6 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
         std::cout << grammars_dir.parent_path() / "outputs" << std::endl;
 
-        // setup
-        set_n_qubit_to_pairings_map();
-
     } catch (const fs::filesystem_error& error) {
         std::cout << error.what() << std::endl;
     }
