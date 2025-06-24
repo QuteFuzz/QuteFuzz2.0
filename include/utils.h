@@ -53,10 +53,10 @@ int vector_sum(std::vector<int> in);
 int vector_max(std::vector<int> in);
 
 namespace Common {
-    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ"; 
+    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ";
+    constexpr int MIN_QUBITS = 3; 
     constexpr int MAX_QUBITS = (0.4 * WILDCARD_MAX);
     constexpr int MAX_SUBROUTINES = (0.2 * WILDCARD_MAX);
-
 
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
@@ -94,6 +94,7 @@ namespace Common {
         circuit_name = 5389401364268778602ULL,
         circuit_def = 17654104105659481736ULL,
         float_literal = 6014115549703600901ULL,
+        float_literals = 1060812461093276034ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
         parameter_list = 10044088521670889753ULL,

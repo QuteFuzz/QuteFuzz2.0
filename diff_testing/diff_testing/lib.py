@@ -19,10 +19,15 @@ from collections import Counter
 from itertools import zip_longest
 from scipy.stats import ks_2samp
 from numpy.typing import NDArray
-from pytket.circuit import Circuit
 import numpy as np
 import sys
 import argparse
+import matplotlib.pyplot as plt
+
+from pytket.circuit import Circuit
+from pytket.extensions.qiskit import AerBackend
+from pytket.extensions.qiskit import AerStateBackend
+from pytket.extensions.quantinuum import QuantinuumBackend
 
 class Base():
 
@@ -65,10 +70,20 @@ class Base():
         return p_value
     
     def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128]):
-        pass
+        return np.dot(sv1, sv2)
 
-    def plot_histogram(res : Counter[int, int]):
-        pass
+    def plot_histogram(self, res : Counter[int, int]):
+        values = list(res.keys())
+        freqs = list(res.values())
+
+        bar_width = 0.5
+        plt.bar(values, freqs, width=bar_width, edgecolor='black')
+        
+        plt.xticks(values)
+        plt.xlabel("Possible results")
+        plt.ylabel("Number of occurances")
+        plt.title("Results")
+        plt.show()
 
 class pytketTesting(Base):
     def __init__(self):
@@ -77,4 +92,9 @@ class pytketTesting(Base):
     def run_circ(circuit : Circuit):
         pass
 
+
+
+if __name__ == "__main__":
+    b = Base()
+    b.plot_histogram({1 : 10, 2 : 20})
 

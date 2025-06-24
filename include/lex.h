@@ -90,7 +90,7 @@ namespace Lexer {
     const std::string CHAR = R"([a-zA-Z_])";
     const std::string RULE = R"([a-zA-Z_1-9]+)";
     const std::string DIGIT = R"([0-9])";
-    const std::string SYNTAX = R"(["'].*?["'])";
+    const std::string SYNTAX = R"(\".*?\"|\'.*?\')";
     const std::string ANGLE_RULE = R"([\<].*?[\>])";
     const std::string RULE_ENTRY_1 = R"(=)";
     const std::string RULE_ENTRY_2 = R"(:)";
