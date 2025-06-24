@@ -70,4 +70,4 @@ dot -Tpng ../outputs/output1.dot -o ../outputs/output1.png
 - How to generate loops that terminate?
 
 ## Known bugs
-- [ ] Edge case can cause infinite loop in generator
+- ~~Edge case can cause infinite loop in generator~~
