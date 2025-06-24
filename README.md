@@ -29,7 +29,13 @@ When adding any 2 qubit gate, QuteFuzz will try all possible pairs of qubits it 
 
 ## Running
 
-### Build with:
+1. Run this script to setup differential testing library and install required dependencies.
+
+```sh
+pip install -r requirements.txt
+```
+
+2. Build with
 
 ```sh
 mkdir build
@@ -39,6 +45,8 @@ make
 ```
 
 Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info, run with `./fuzzer`.
+
+3. `./fuzzer` to run the program generator.
 
 ### Commands:
 - `h` : help
@@ -60,3 +68,6 @@ dot -Tpng ../outputs/output1.dot -o ../outputs/output1.png
 - [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
 - Automatic test reduction
 - How to generate loops that terminate?
+
+## Known bugs
+- [ ] Edge case can cause infinite loop in generator

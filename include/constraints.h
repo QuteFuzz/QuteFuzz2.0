@@ -190,8 +190,10 @@ namespace Constraints {
 
                 if(is_rotation){
                     constraints[3].must_satisfy = true;
+                    constraints[4].must_satisfy = false;
                 } else {
                     constraints[4].must_satisfy = true;
+                    constraints[3].must_satisfy = false;
                 }
 
                 for(Constraint& constraint : constraints){
@@ -212,12 +214,16 @@ namespace Constraints {
             void allow_subroutines(bool flag){
                 constraints[7].set_global(!flag);
             }
-
+            
+            /// @brief Prints just the default constraints
+            /// @param stream 
+            /// @param constraints 
+            /// @return 
             friend std::ostream& operator<<(std::ostream& stream, Constraints constraints){
-                for(auto& c : constraints.constraints){
-                    stream << c << std::endl;
-                }
+                for(int i = 0; i < 8; i++){
+                    stream << constraints.constraints[i] << std::endl;
 
+                }
                 return stream;
             }
     
@@ -227,11 +233,10 @@ namespace Constraints {
                 N_QUBIT_CONSTRAINT(1, false),
                 N_QUBIT_CONSTRAINT(2, false),
                 N_QUBIT_CONSTRAINT(3, false),
-                Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literal, Common::qubit_list}),
+                Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literals, Common::qubit_list}),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, std::vector<U64>({Common::qubit_list})),
                 Constraint(BRANCH_IS_NON_RECURSIVE),
-                // Constraint(Common::gate_name, BRANCH_IN, {Common::h, Common::x}, true),
-                Constraint(Common::gate_name, BRANCH_IN, {Common::cx, Common::cz, Common::cnot}, true),
+                Constraint(Common::gate_name, BRANCH_IN, std::vector<U64>({Common::ry}), false),
                 Constraint(Common::gate_application, BRANCH_EQUALS, {Common::circuit_name, Common::gate_name, Common::gate_application_kind}, true),
             };
 

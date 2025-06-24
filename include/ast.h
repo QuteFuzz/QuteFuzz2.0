@@ -5,8 +5,8 @@
 #include <algorithm>
 #include "term.h"
 #include "grammar.h"
-#include "constraints.h"
 #include "node.h"
+#include "constraints.h"
 #include "graph.h"
 #include "qubit.h"
 
@@ -74,7 +74,7 @@ class Ast{
         }
 
         int get_max_defined_qubits(){
-            int res = 2;
+            int res = Common::MIN_QUBITS;
 
             for(const auto& pair : all_qreg_defs){
                 res = std::max(res, (int)pair.second->num_qubits());

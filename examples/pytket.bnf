@@ -16,7 +16,7 @@ statements = (statement NEWLINE)+;
 
 circuit_def = circuit_name " = Circuit()";
 
-qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN qreg_size RPAREN;
+qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
 statement   = gate_application;
 
@@ -27,8 +27,10 @@ gate_application =
 
 gate_application_kind = 
     LPAREN qubit_list RPAREN 
-    | LPAREN float_literal COMMA qubit_list RPAREN
+    | LPAREN float_literals COMMA qubit_list RPAREN
     ;
+
+float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
 
 gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
 qubit_list  = qubit (COMMA SPACE qubit)*;

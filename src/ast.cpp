@@ -65,7 +65,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			int num_sub_qubits = sub->num_qubits();
 
 			if(num_sub_qubits == 2) {
-				best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
+				// best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
 			}
 
 			constraints.add_n_qubit_constraint(num_sub_qubits);
@@ -88,7 +88,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::qreg_size:
 			node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
 			break;   
-
+  
 		case Common::qubit_name: 
 			node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
 			break;
@@ -107,7 +107,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::qreg_defs: {
 			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
 
-			int min_qubits = (in_subroutine() ? 2 : get_max_defined_qubits());
+			int min_qubits = (in_subroutine() ? Common::MIN_QUBITS : get_max_defined_qubits());
 			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, current_defs->setup_qregs(min_qubits), Common::qreg_def);
 			break;
 		}
@@ -132,7 +132,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::cx: case Common::cz: case Common::cnot:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
-			best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
+			// best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
 			break;
 
 		case Common::ccx: case Common::cswap:
@@ -140,19 +140,27 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			constraints.add_n_qubit_constraint(3);
 			break;
 
-		case Common::u1: case Common::rx: case Common::ry: case Common::rz: case Common::phasedxpowgate:
+		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
+			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
 			break;
 
 		case Common::u2:
 			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(2, true);            
+			constraints.add_n_qubit_constraint(1, true);
+			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
 			break;
 
 		case Common::u3: case Common::u:
+			node->add_child(std::make_shared<Node>(str));	
+			constraints.add_n_qubit_constraint(1, true);
+			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
+			break;
+
+		 case Common::phasedxpowgate:
 			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(3, true);            
+			constraints.add_n_qubit_constraint(1, true);
 			break;
 
 		default:
@@ -236,19 +244,23 @@ void Ast::ast_to_program(fs::path& path) {
     Result<Node, std::string> maybe_ast_root = build();
 
     if(maybe_ast_root.is_ok()){
+		
+		// write program
         Node ast_root = maybe_ast_root.get_ok();
         std::ofstream stream(path.string());
-
         write(stream, ast_root);
+		
+		// write ast
+		fs::path ast_path = path.replace_extension(fs::path(".ast"));
+		std::ofstream ast_stream(ast_path.string());
+        ast_stream << ast_root << std::endl;
 
-        stream << "\"\"\" \n AST:\n" << std::endl;
-        stream << ast_root << std::endl;
-        stream << "\"\"\" " << std::endl;
-
+		// write dot file for QIG
 		fs::path dot_path = path.replace_extension(fs::path(".dot"));		
 		qig.write_dot_file(dot_path.string());
 
         std::cout << "Program written to " << path.string() << std::endl;
+		std::cout << "AST written to " << ast_path.string() << std::endl;
 		std::cout << "QIG in DOT form written to " << dot_path.string() << std::endl;
 
     } else {
