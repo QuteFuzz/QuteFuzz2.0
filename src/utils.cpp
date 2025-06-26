@@ -1,5 +1,7 @@
 #include "../include/utils.h"
 
+std::vector<std::vector<int>> Common::QUBIT_COMBINATIONS[MAX_QUBITS-MIN_QUBITS][MAX_QUBITS-MIN_N_QUBITS_IN_ENTANGLEMENT];
+
 void lower(std::string& str){
     std::transform(str.begin(), str.end(), str.begin(),
         [](char c){return std::tolower(c);}
@@ -73,20 +75,34 @@ std::optional<int> safe_stoi(const std::string& str) {
     }
 }
 
-/// @brief Return all possible pairs that can be chosen from numbers in range [0,n-1]
+/// @brief Find all possible combinations that can be chosen from numbers in [0, n-1]
+/// Knew the solution had something to do with counting in binary, but I didn't come up with this algorithm myself
+/// https://stackoverflow.com/questions/12991758/creating-all-possible-k-combinations-of-n-items-in-c
 /// @param n 
+/// @param r 
 /// @return 
-std::vector<std::pair<int, int>> n_choose_2(int n){
-    std::vector<std::pair<int, int>> res;
+std::vector<std::vector<int>> n_choose_r(const int n, const int r){
+    assert((n >= r) && (r >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT));
 
-    for(int i = 0; i < n; i++){
-        for(int j = i+1; j < n; j++){
-            res.push_back(std::make_pair(i, j));
+    std::vector<std::vector<int>> res;
+
+    std::string bitmask(r, 1);
+    bitmask.resize(n, 0);
+
+    do{
+        std::vector<int> comb;
+
+        for(int i = 0; i < n; i++){
+            if (bitmask[i]) comb.push_back(i);
         }
-    }
+
+        res.push_back(comb);
+
+    } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
 
     return res;
 }
+
 
 int vector_sum(std::vector<int> in){
     int res = 0;
@@ -106,4 +122,33 @@ int vector_max(std::vector<int> in){
     }
 
     return max;
+}
+
+void set_possible_qubit_combinations(){
+
+    for(int n_qubits = Common::MIN_QUBITS; n_qubits <= Common::MAX_QUBITS; n_qubits++){
+
+        #if 0
+        std::cout << "N qubits: " << n_qubits << std::endl;
+        std::cout << "==================================" << std::endl;
+        #endif
+
+        for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
+            
+            #if 0
+            std::cout << "n_qubits_in_entanglement: " << n_qubits_in_entanglement << std::endl;
+            #endif
+
+            Common::QUBIT_COMBINATIONS[n_qubits][n_qubits_in_entanglement] = std::move(n_choose_r(n_qubits, n_qubits_in_entanglement));
+
+            #if 0
+
+            for(const std::vector<int>& entanglement : Common::QUBIT_COMBINATIONS[n_qubits][n_qubits_in_entanglement]){
+                for(const int& i : entanglement) std::cout << i << " ";
+                std::cout << " ";
+            }
+            std::cout << std::endl;
+            #endif
+        }
+    }
 }

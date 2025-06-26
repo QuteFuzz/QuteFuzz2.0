@@ -57,7 +57,7 @@ int Graph::ASP(){
         sum += vector_sum(shortest_distances[i]);
     }
 
-    return sum / possible_pairs.size();
+    return sum / num_pairs;
 }
 
 /// @brief Longest shortest path in the graph
@@ -82,24 +82,32 @@ int Graph::score(){
     return 0;
 }
 
-std::pair<int, int> Graph::get_best_edge(){
+
+std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     int best_score = -INT32_MAX;
-    std::pair<int, int> res;
+    std::vector<int> res;
 
-	for(const auto& pair : possible_pairs){
-		add_edge(pair.first, pair.second);
-
+	for(const std::vector<int>& entanglement : Common::QUBIT_COMBINATIONS[vertices][n_qubits_in_entanglement]){
+		
+        for(size_t i = 0; i < entanglement.size()-1; i++){
+            add_edge(entanglement[i], entanglement[i+1]);
+        }        
+        
 		int curr_score = score();
 
 		if(curr_score > best_score){
 			best_score = curr_score;
-			res = pair;
+			res = entanglement;
 		}
 
-		remove_edge(pair.first, pair.second);
+        for(size_t i = 0; i < entanglement.size()-1; i++){
+            remove_edge(entanglement[i], entanglement[i+1]);
+        }  
 	}
 
-    add_edge(res.first, res.second);
+    for(size_t i = 0; i < res.size()-1; i++){
+        add_edge(res[i], res[i+1]);
+    }        
 
     return res;
 }

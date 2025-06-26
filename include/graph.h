@@ -3,7 +3,6 @@
 
 #include "utils.h"
 #include <fstream>
-#include "assert.h"
 #include <limits>
 
 class Graph {
@@ -13,10 +12,10 @@ class Graph {
 
         Graph(int _vertices) :
         vertices(_vertices), 
-        possible_pairs(n_choose_2(vertices)), 
+        num_pairs((vertices * (vertices - 1)) / 2),
         graph(vertices, std::vector<int>(vertices, 0)), 
         shortest_distances(vertices, std::vector<int>(vertices, 0)){
-            assert(vertices >= 2);
+            assert(vertices >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT);
         }
 
         std::vector<int> djikstras(int source_node);
@@ -47,7 +46,7 @@ class Graph {
 
         int score();
 
-        std::pair<int, int> get_best_edge();
+        std::vector<int> get_best_entanglement(int n_qubits_in_entanglement);
 
         void reset(){
             for(int i = 0; i < vertices; i++){
@@ -73,7 +72,7 @@ class Graph {
 
     private:
         int vertices = 0;
-        std::vector<std::pair<int, int>> possible_pairs;
+        int num_pairs = 0;
         std::vector<std::vector<int>> graph;
         std::vector<std::vector<int>> shortest_distances;
 };

@@ -16,6 +16,7 @@
 #include <cctype>
 #include <cstdint>
 #include <optional>
+#include "assert.h"
 
 #ifdef DEBUG 
     #define WILDCARD_MAX 20
@@ -46,7 +47,9 @@ int get_amount(int from, int resmin, int resmax);
 
 std::optional<int> safe_stoi(const std::string& str);
 
-std::vector<std::pair<int, int>> n_choose_2(int n);
+std::vector<std::vector<int>> n_choose_r(const int n, const int r);
+
+void set_possible_qubit_combinations();
 
 int vector_sum(std::vector<int> in);
 
@@ -54,9 +57,12 @@ int vector_max(std::vector<int> in);
 
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ";
+    constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3; 
-    constexpr int MAX_QUBITS = (0.4 * WILDCARD_MAX);
+    constexpr int MAX_QUBITS = std::max(MIN_QUBITS, (int)(0.4 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (0.2 * WILDCARD_MAX);
+
+    extern std::vector<std::vector<int>> QUBIT_COMBINATIONS[MAX_QUBITS-MIN_QUBITS][MAX_QUBITS-MIN_N_QUBITS_IN_ENTANGLEMENT];
 
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES

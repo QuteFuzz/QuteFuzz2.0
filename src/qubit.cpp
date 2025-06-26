@@ -25,14 +25,16 @@ size_t Qreg_definitions::setup_qregs(int minimum_num_qubits){
     return num_qregs();
 }
 
-std::shared_ptr<Qubit> Qreg_definitions::get_random_qubit(std::optional<std::pair<int, int>> pair){
+std::shared_ptr<Qubit> Qreg_definitions::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
 
-    if(pair.has_value()){
-        std::pair<int, int> p = pair.value();
-        Qubit* qubit = &qubits[p.first];
+    if(best_entanglement.has_value()){
+        std::vector<int> e = best_entanglement.value();
 
-        if(qubit->is_used()){
-            qubit = &qubits[p.second];
+        Qubit* qubit = &qubits[e[0]];
+        int pointer = 0;
+
+        while(qubit->is_used()){
+            qubit = &qubits[e[++pointer]];
         }
 
         qubit->set_used();

@@ -177,7 +177,7 @@ class Ast{
         Constraints::Constraints constraints;
         
         Graph qig;
-        std::optional<std::pair<int, int>> best_qubit_pair = std::nullopt;
+        std::optional<std::vector<int>> best_entanglement = std::nullopt;
 };
 
 #endif

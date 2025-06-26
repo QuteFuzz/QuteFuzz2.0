@@ -71,3 +71,7 @@ dot -Tpng ../outputs/output1.dot -o ../outputs/output1.png
 
 ## Known bugs
 - ~~Edge case can cause infinite loop in generator~~
+
+## Todo
+- [x] Extend QIG to work for any number of qubits
+- [ ] Make the AST modifiable to allow polymorphic testing

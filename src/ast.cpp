@@ -56,7 +56,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 
 		case Common::gate_application:
-			best_qubit_pair = std::nullopt;
+			best_entanglement = std::nullopt;
 			get_current_qreg_defs()->reset_qubits();
 			break;
 
@@ -64,12 +64,9 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			std::shared_ptr<Qreg_definitions> sub = get_random_subroutine();
 			int num_sub_qubits = sub->num_qubits();
 
-			if(num_sub_qubits == 2) {
-				// best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
-			}
-
-			constraints.add_n_qubit_constraint(num_sub_qubits);
 			node->add_child(std::make_shared<Node>(sub->owner()));
+			constraints.add_n_qubit_constraint(num_sub_qubits);
+			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(num_sub_qubits));
 			break;
 		}
 
@@ -117,7 +114,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 
 		case Common::qubit:
-			qubit_to_write = get_current_qreg_defs()->get_random_qubit(best_qubit_pair);
+			qubit_to_write = get_current_qreg_defs()->get_random_qubit(best_entanglement);
 			break;
 
 		case Common::float_literal:
@@ -132,12 +129,13 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::cx: case Common::cz: case Common::cnot:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
-			// best_qubit_pair = std::make_optional<std::pair<int, int>>(qig.get_best_edge());
+			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(2));
 			break;
 
 		case Common::ccx: case Common::cswap:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(3);
+			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(3));
 			break;
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
