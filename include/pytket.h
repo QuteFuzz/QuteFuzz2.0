@@ -10,11 +10,11 @@ class Pytket : public Ast {
 
     private:
         std::string imports() override {
-            return "from sympy import Symbol \n" \
-                "from diff_testing.lib import pytketTesting \n" \
-                "from pathlib import Path \n" \
-                "from pytket import Circuit, Qubit, Bit \n" \
-                "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox \n";
+            return  "from sympy import Symbol \n" \
+                    "from diff_testing.lib import pytketTesting \n" \
+                    "from pathlib import Path \n" \
+                    "from pytket import Circuit, Qubit, Bit \n" \
+                    "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox \n";
         }
 
         std::string compiler_call() override {

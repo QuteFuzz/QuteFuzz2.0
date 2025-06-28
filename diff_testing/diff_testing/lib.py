@@ -28,11 +28,16 @@ import traceback
 import pathlib
 import shutil
 
+# Pytket imports
 from pytket.circuit import Circuit
 from pytket.passes import *
 from pytket.extensions.qiskit import AerBackend
 from pytket.extensions.qiskit import AerStateBackend
 from pytket.extensions.quantinuum import QuantinuumBackend
+
+# Qiskit imports
+from qiskit import QuantumCircuit, transpile
+
 
 class Base():
     # Define the plots directory as a class variable
@@ -169,10 +174,33 @@ class qiskitTesting(Base):
     def __init__(self):
         super().__init__()
     
-    def run_circ(self, circuit : Circuit) -> Counter[int, int]:
+    def run_circ(self, circuit : Circuit, circuit_number : int) -> Counter[int, int]:
         '''
         Runs circuit on qiskit simulator and returns counts
         '''
+
+        from qiskit_aer import AerSimulator
+        backend = AerSimulator()
+        
+        # Get original circuit shots
+        uncompiled_circ = transpile(circuit, backend, optimization_level=0)
+        counts1 = self.preprocess_counts(backend.run(uncompiled_circ, shots=1000).result().get_counts())
+
+        # Compile circuit at 3 different optimisation levels
+        for i in range(3):
+            compiled_circ = transpile(circuit, backend, optimization_level=i+1)
+            counts2 = self.preprocess_counts(backend.run(compiled_circ, shots=1000).result().get_counts())
+
+            # Run the kstest on the two results
+            ks_value = self.ks_test(counts1, counts2, 1000)
+            print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
+
+            # plot results
+            if self.plot:
+                self.plot_histogram(counts1, "Uncompiled Circuit Results", 0, circuit_number)
+                self.plot_histogram(counts2, "Compiled Circuit Results", i+1, circuit_number)
+
+        return ks_value
         
     
 class cirqTesting(Base):
