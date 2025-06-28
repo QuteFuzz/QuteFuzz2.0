@@ -7,6 +7,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
             Grammar commons_grammar;
 
+            /*
+                find tokens grammar and parse that first
+            */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
                 if(file.is_regular_file() && (file.path().stem() == TOKENS_GRAMMAR_NAME)){
@@ -20,6 +23,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 }
             }
 
+            /*
+                parse all other grammars, appending the tokens grammar to each one
+            */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
                 if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
