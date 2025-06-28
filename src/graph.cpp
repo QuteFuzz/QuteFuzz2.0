@@ -77,50 +77,72 @@ int Graph::diameter(){
 int Graph::score(){
     shortest_distance_between_all_pairs();
 
-    // return diameter() - ASP();
+    return ASP() / diameter();
 
-    return 0;
+    // return 0;
 }
-
 
 std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     int best_score = -INT32_MAX;
-    std::vector<int> res;
 
-	for(const std::vector<int>& entanglement : Common::QUBIT_COMBINATIONS[vertices][n_qubits_in_entanglement]){
-		
-        for(size_t i = 0; i < entanglement.size()-1; i++){
-            add_edge(entanglement[i], entanglement[i+1]);
-        }        
-        
+    std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
+    std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
+
+    std::vector<int> res = possible_entanglements[0];
+
+	for(const std::vector<int>& entanglement : possible_entanglements){
+        add_entanglement(entanglement, edges);
+
 		int curr_score = score();
+
+        // std::cout << best_score << " " << curr_score << std::endl;
 
 		if(curr_score > best_score){
 			best_score = curr_score;
 			res = entanglement;
 		}
 
-        for(size_t i = 0; i < entanglement.size()-1; i++){
-            remove_edge(entanglement[i], entanglement[i+1]);
-        }  
+        remove_entanglement(entanglement, edges);
 	}
 
-    for(size_t i = 0; i < res.size()-1; i++){
-        add_edge(res[i], res[i+1]);
-    }        
+    add_entanglement(res, edges);
 
     return res;
 }
 
 
-void Graph::write_dot_file(const std::string& filename) {
-    std::ofstream fout(filename);
-    
-    fout << "graph G {\n";
+int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Qreg_definitions> current_defs){    
+    std::string dot_string;
+
+    // create dot string    
+    dot_string += "graph G {\n";
     int n = graph.size();
-    for (int i = 0; i < n; ++i)
-        for (int j = i+1; j < n; ++j)
-            if (graph[i][j])
-                fout << "  " << i << " -- " << j << " [label=" << graph[i][j] << ", color=\"blue\", penwidth=2];\n";
-    fout << "}\n";
+    for (int i = 0; i < n; ++i){
+        for (int j = i+1; j < n; ++j){
+            if (graph[i][j]) {
+                std::string qubit_i = current_defs->get_qubit_at(i)->get_name(true);
+                std::string qubit_j = current_defs->get_qubit_at(j)->get_name(true);
+
+                dot_string += ("  " + qubit_i + " -- " + qubit_j + " [label=" + std::to_string(graph[i][j]) + ", color=\"blue\", penwidth=2];\n");
+            }
+        }
+    }
+    dot_string += "}\n";
+
+    // render graph
+    const std::string str = img_path.string();
+    std::string command = "dot -Tpng -o " + str;
+    FILE* pipe = popen(command.c_str(), "w");
+
+    if(!pipe){
+        std::cerr << "Failed to open pipe to dot!" << std::endl;
+        return -1;
+    }
+
+    fwrite(dot_string.c_str(), sizeof(char), dot_string.size(), pipe);
+    pclose(pipe);
+
+    std::cout << "QIG rendered to " << img_path.string() << std::endl;
+
+    return 0;
 }

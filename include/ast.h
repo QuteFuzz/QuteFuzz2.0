@@ -16,7 +16,7 @@ class Ast{
 
         ~Ast() = default;
 
-        int num_circuits = 0;
+        int build_counter = 0;
 
         void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
@@ -98,6 +98,7 @@ class Ast{
         
             } else {
                 all_qreg_defs.clear();
+                qig = nullptr;
 
                 root_ptr = std::make_shared<Node>(entry, 0);
 
@@ -115,7 +116,7 @@ class Ast{
             return root_ptr->find(hash);
         }
 
-        virtual void ast_to_program(fs::path& path);
+        virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 
     protected:
         virtual std::string imports(){
@@ -171,15 +172,16 @@ class Ast{
         std::shared_ptr<Qreg> qreg_to_write = DEFAULT_QREG;
         std::shared_ptr<Qubit> qubit_to_write = DEFAULT_QUBIT;
         
-        
         std::shared_ptr<Node> subs_node = nullptr;
         int current_subroutine = 0;
         std::string current_circuit_name;
 
         Constraints::Constraints constraints;
         
-        Graph qig;
+        std::unique_ptr<Graph> qig = nullptr;
         std::optional<std::vector<int>> best_entanglement = std::nullopt;
+
+        fs::path current_circuit_dir;
 };
 
 #endif

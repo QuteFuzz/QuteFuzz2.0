@@ -2,11 +2,11 @@
 
 program = imports NEWLINE subroutines NEWLINE circuit NEWLINE compiler_call;
 
-circuit     = qreg_defs NEWLINE circuit_def NEWLINE statements NEWLINE;
+circuit     = qreg_defs NEWLINE circuit_def NEWLINE body NEWLINE;
 
 qreg_defs = (qreg_def NEWLINE)+;
 
-statements = (statement NEWLINE)+;
+body = (statement NEWLINE)+;
 
 circuit_def = circuit_name " = Circuit()";
 

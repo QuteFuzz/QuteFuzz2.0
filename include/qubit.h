@@ -10,7 +10,7 @@ struct Qubit{
         void reset(){used = false;}
         void set_used(){used = true;}
         bool is_used(){return used;}
-        inline std::string get_name(){return qubit_name;}
+        inline std::string get_name(bool with_index = false){return (with_index ? qubit_name + "_" + index : qubit_name);}
         inline std::string get_index_as_string(){return index;}
 
         friend std::ostream& operator<<(std::ostream& stream, Qubit qb){
@@ -109,6 +109,8 @@ struct Qreg_definitions {
         }
 
         std::shared_ptr<Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
+
+        std::shared_ptr<Qubit> get_qubit_at(size_t index);
 
         friend std::ostream& operator<<(std::ostream& stream, Qreg_definitions defs){
             stream << "Owner " << defs.circuit << std::endl; 
