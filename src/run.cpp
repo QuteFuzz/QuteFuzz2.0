@@ -62,7 +62,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 prepare directories
             */
             output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
-            plots_dir = grammars_dir.parent_path() / PLOTS_FOLDER_NAME;
+            results_dir = grammars_dir.parent_path() / RESULTS_FILE_NAME;
             
             if(!fs::exists(output_dir)){
                 fs::create_directory(output_dir);
@@ -70,10 +70,10 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 remove_all_in_dir(output_dir);
             }
 
-            if(!fs::exists(plots_dir)){
-                fs::create_directory(plots_dir);
+            if(!fs::exists(results_dir)){
+                fs::create_directory(results_dir);
             } else {
-                remove_all_in_dir(plots_dir);
+                remove_all_in_dir(results_dir);
             }
 
         }
@@ -118,6 +118,21 @@ void Run::remove_all_in_dir(const fs::path& dir){
     }
 }
 
+// Prints a progress bar to the terminal
+void Run::print_progress_bar(int current, int n) {
+    const int bar_width = 40;
+    float progress = (n > 0) ? float(current) / n : 0.0f;
+    int pos = static_cast<int>(bar_width * progress);
+    std::cout << "[";
+    for (int i = 0; i < bar_width; ++i) {
+        if (i < pos) std::cout << "#";
+        else std::cout << "-";
+    }
+    std::cout << "] " << std::setw(3) << int(progress * 100.0) << "%  (" << current << "/" << n << ")\r";
+    std::cout.flush();
+    if (current == n) std::cout << std::endl;
+}
+
 void Run::loop(){
 
     std::string current_command;
@@ -147,18 +162,31 @@ void Run::loop(){
             std::cout << "Plot mode is now " << (plot ? "enabled" : "disabled") << std::endl;
         
         } else if ((current_command == "run_tests") && (current_spec != nullptr)){
+            
+            // Initialize progress bar variables and results file
+            int current = 0;
+            int total = n.value();
+            std::ofstream results_file((results_dir / "results.txt").string());
 
             for(auto& entry : fs::directory_iterator(output_dir)){
+                current++;
                 fs::path program_path = entry.path() / ("circuit.py");
-
-                std::cout << "Running test: " << program_path.filename() << std::endl;
-                std::string command = "python3 " + program_path.string() + (plot ? " --plot" : "");
-                
+                std::string command = "python3 " + program_path.string() + (plot ? " --plot" : "") + " > " + (results_dir / "temp_result.txt").string() + " 2>&1";
                 int result = system(command.c_str());
+                print_progress_bar(current, total);
+                
+                // Append output to results.txt
+                std::ifstream temp_file((results_dir / "temp_result.txt").string());
+                results_file << "Running test: " << entry.path().filename() << std::endl;
+                results_file << temp_file.rdbuf();
                 if(result != 0){
-                    std::cout << "Test failed with exit code: " << result << std::endl;
+                    results_file << "Test failed with exit code: " << result << std::endl;
                 }
+                temp_file.close();
+                std::remove((results_dir / "temp_result.txt").string().c_str());
             }
+            results_file.close();
+            std::cout << "\nTest results written to results.txt" << std::endl;
 
         } else if (tokens.size() == 2){
             set_grammar();
@@ -166,7 +194,7 @@ void Run::loop(){
         } else if ((current_spec != nullptr) && (n = safe_stoi(current_command)) && (n.has_value())){ 
             // Clear the outputs and plots directory first before generating new outputs
             remove_all_in_dir(output_dir);
-            remove_all_in_dir(plots_dir);
+            remove_all_in_dir(results_dir);
             current_spec->builder->ast_to_program(output_dir, current_spec->extension, n.value());
 
         } else {
@@ -175,5 +203,7 @@ void Run::loop(){
         }
     }
 }
+
+
 
 

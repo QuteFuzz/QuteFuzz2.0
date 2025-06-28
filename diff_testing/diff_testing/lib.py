@@ -36,7 +36,7 @@ from pytket.extensions.quantinuum import QuantinuumBackend
 
 class Base():
     # Define the plots directory as a class variable
-    PLOTS_DIR = (pathlib.Path(__file__).parent.parent.parent / "plots").resolve()
+    OUTPUT_DIR = (pathlib.Path(__file__).parent.parent.parent / "outputs").resolve()
 
     def __init__(self):
         super().__init__()
@@ -86,7 +86,11 @@ class Base():
     def plot_histogram(self, res : Counter[int, int], title : str, compilation_level : int, circuit_number : int = 0):
         # Check the number of existing plots in plots_path (if exists), then increment the number of the plot
         # and save the plot with that number
-        plots_path = self.PLOTS_DIR / f"output{circuit_number}_{compilation_level if compilation_level else 'uncompiled'}.png"
+        plots_dir = self.OUTPUT_DIR / f"circuit{circuit_number}" / "plots"
+        if not plots_dir.exists():
+            plots_dir.mkdir(parents=True, exist_ok=True)
+        
+        plots_path = plots_dir /f"output{circuit_number}_{compilation_level if compilation_level else 'uncompiled'}.png"
         
         # Plot the histogram
         values = list(res.keys())
@@ -129,7 +133,7 @@ class pytketTesting(Base):
 
             # Run the kstest on the two results
             ks_value = self.ks_test(counts1, counts2, 1000)
-            print(f"K-S test p-value: {ks_value}")
+            print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
 
             # plot results
             if self.plot:
