@@ -25,8 +25,10 @@ gate_application =
 
 gate_application_kind = 
     LPAREN qubit_list RPAREN 
-    | LPAREN float_literal COMMA qubit_list RPAREN
+    | LPAREN float_literals COMMA qubit_list RPAREN
     ;
+
+float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
 
 gate_name = x | y | z | h | cx | ccx | rz | rx | ry | u;
 qubit_list = qubit (COMMA SPACE qubit)*;
