@@ -8,10 +8,11 @@
 #include "cirq.h"
 #include <sstream>
 #include <set>
+#include <iomanip>
 
 
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
-const std::string PLOTS_FOLDER_NAME = "plots";
+const std::string RESULTS_FILE_NAME = "results";
 
 typedef struct {
     std::shared_ptr<Grammar> grammar;
@@ -55,6 +56,8 @@ class Run{
 
         void remove_all_in_dir(const fs::path& dir);
 
+        void print_progress_bar(int current, int n);
+
         void loop();
 
     private:
@@ -67,7 +70,7 @@ class Run{
         bool run = true;
 
         fs::path output_dir;
-        fs::path plots_dir;
+        fs::path results_dir;
 };
 
 #endif

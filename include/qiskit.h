@@ -10,15 +10,17 @@ class Qiskit : public Ast {
 
     private:
         std::string imports() override {
-            return "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister \n" \
+            return  "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister \n" \
                     "from qiskit.circuit import Parameter, ParameterVector \n" \
-                    "from helpers.qiskit_helpers import compare_statevectors, run_on_simulator, run_routing_simulation, run_pass_on_simulator \n" \
+                    "from diff_testing.lib import qiskitTesting \n" \
                     "from pathlib import Path \n" \
                     "from math import pi \n";
         }
 
         std::string compiler_call() override {
-            return NOT_IMPLEMENTED("compiler call");
+            return  "main_circ.measure_active() \n" \
+                    "qt = qiskitTesting() \n" \
+                    "qt.run_circ(main_circ, " + std::to_string(build_counter) + ")\n";
         }
     
 };
