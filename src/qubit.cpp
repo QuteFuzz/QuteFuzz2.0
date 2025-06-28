@@ -60,3 +60,8 @@ std::shared_ptr<Qubit> Qreg_definitions::get_random_qubit(std::optional<std::vec
         }
     }
 }
+
+std::shared_ptr<Qubit> Qreg_definitions::get_qubit_at(size_t index){
+    assert(index < num_qubits());
+    return std::make_shared<Qubit>(qubits[index]);
+}

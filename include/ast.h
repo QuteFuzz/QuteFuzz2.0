@@ -12,7 +12,7 @@
 
 class Ast{
     public:
-        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
+        Ast(fs::path _output_dir) : gen(rd()), float_dist(0.0, 1.0), output_dir(_output_dir) {}
 
         ~Ast() = default;
 
@@ -171,15 +171,16 @@ class Ast{
         std::shared_ptr<Qreg> qreg_to_write = DEFAULT_QREG;
         std::shared_ptr<Qubit> qubit_to_write = DEFAULT_QUBIT;
         
-        
         std::shared_ptr<Node> subs_node = nullptr;
         int current_subroutine = 0;
         std::string current_circuit_name;
 
         Constraints::Constraints constraints;
         
-        Graph qig;
+        std::unique_ptr<Graph> qig = nullptr;
         std::optional<std::vector<int>> best_entanglement = std::nullopt;
+
+        fs::path output_dir;
 };
 
 #endif

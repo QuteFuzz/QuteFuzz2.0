@@ -2,6 +2,7 @@
 #define GRAPH_H
 
 #include "utils.h"
+#include "qubit.h"
 #include <fstream>
 #include <limits>
 
@@ -23,6 +24,18 @@ class Graph {
         void shortest_distance_between_all_pairs(){
             for(int i = 0; i < vertices; i++){
                 shortest_distances[i] = std::move(djikstras(i));
+            }
+        }
+
+        void add_entanglement(const std::vector<int>& entanglement, const std::vector<std::vector<int>>& edges){
+            for(const auto& edge : edges){
+                add_edge(entanglement[edge[0]], entanglement[edge[1]]);
+            }
+        }
+
+        void remove_entanglement(const std::vector<int>& entanglement, const std::vector<std::vector<int>>& edges){
+            for(const auto& edge : edges){
+                remove_edge(entanglement[edge[0]], entanglement[edge[1]]);
             }
         }
 
@@ -68,7 +81,7 @@ class Graph {
             return stream;
         }
 
-        void write_dot_file(const std::string& filename);
+        void write_dot_file(const std::string& filename, std::shared_ptr<Qreg_definitions> current_defs);
 
     private:
         int vertices = 0;

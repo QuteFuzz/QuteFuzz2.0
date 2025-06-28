@@ -110,6 +110,8 @@ struct Qreg_definitions {
 
         std::shared_ptr<Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
 
+        std::shared_ptr<Qubit> get_qubit_at(size_t index);
+
         friend std::ostream& operator<<(std::ostream& stream, Qreg_definitions defs){
             stream << "Owner " << defs.circuit << std::endl; 
             stream << "=====================" << std::endl;

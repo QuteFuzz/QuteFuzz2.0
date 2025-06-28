@@ -77,50 +77,56 @@ int Graph::diameter(){
 int Graph::score(){
     shortest_distance_between_all_pairs();
 
-    // return diameter() - ASP();
+    return ASP() / diameter();
 
-    return 0;
+    // return 0;
 }
-
 
 std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     int best_score = -INT32_MAX;
-    std::vector<int> res;
 
-	for(const std::vector<int>& entanglement : Common::QUBIT_COMBINATIONS[vertices][n_qubits_in_entanglement]){
-		
-        for(size_t i = 0; i < entanglement.size()-1; i++){
-            add_edge(entanglement[i], entanglement[i+1]);
-        }        
-        
+    std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS[vertices][n_qubits_in_entanglement];
+    std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS[n_qubits_in_entanglement][2]; 
+
+    std::vector<int> res = possible_entanglements[0];
+
+	for(const std::vector<int>& entanglement : possible_entanglements){
+        add_entanglement(entanglement, edges);
+
 		int curr_score = score();
+
+        // std::cout << best_score << " " << curr_score << std::endl;
 
 		if(curr_score > best_score){
 			best_score = curr_score;
 			res = entanglement;
 		}
 
-        for(size_t i = 0; i < entanglement.size()-1; i++){
-            remove_edge(entanglement[i], entanglement[i+1]);
-        }  
+        remove_entanglement(entanglement, edges);
 	}
 
-    for(size_t i = 0; i < res.size()-1; i++){
-        add_edge(res[i], res[i+1]);
-    }        
+    add_entanglement(res, edges);
 
     return res;
 }
 
 
-void Graph::write_dot_file(const std::string& filename) {
+void Graph::write_dot_file(const std::string& filename, std::shared_ptr<Qreg_definitions> current_defs) {
     std::ofstream fout(filename);
+
+    // std::cout << *this << std::endl;
     
     fout << "graph G {\n";
     int n = graph.size();
     for (int i = 0; i < n; ++i)
         for (int j = i+1; j < n; ++j)
-            if (graph[i][j])
-                fout << "  " << i << " -- " << j << " [label=" << graph[i][j] << ", color=\"blue\", penwidth=2];\n";
+            if (graph[i][j]) {
+                std::string qubit_i = current_defs->get_qubit_at(i)->get_name() + "_" + std::to_string(i);
+                std::string qubit_j = current_defs->get_qubit_at(j)->get_name() + "_" + std::to_string(j);
+
+                fout << "  " << qubit_i << " -- " << qubit_j << " [label=" << graph[i][j] << ", color=\"blue\", penwidth=2];\n";
+            }
     fout << "}\n";
+
+    std::cout << "QIG in DOT written to " << filename << std::endl;
 }

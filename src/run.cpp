@@ -20,6 +20,23 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 }
             }
 
+            // prepare outputs directory
+            output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
+            // prepare plots directory
+            plots_dir = grammars_dir.parent_path() / PLOTS_FOLDER_NAME;
+            
+            if(!fs::exists(output_dir)){
+                fs::create_directory(output_dir);
+            } else {
+                remove_all_in_dir(output_dir);
+            }
+
+            if(!fs::exists(plots_dir)){
+                fs::create_directory(plots_dir);
+            } else {
+                remove_all_in_dir(plots_dir);
+            }
+
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
                 if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
@@ -36,19 +53,19 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                     spec.grammar = std::make_shared<Grammar>(grammar);
                     
                     if(name == "pytket"){
-                        spec.builder = std::make_shared<Pytket>();
+                        spec.builder = std::make_shared<Pytket>(output_dir);
                         spec.extension = ".py";
 
                     } else if(name == "qiskit"){
-                        spec.builder = std::make_shared<Qiskit>();
+                        spec.builder = std::make_shared<Qiskit>(output_dir);
                         spec.extension = ".py";
 
                     } else if(name == "cirq"){
-                        spec.builder = std::make_shared<Cirq>();
+                        spec.builder = std::make_shared<Cirq>(output_dir);
                         spec.extension = ".py";
                         
                     } else {
-                        spec.builder = std::make_shared<Ast>();
+                        spec.builder = std::make_shared<Ast>(output_dir);
                         spec.extension = ".txt";
                     }
 
@@ -59,24 +76,6 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             }
 
         }
-
-        // prepare outputs directory
-        output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
-        // prepare plots directory
-        plots_dir = grammars_dir.parent_path() / PLOTS_FOLDER_NAME;
-        
-        if(!fs::exists(output_dir)){
-            fs::create_directory(output_dir);
-        } else {
-            remove_all_in_dir(output_dir);
-        }
-
-        if(!fs::exists(plots_dir)){
-            fs::create_directory(plots_dir);
-        } else {
-            remove_all_in_dir(plots_dir);
-        }
-
         set_possible_qubit_combinations();
 
     } catch (const fs::filesystem_error& error) {

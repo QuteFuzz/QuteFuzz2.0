@@ -24,19 +24,27 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 
 		case Common::circuit: {
+			/*
+				if there's a previous circuit that has written its QIG, print it out first
+			*/
+			if(qig != nullptr){
+				fs::path dot_path = output_dir / (current_circuit_name + ".dot");
+				qig->write_dot_file(dot_path.string(), get_current_qreg_defs());
+			}
+
 			if(in_subroutine()){
 				/*
 					currently building subroutine, track qreg defs dependency for each circuit
 					store current state to restore later
 				*/
-				constraints.add_rules_constraint(Common::statements, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 5), Common::statement);
+				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 5), Common::statement);
 				current_circuit_name = "sub"+std::to_string(current_subroutine++);
 
 			} else {
 				/*
 					this is the main circuit
 				*/
-				constraints.add_rules_constraint(Common::statements, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 20), Common::statement);
+				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 20), Common::statement);
 				current_circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
 				current_subroutine = 0;
 			}
@@ -44,9 +52,11 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 		}
 
-		case Common::statements: {
+		case Common::body: {
 			constraints.allow_subroutines(can_apply_subroutines());
-			qig = Graph(get_current_qreg_defs()->num_qubits());
+
+			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
+			qig = std::make_unique<Graph>(current_defs->num_qubits());
 			break;
 		}
 			
@@ -66,7 +76,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 
 			node->add_child(std::make_shared<Node>(sub->owner()));
 			constraints.add_n_qubit_constraint(num_sub_qubits);
-			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(num_sub_qubits));
+			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(num_sub_qubits));
 			break;
 		}
 
@@ -129,13 +139,13 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::cx: case Common::cz: case Common::cnot:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
-			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(2));
+			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(2));
 			break;
 
 		case Common::ccx: case Common::cswap:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(3);
-			best_entanglement = std::make_optional<std::vector<int>>(qig.get_best_entanglement(3));
+			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(3));
 			break;
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
@@ -254,13 +264,12 @@ void Ast::ast_to_program(fs::path& path) {
 		std::ofstream ast_stream(ast_path.string());
         ast_stream << ast_root << std::endl;
 
-		// write dot file for QIG
-		fs::path dot_path = path.replace_extension(fs::path(".dot"));		
-		qig.write_dot_file(dot_path.string());
+		// write DOT for main circuit
+		fs::path dot_path = output_dir / (current_circuit_name + ".dot");
+		qig->write_dot_file(dot_path.string(), get_current_qreg_defs());
 
         std::cout << "Program written to " << path.string() << std::endl;
 		std::cout << "AST written to " << ast_path.string() << std::endl;
-		std::cout << "QIG in DOT form written to " << dot_path.string() << std::endl;
 
     } else {
         ERROR(maybe_ast_root.get_error()); 
