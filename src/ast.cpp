@@ -29,7 +29,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			*/
 			if(qig != nullptr){
 				fs::path dot_path = output_dir / (current_circuit_name + ".dot");
-				qig->write_dot_file(dot_path.string(), get_current_qreg_defs());
+				qig->write_dot_file(dot_path, get_current_qreg_defs());
 			}
 
 			if(in_subroutine()){
@@ -266,7 +266,7 @@ void Ast::ast_to_program(fs::path& path) {
 
 		// write DOT for main circuit
 		fs::path dot_path = output_dir / (current_circuit_name + ".dot");
-		qig->write_dot_file(dot_path.string(), get_current_qreg_defs());
+		qig->write_dot_file(dot_path, get_current_qreg_defs());
 
         std::cout << "Program written to " << path.string() << std::endl;
 		std::cout << "AST written to " << ast_path.string() << std::endl;

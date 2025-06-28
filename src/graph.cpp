@@ -111,8 +111,10 @@ std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
 }
 
 
-void Graph::write_dot_file(const std::string& filename, std::shared_ptr<Qreg_definitions> current_defs) {
-    std::ofstream fout(filename);
+void Graph::write_dot_file(fs::path& dot_path, std::shared_ptr<Qreg_definitions> current_defs){
+    // fs::path img_path = dot_path.filename()
+    
+    std::ofstream fout(dot_path.string());
 
     // std::cout << *this << std::endl;
     
@@ -128,5 +130,10 @@ void Graph::write_dot_file(const std::string& filename, std::shared_ptr<Qreg_def
             }
     fout << "}\n";
 
-    std::cout << "QIG in DOT written to " << filename << std::endl;
+    // int result = system("dot -Tpng " + dot_path.string() + "-o " + img_path.string());
+
+    // if (result == 0)
+    //     std::cout << "Graph rendered successfully in " << img_path.string() << std::endl;
+    // else
+    //     std::cerr << "Error rendering graph.\n";
 }

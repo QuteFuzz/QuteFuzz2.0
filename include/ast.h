@@ -98,6 +98,7 @@ class Ast{
         
             } else {
                 all_qreg_defs.clear();
+                qig = nullptr;
 
                 root_ptr = std::make_shared<Node>(entry, 0);
 
