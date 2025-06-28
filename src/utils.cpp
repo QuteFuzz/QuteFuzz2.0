@@ -65,7 +65,6 @@ int get_amount(int from, int resmin, int resmax){
     return std::min(res, resmax);
 }
 
-
 std::optional<int> safe_stoi(const std::string& str) {
     try {
         int ret = (str == "") ? 1 : std::stoi(str);

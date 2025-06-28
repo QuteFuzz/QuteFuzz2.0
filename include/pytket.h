@@ -18,7 +18,9 @@ class Pytket : public Ast {
         }
 
         std::string compiler_call() override {
-            return "pt = pytketTesting() \nprint(pt.preprocess_counts({('1 0 0'):0, ('0 0 1') : 2}))\n";
+            return  "main_circ.measure_all() \n" \
+                    "pt = pytketTesting() \n" \
+                    "pt.run_circ(main_circ, " + std::to_string(num_circuits) + ")\n";
         }
     
 };

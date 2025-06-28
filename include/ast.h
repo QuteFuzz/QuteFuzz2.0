@@ -16,6 +16,8 @@ class Ast{
 
         ~Ast() = default;
 
+        int num_circuits = 0;
+
         void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
         }   

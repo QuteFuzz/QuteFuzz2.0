@@ -36,3 +36,6 @@ parameter_list = parameter (COMMA SPACE parameter)*;
 parameter =  
     float_literal 
     | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
+
+compiler_call = "qiskit_helper.transpile_circuit" LPAREN circuit_name COMMA "optimization_level=" optimization_level RPAREN;
+optimization_level = "0" | "1" | "2" | "3";
