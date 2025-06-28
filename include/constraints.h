@@ -172,15 +172,21 @@ namespace Constraints {
             /// @param c 
             void add_rules_constraint(U64 node_hash, Type t, size_t n, U64 _count_node){
 
-                for(Constraint& constraint : constraints){
-                    if (constraint.on(node_hash, t, n, _count_node)){
-                        constraint.must_satisfy = true;
-                        return;
-                    }
-                }
+                if(n > WILDCARD_MAX){
+                    ERROR("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules cannot be satisfied!");
+                } else {
 
-                constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, _count_node, true));
-                INFO("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules added ");
+                    for(Constraint& constraint : constraints){
+                        if (constraint.on(node_hash, t, n, _count_node)){
+                            constraint.must_satisfy = true;
+                            return;
+                        }
+                    }
+
+                    constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, _count_node, true));
+                    INFO("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules added ");
+            
+                }
             }
 
             /// @brief Add a constraint on the number of qubits that should be picked for a gate

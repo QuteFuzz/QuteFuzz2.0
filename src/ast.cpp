@@ -28,8 +28,8 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 				if there's a previous circuit that has written its QIG, print it out first
 			*/
 			if(qig != nullptr){
-				fs::path dot_path = output_dir / (current_circuit_name + ".dot");
-				qig->write_dot_file(dot_path, get_current_qreg_defs());
+				fs::path img_path = current_circuit_dir / (current_circuit_name + ".png");
+				qig->render_graph(img_path, get_current_qreg_defs());
 			}
 
 			if(in_subroutine()){
@@ -37,14 +37,14 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 					currently building subroutine, track qreg defs dependency for each circuit
 					store current state to restore later
 				*/
-				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 5), Common::statement);
+				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_MINIMUM, std::min(5, WILDCARD_MAX), Common::statement);
 				current_circuit_name = "sub"+std::to_string(current_subroutine++);
 
 			} else {
 				/*
 					this is the main circuit
 				*/
-				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(WILDCARD_MAX, 20), Common::statement);
+				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_MINIMUM, std::min(20, WILDCARD_MAX), Common::statement);
 				current_circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
 				current_subroutine = 0;
 			}
@@ -62,7 +62,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			
 		case Common::subroutines:
 			subs_node = node;
-			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, random_int(Common::MAX_SUBROUTINES), Common::circuit);
+			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_MAXIMUM, Common::MAX_SUBROUTINES, Common::circuit);
 			break;
 
 		case Common::gate_application:
@@ -243,36 +243,42 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     } else {
         ERROR("Unknown build state!");
     }
+
+	// std::cout << *root_ptr << std::endl;
         
     write_branch(node);
 }
 
-void Ast::ast_to_program(fs::path& path) {
+void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int num_programs){
 
-    Result<Node, std::string> maybe_ast_root = build();
-
-    if(maybe_ast_root.is_ok()){
-		num_circuits += 1;
+	for(build_counter = 0; build_counter < num_programs; build_counter++){
+		current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
+		fs::create_directory(current_circuit_dir);
 		
-		// write program
-        Node ast_root = maybe_ast_root.get_ok();
-        std::ofstream stream(path.string());
-        write(stream, ast_root);
-		
-		// write ast
-		fs::path ast_path = path.replace_extension(fs::path(".ast"));
-		std::ofstream ast_stream(ast_path.string());
-        ast_stream << ast_root << std::endl;
+	    Result<Node, std::string> maybe_ast_root = build();
 
-		// write DOT for main circuit
-		fs::path dot_path = output_dir / (current_circuit_name + ".dot");
-		qig->write_dot_file(dot_path, get_current_qreg_defs());
+		Node ast_root = maybe_ast_root.get_ok();
 
-        std::cout << "Program written to " << path.string() << std::endl;
-		std::cout << "AST written to " << ast_path.string() << std::endl;
+		if(maybe_ast_root.is_ok()){
+			// write program
+			fs::path program_path = current_circuit_dir / ("circuit" + extension);
+			std::ofstream stream(program_path.string());
+			write(stream, ast_root);
+			
+			// write AST
+			fs::path ast_path = current_circuit_dir / "circuit.ast";
+			std::ofstream ast_stream(ast_path.string());
+			ast_stream << ast_root << std::endl;
 
-    } else {
-        ERROR(maybe_ast_root.get_error()); 
+			// render graph for main circuit
+			fs::path img_path = current_circuit_dir / "main_circ.png";
+			qig->render_graph(img_path, get_current_qreg_defs());
+
+			INFO("Program written to " << program_path.string());
+			INFO("AST written to " << ast_path.string());
+
+		} else {
+        	ERROR(maybe_ast_root.get_error()); 
+		}
     }
-
-};
+}

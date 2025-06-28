@@ -12,11 +12,11 @@
 
 class Ast{
     public:
-        Ast(fs::path _output_dir) : gen(rd()), float_dist(0.0, 1.0), output_dir(_output_dir) {}
+        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
 
         ~Ast() = default;
 
-        int num_circuits = 0;
+        int build_counter = 0;
 
         void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
@@ -116,7 +116,7 @@ class Ast{
             return root_ptr->find(hash);
         }
 
-        virtual void ast_to_program(fs::path& path);
+        virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 
     protected:
         virtual std::string imports(){
@@ -181,7 +181,7 @@ class Ast{
         std::unique_ptr<Graph> qig = nullptr;
         std::optional<std::vector<int>> best_entanglement = std::nullopt;
 
-        fs::path output_dir;
+        fs::path current_circuit_dir;
 };
 
 #endif

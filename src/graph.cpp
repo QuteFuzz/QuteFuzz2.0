@@ -85,8 +85,8 @@ int Graph::score(){
 std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     int best_score = -INT32_MAX;
 
-    std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS[vertices][n_qubits_in_entanglement];
-    std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS[n_qubits_in_entanglement][2]; 
+    std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
+    std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
 
     std::vector<int> res = possible_entanglements[0];
 
@@ -111,29 +111,38 @@ std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
 }
 
 
-void Graph::write_dot_file(fs::path& dot_path, std::shared_ptr<Qreg_definitions> current_defs){
-    // fs::path img_path = dot_path.filename()
-    
-    std::ofstream fout(dot_path.string());
+int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Qreg_definitions> current_defs){    
+    std::string dot_string;
 
-    // std::cout << *this << std::endl;
-    
-    fout << "graph G {\n";
+    // create dot string    
+    dot_string += "graph G {\n";
     int n = graph.size();
-    for (int i = 0; i < n; ++i)
-        for (int j = i+1; j < n; ++j)
+    for (int i = 0; i < n; ++i){
+        for (int j = i+1; j < n; ++j){
             if (graph[i][j]) {
-                std::string qubit_i = current_defs->get_qubit_at(i)->get_name() + "_" + std::to_string(i);
-                std::string qubit_j = current_defs->get_qubit_at(j)->get_name() + "_" + std::to_string(j);
+                std::string qubit_i = current_defs->get_qubit_at(i)->get_name(true);
+                std::string qubit_j = current_defs->get_qubit_at(j)->get_name(true);
 
-                fout << "  " << qubit_i << " -- " << qubit_j << " [label=" << graph[i][j] << ", color=\"blue\", penwidth=2];\n";
+                dot_string += ("  " + qubit_i + " -- " + qubit_j + " [label=" + std::to_string(graph[i][j]) + ", color=\"blue\", penwidth=2];\n");
             }
-    fout << "}\n";
+        }
+    }
+    dot_string += "}\n";
 
-    // int result = system("dot -Tpng " + dot_path.string() + "-o " + img_path.string());
+    // render graph
+    const std::string str = img_path.string();
+    std::string command = "dot -Tpng -o " + str;
+    FILE* pipe = popen(command.c_str(), "w");
 
-    // if (result == 0)
-    //     std::cout << "Graph rendered successfully in " << img_path.string() << std::endl;
-    // else
-    //     std::cerr << "Error rendering graph.\n";
+    if(!pipe){
+        std::cerr << "Failed to open pipe to dot!" << std::endl;
+        return -1;
+    }
+
+    fwrite(dot_string.c_str(), sizeof(char), dot_string.size(), pipe);
+    pclose(pipe);
+
+    std::cout << "QIG rendered to " << img_path.string() << std::endl;
+
+    return 0;
 }

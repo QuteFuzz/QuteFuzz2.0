@@ -20,7 +20,7 @@ class Pytket : public Ast {
         std::string compiler_call() override {
             return  "main_circ.measure_all() \n" \
                     "pt = pytketTesting() \n" \
-                    "pt.run_circ(main_circ, " + std::to_string(num_circuits) + ")\n";
+                    "pt.run_circ(main_circ, " + std::to_string(build_counter) + ")\n";
         }
     
 };

@@ -1,6 +1,8 @@
 #include "../include/utils.h"
 
-std::vector<std::vector<int>> Common::QUBIT_COMBINATIONS[MAX_QUBITS-MIN_QUBITS][MAX_QUBITS-MIN_N_QUBITS_IN_ENTANGLEMENT];
+namespace Common {
+    Qubit_combinations QUBIT_COMBINATIONS;
+}
 
 void lower(std::string& str){
     std::transform(str.begin(), str.end(), str.begin(),
@@ -126,28 +128,11 @@ int vector_max(std::vector<int> in){
 void set_possible_qubit_combinations(){
 
     for(int n_qubits = Common::MIN_QUBITS; n_qubits <= Common::MAX_QUBITS; n_qubits++){
-
-        #if 0
-        std::cout << "N qubits: " << n_qubits << std::endl;
-        std::cout << "==================================" << std::endl;
-        #endif
-
         for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
-            
-            #if 0
-            std::cout << "n_qubits_in_entanglement: " << n_qubits_in_entanglement << std::endl;
-            #endif
-
-            Common::QUBIT_COMBINATIONS[n_qubits][n_qubits_in_entanglement] = std::move(n_choose_r(n_qubits, n_qubits_in_entanglement));
-
-            #if 0
-
-            for(const std::vector<int>& entanglement : Common::QUBIT_COMBINATIONS[n_qubits][n_qubits_in_entanglement]){
-                for(const int& i : entanglement) std::cout << i << " ";
-                std::cout << " ";
-            }
-            std::cout << std::endl;
-            #endif
+            std::vector<std::vector<int>> combs = n_choose_r(n_qubits, n_qubits_in_entanglement);
+            Common::QUBIT_COMBINATIONS.set(n_qubits, n_qubits_in_entanglement, combs);
         }
     }
+
+    // std::cout << Common::QUBIT_COMBINATIONS << std::endl;
 }

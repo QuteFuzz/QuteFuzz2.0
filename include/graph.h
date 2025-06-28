@@ -81,7 +81,7 @@ class Graph {
             return stream;
         }
 
-        void write_dot_file(fs::path& dot_path, std::shared_ptr<Qreg_definitions> current_defs);
+        int render_graph(fs::path& img_path, std::shared_ptr<Qreg_definitions> current_defs);
 
     private:
         int vertices = 0;
