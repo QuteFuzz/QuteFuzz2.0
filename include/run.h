@@ -7,9 +7,11 @@
 #include "qiskit.h"
 #include "cirq.h"
 #include <sstream>
+#include <set>
 
 
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
+const std::string PLOTS_FOLDER_NAME = "plots";
 
 typedef struct {
     std::shared_ptr<Grammar> grammar;
@@ -51,6 +53,8 @@ class Run{
 
         void tokenise(const std::string& command);
 
+        void remove_all_in_dir(const fs::path& dir);
+
         void loop();
 
     private:
@@ -63,6 +67,7 @@ class Run{
         bool run = true;
 
         fs::path output_dir;
+        fs::path plots_dir;
 };
 
 #endif

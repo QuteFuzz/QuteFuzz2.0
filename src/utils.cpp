@@ -65,32 +65,6 @@ int get_amount(int from, int resmin, int resmax){
     return std::min(res, resmax);
 }
 
-
-/// @brief Create qregs and qubit definitions
-/// @param qreg_defs 
-size_t Common::setup_qregs(std::shared_ptr<Qreg_definitions> qreg_defs, int num_gate_applications){
-    // qreg_defs->reset();
-
-    Qreg::count = 0;
-    
-    int num_qubits = get_amount(num_gate_applications, 1, MAX_QUBITS);
-
-    while(num_qubits > 0){
-        size_t qreg_size;
-
-        if(num_qubits > 1) qreg_size = random_int(num_qubits, 1);
-        else qreg_size = num_qubits;
-        
-        qreg_defs->push_back(Qreg(qreg_size));
-
-        num_qubits -= qreg_size;
-    }
-
-    // std::cout << *qreg_defs << std::endl;
-
-    return qreg_defs->num_qregs();
-}
-
 std::optional<int> safe_stoi(const std::string& str) {
     try {
         int ret = (str == "") ? 1 : std::stoi(str);

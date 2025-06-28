@@ -242,6 +242,7 @@ void Ast::ast_to_program(fs::path& path) {
     Result<Node, std::string> maybe_ast_root = build();
 
     if(maybe_ast_root.is_ok()){
+		num_circuits += 1;
 		
 		// write program
         Node ast_root = maybe_ast_root.get_ok();

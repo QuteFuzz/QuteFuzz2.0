@@ -62,14 +62,19 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
         // prepare outputs directory
         output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
+        // prepare plots directory
+        plots_dir = grammars_dir.parent_path() / PLOTS_FOLDER_NAME;
         
         if(!fs::exists(output_dir)){
             fs::create_directory(output_dir);
         } else {
+            remove_all_in_dir(output_dir);
+        }
 
-            for(auto& entry : fs::directory_iterator(output_dir)){
-                fs::remove(entry.path());
-            }
+        if(!fs::exists(plots_dir)){
+            fs::create_directory(plots_dir);
+        } else {
+            remove_all_in_dir(plots_dir);
         }
 
         set_possible_qubit_combinations();
@@ -105,10 +110,19 @@ void Run::tokenise(const std::string& command){
     }
 }
 
+void Run::remove_all_in_dir(const fs::path& dir){
+    if(fs::exists(dir) && fs::is_directory(dir)){
+        for(const auto& entry : fs::directory_iterator(dir)){
+            fs::remove_all(entry.path());
+        }
+    }
+}
+
 void Run::loop(){
 
     std::string current_command;
     std::optional<int> n;
+    bool plot = false;
 
     while(run){
         std::cout << "> ";
@@ -127,11 +141,37 @@ void Run::loop(){
         
         } else if ((current_command == "print_tokens") && (current_spec != nullptr)){
             current_spec->grammar->print_tokens();
+
+        } else if ((current_command == "plot") && (current_spec != nullptr)) {
+            plot = !plot;
+            std::cout << "Plot mode is now " << (plot ? "enabled" : "disabled") << std::endl;
         
+        } else if ((current_command == "run_tests") && (current_spec != nullptr)){
+            std::set<fs::path> py_files;
+            for(auto& entry : fs::directory_iterator(output_dir)){
+                if(entry.is_regular_file() && (entry.path().extension() == ".py")){
+                    py_files.insert(entry.path());
+                }
+            }
+            // Run all python files in the outputs directory
+            for(const auto& path : py_files){
+                std::cout << "Running test: " << path.filename() << std::endl;
+                std::string command = "python3 " + path.string() + (plot ? " --plot" : "");
+                int result = system(command.c_str());
+                if(result != 0){
+                    std::cout << "Test failed with exit code: " << result << std::endl;
+                }
+            }
         } else if (tokens.size() == 2){
             set_grammar();
 
         } else if ((current_spec != nullptr) && (n = safe_stoi(current_command)) && (n.has_value())){ 
+            current_spec->builder->num_circuits = 0;
+
+            // Clear the outputs and plots directory first before generating new outputs
+            remove_all_in_dir(output_dir);
+            remove_all_in_dir(plots_dir);
+
             for(int i = 0; i < n.value(); i++){
                 fs::path output_path = output_dir / ("output" + std::to_string(i+1) + current_spec->extension);
                 current_spec->builder->ast_to_program(output_path);
