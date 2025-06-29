@@ -278,7 +278,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			INFO("AST written to " << ast_path.string());
 
 		} else {
-        	ERROR(maybe_ast_root.get_error()); 
+        	ERROR(maybe_ast_root.get_error());
 		}
     }
 }

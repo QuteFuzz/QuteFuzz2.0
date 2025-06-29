@@ -12,7 +12,6 @@
 
 
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
-const std::string RESULTS_FILE_NAME = "results";
 
 typedef struct {
     std::shared_ptr<Grammar> grammar;

@@ -91,7 +91,7 @@ class Base():
     def plot_histogram(self, res : Counter[int, int], title : str, compilation_level : int, circuit_number : int = 0):
         # Check the number of existing plots in plots_path (if exists), then increment the number of the plot
         # and save the plot with that number
-        plots_dir = self.OUTPUT_DIR / f"circuit{circuit_number}" / "plots"
+        plots_dir = self.OUTPUT_DIR / f"circuit{circuit_number}"
         if not plots_dir.exists():
             plots_dir.mkdir(parents=True, exist_ok=True)
         

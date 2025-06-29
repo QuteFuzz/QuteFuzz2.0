@@ -7,6 +7,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
             Grammar commons_grammar;
 
+            /*
+                find tokens grammar and parse that first
+            */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
                 if(file.is_regular_file() && (file.path().stem() == TOKENS_GRAMMAR_NAME)){
@@ -20,6 +23,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 }
             }
 
+            /*
+                parse all other grammars, appending the tokens grammar to each one
+            */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
                 if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
@@ -62,18 +68,11 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 prepare directories
             */
             output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
-            results_dir = grammars_dir.parent_path() / RESULTS_FILE_NAME;
             
             if(!fs::exists(output_dir)){
                 fs::create_directory(output_dir);
             } else {
                 remove_all_in_dir(output_dir);
-            }
-
-            if(!fs::exists(results_dir)){
-                fs::create_directory(results_dir);
-            } else {
-                remove_all_in_dir(results_dir);
             }
 
         }
@@ -166,27 +165,47 @@ void Run::loop(){
             // Initialize progress bar variables and results file
             int current = 0;
             int total = n.value();
-            std::ofstream results_file((results_dir / "results.txt").string());
+            std::ofstream results_file((output_dir / "results.txt").string());
 
             for(auto& entry : fs::directory_iterator(output_dir)){
-                current++;
-                fs::path program_path = entry.path() / ("circuit.py");
-                std::string command = "python3 " + program_path.string() + (plot ? " --plot" : "") + " > " + (results_dir / "temp_result.txt").string() + " 2>&1";
-                int result = system(command.c_str());
-                print_progress_bar(current, total);
-                
-                // Append output to results.txt
-                std::ifstream temp_file((results_dir / "temp_result.txt").string());
-                results_file << "Running test: " << entry.path().filename() << std::endl;
-                results_file << temp_file.rdbuf();
-                if(result != 0){
-                    results_file << "Test failed with exit code: " << result << std::endl;
-                }
-                temp_file.close();
-                std::remove((results_dir / "temp_result.txt").string().c_str());
+
+                // check for directories to avoid running the results.txt file
+                if(entry.is_directory()){
+
+                    current++;
+
+                    results_file << "Running test: " << entry.path().filename() << std::endl;
+                    
+                    fs::path program_path = entry.path() / ("circuit.py");
+                    std::string command = "python3 " + program_path.string() + (plot ? " --plot" : "");
+                    
+                    FILE* pipe = popen(command.c_str(), "r");
+
+                    if(!pipe){
+                        throw std::runtime_error("Pipe to python failed!");
+                    }
+
+                    std::array<char, 1024> buffer;
+                    std::string result;
+
+                    while(fgets(buffer.data(), buffer.size(), pipe) != nullptr){
+                        result += buffer.data();
+                    }
+
+                    if(pclose(pipe)){
+                        throw std::runtime_error("Python command failed!");
+                    }
+
+                    print_progress_bar(current, total);   
+                    
+                    results_file << result;
+                }              
             }
+
             results_file.close();
-            std::cout << "\nTest results written to results.txt" << std::endl;
+
+            std::cout << std::endl;
+            INFO("Test results written to results.txt");
 
         } else if (tokens.size() == 2){
             set_grammar();
