@@ -136,7 +136,6 @@ void Run::loop(){
 
     std::string current_command;
     std::optional<int> n;
-    bool plot = false;
 
     while(run){
         std::cout << "> ";
@@ -157,11 +156,14 @@ void Run::loop(){
             current_spec->grammar->print_tokens();
 
         } else if ((current_command == "plot") && (current_spec != nullptr)) {
-            plot = !plot;
-            std::cout << "Plot mode is now " << (plot ? "enabled" : "disabled") << std::endl;
+            Common::plot = !Common::plot;
+            std::cout << "Plot mode is now " << (Common::plot ? "enabled" : "disabled") << std::endl;
         
+        } else if ((current_command == "verbose") && (current_spec != nullptr)){
+            Common::verbose = !Common::verbose;
+            std::cout << "Vetbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
+
         } else if ((current_command == "run_tests") && (current_spec != nullptr)){
-            
             // Initialize progress bar variables and results file
             int current = 0;
             int total = n.value();
@@ -177,28 +179,11 @@ void Run::loop(){
                     results_file << "Running test: " << entry.path().filename() << std::endl;
                     
                     fs::path program_path = entry.path() / ("circuit.py");
-                    std::string command = "python3 " + program_path.string() + (plot ? " --plot" : "");
+                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "");
                     
-                    FILE* pipe = popen(command.c_str(), "r");
+                    results_file << pipe_from_command(command);
 
-                    if(!pipe){
-                        throw std::runtime_error("Pipe to python failed!");
-                    }
-
-                    std::array<char, 1024> buffer;
-                    std::string result;
-
-                    while(fgets(buffer.data(), buffer.size(), pipe) != nullptr){
-                        result += buffer.data();
-                    }
-
-                    if(pclose(pipe)){
-                        throw std::runtime_error("Python command failed!");
-                    }
-
-                    print_progress_bar(current, total);   
-                    
-                    results_file << result;
+                    print_progress_bar(current, total);                       
                 }              
             }
 

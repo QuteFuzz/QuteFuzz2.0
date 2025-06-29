@@ -257,9 +257,9 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 		
 	    Result<Node, std::string> maybe_ast_root = build();
 
-		Node ast_root = maybe_ast_root.get_ok();
-
 		if(maybe_ast_root.is_ok()){
+			Node ast_root = maybe_ast_root.get_ok();
+
 			// write program
 			fs::path program_path = current_circuit_dir / ("circuit" + extension);
 			std::ofstream stream(program_path.string());

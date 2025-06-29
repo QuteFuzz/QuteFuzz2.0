@@ -2,6 +2,8 @@
 
 namespace Common {
     Qubit_combinations QUBIT_COMBINATIONS;
+    bool plot = false;
+    bool verbose = false; 
 }
 
 void lower(std::string& str){
@@ -135,4 +137,48 @@ void set_possible_qubit_combinations(){
     }
 
     // std::cout << Common::QUBIT_COMBINATIONS << std::endl;
+}
+
+void pipe_to_command(std::string command, std::string write){
+    FILE* pipe = popen(command.c_str(), "w");
+
+    if(!pipe){
+        throw std::runtime_error("Failed to open pipe to command " + command);
+    }
+
+    fwrite(write.c_str(), sizeof(char), write.size(), pipe);
+    
+    if(pclose(pipe)){
+        throw std::runtime_error("Command " + command + " failed");
+    }
+
+    if(Common::verbose){
+        INFO("Run command " + command);
+        INFO("Piped " + write + " to command");
+    }
+}
+
+std::string pipe_from_command(std::string command){
+    FILE* pipe = popen(command.c_str(), "r");
+
+    if(!pipe){
+        throw std::runtime_error("Failed to open pipe to command " + command);
+    }
+
+    std::array<char, 1024> buffer;
+    std::string result = "";
+
+    while(fgets(buffer.data(), buffer.size(), pipe) != nullptr){
+        result += buffer.data();
+    }
+
+    if(pclose(pipe)){
+        throw std::runtime_error("Command " + command + " failed");
+    }
+
+    if(Common::verbose){
+        INFO("Run command " + command);
+    }
+
+    return result;
 }
