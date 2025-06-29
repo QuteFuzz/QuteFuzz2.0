@@ -95,8 +95,6 @@ std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
 
 		int curr_score = score();
 
-        // std::cout << best_score << " " << curr_score << std::endl;
-
 		if(curr_score > best_score){
 			best_score = curr_score;
 			res = entanglement;
@@ -132,17 +130,18 @@ int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Qreg_definitions> c
     // render graph
     const std::string str = img_path.string();
     std::string command = "dot -Tpng -o " + str;
+    
     FILE* pipe = popen(command.c_str(), "w");
 
     if(!pipe){
-        std::cerr << "Failed to open pipe to dot!" << std::endl;
+        ERROR("Failed to open pipe to dot!");
         return -1;
     }
 
     fwrite(dot_string.c_str(), sizeof(char), dot_string.size(), pipe);
     pclose(pipe);
 
-    std::cout << "QIG rendered to " << img_path.string() << std::endl;
+    INFO("QIG rendered to " + img_path.string());
 
     return 0;
 }

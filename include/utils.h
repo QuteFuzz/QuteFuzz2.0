@@ -16,6 +16,7 @@
 #include <cctype>
 #include <cstdint>
 #include <optional>
+#include <array>
 #include "assert.h"
 
 #ifdef DEBUG 
@@ -27,7 +28,7 @@
 #define UNUSED(x) (void)(x)
 #define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
 #define PLACEHOLDER(x) ("<" x ">")
-#define ERROR(x) std::cout << "[ERROR] " << x << std::endl
+#define ERROR(x) std::cerr << "[ERROR] " << x << std::endl
 #define INFO(x) std::cout << "[INFO] " << x << std::endl
 #define TOKENS_GRAMMAR_NAME "tokens"
 
