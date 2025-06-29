@@ -72,3 +72,5 @@ Grammars are written in `examples` folder.
 ## Todo
 - [x] Extend QIG to work for any number of qubits
 - [ ] Make the AST modifiable to allow polymorphic testing
+- [ ] Add support for loops
+- [ ] Add support for other front-ends 
