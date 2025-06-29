@@ -3,5 +3,5 @@ build
 *.txt
 outputs
 plots
-.venv
+venv
 *.egg-info
