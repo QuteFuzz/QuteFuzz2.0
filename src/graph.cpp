@@ -131,16 +131,7 @@ int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Qreg_definitions> c
     const std::string str = img_path.string();
     std::string command = "dot -Tpng -o " + str;
     
-    FILE* pipe = popen(command.c_str(), "w");
-
-    if(!pipe){
-        ERROR("Failed to open pipe to dot!");
-        return -1;
-    }
-
-    fwrite(dot_string.c_str(), sizeof(char), dot_string.size(), pipe);
-    pclose(pipe);
-
+    pipe_to_command(command, dot_string);
     INFO("QIG rendered to " + img_path.string());
 
     return 0;

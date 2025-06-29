@@ -56,12 +56,19 @@ int vector_sum(std::vector<int> in);
 
 int vector_max(std::vector<int> in);
 
+void pipe_to_command(std::string command, std::string write);
+
+std::string pipe_from_command(std::string command);
+
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ";
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3; 
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.4 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (0.2 * WILDCARD_MAX);
+
+    extern bool plot;
+    extern bool verbose; 
 
     struct Qubit_combinations{
         public:
