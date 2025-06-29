@@ -1,5 +1,8 @@
 # QuteFuzz
 
+<p align="center" width="100%">
+    <img width="25%" src="images/qutefuzz.png">
+
 A front-end agnostic tool for fuzzing quantum compilers. 
 
 ## Premise
