@@ -82,7 +82,7 @@ namespace Common {
 
             friend std::ostream& operator<<(std::ostream& stream, Qubit_combinations& combs){
 
-                for(int n_qubits = Common::MIN_QUBITS; n_qubits <= Common::MAX_QUBITS; n_qubits++){
+                for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS; n_qubits++){
 
                     stream << "N qubits: " << n_qubits << std::endl;
                     stream << "==================================" << std::endl;

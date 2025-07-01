@@ -129,14 +129,14 @@ int vector_max(std::vector<int> in){
 
 void set_possible_qubit_combinations(){
 
-    for(int n_qubits = Common::MIN_QUBITS; n_qubits <= Common::MAX_QUBITS; n_qubits++){
+    for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS; n_qubits++){
         for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
             std::vector<std::vector<int>> combs = n_choose_r(n_qubits, n_qubits_in_entanglement);
             Common::QUBIT_COMBINATIONS.set(n_qubits, n_qubits_in_entanglement, combs);
         }
     }
 
-    // std::cout << Common::QUBIT_COMBINATIONS << std::endl;
+    std::cout << Common::QUBIT_COMBINATIONS << std::endl;
 }
 
 void pipe_to_command(std::string command, std::string write){
