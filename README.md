@@ -29,8 +29,10 @@ Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info
 - `<n>`: generate n programs from the set grammar
 - `plot`: Show probability distribution of results
 - `verbose`: Verbose mode shows which python commands are being run while testing the cirucits
+- `run_tests`: Run differential testing on the circuits
 
-Grammars are written in `examples` folder. 
+Grammars are written in `examples` folder.
+Outputs are in the `outputs` folder. 
 
 ## Ideas
 
