@@ -21,6 +21,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::parameter: case Common::qreg_decl: case Common::qreg_append: 
 		case Common::gate_application_kind: case Common::statement:
 		case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
+		case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
 			break;
 
 		case Common::circuit: {
@@ -77,6 +78,10 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			node->add_child(std::make_shared<Node>(sub->owner()));
 			constraints.add_n_qubit_constraint(num_sub_qubits);
 			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(num_sub_qubits));
+			
+			// std::cout << str << std::endl;
+			// std::cout << *qig << std::endl;
+
 			break;
 		}
 
@@ -108,9 +113,6 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			node->add_child(std::make_shared<Node>(current_circuit_name));
 			break;
 
-		case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
-			break;
-
 		case Common::qreg_defs: {
 			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
 
@@ -140,12 +142,19 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
 			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(2));
+
+			// std::cout << str << std::endl;
+			// std::cout << *qig << std::endl;
 			break;
 
 		case Common::ccx: case Common::cswap:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(3);
 			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(3));
+
+			// std::cout << str << std::endl;
+			// std::cout << *qig << std::endl;
+
 			break;
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
