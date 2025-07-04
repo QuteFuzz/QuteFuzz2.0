@@ -1,7 +1,7 @@
 # QuteFuzz
 
 <p align="center" width="100%">
-    <img width="25%" src="images/qutefuzz.png">
+    <img width="25%" src="etc/qutefuzz.png">
 
 A front-end agnostic tool for fuzzing quantum compilers. 
 
@@ -11,6 +11,23 @@ See wiki for more details.
 
 ### Build with:
 
+You need to install docker and use our dockerfile to set up the environment. After [installing docker](https://docs.docker.com/engine/install/), follow these steps.
+
+1. Set up environment from dockerfile
+
+```
+docker build -t qutefuzz-env .
+```
+
+2. Run docker container
+```
+docker run -it --rm -v "$PWD":/qutefuzz qutefuzz-env
+```
+
+This will drop you into a shell within the environment where all dependencies are installed
+
+3. Compile project
+
 ```sh
 mkdir build
 cd build
@@ -18,9 +35,12 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
-Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info, run with `./fuzzer`.
+Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info
 
-### Commands:
+4. Run with `./fuzzer`.
+
+### Commands
+
 - `h` : help
 - `quit`: quit program
 - `print`: print grammar if any has been set

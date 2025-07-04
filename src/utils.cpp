@@ -136,7 +136,6 @@ void set_possible_qubit_combinations(){
         }
     }
 
-    std::cout << Common::QUBIT_COMBINATIONS << std::endl;
 }
 
 void pipe_to_command(std::string command, std::string write){
