@@ -119,7 +119,9 @@ namespace Common {
         ry = 638467743661393988ULL,
         u1 = 631765120777144307ULL,
         s = 12638206991764949794ULL,
+        sdg = 9383135583349391919ULL,
         t = 12638201494206808739ULL,
+        tdg = 6262443406867765286ULL,
         phasedxpowgate = 11832025932794728373ULL,
 
         // TWO QUBIT GATES
@@ -128,10 +130,13 @@ namespace Common {
         u2 = 631766220288772518ULL,
         cz = 622134498427536408ULL,
         cnot = 352634892887392207ULL,
+        ch = 622154289636844206ULL,
+        crz = 17699985570524998350ULL,
     
         // THREE QUBIT GATES    
         u3 = 631767319800400729ULL,
         cswap = 9091793091986225957ULL,
+        toffoli = 15991066036535617246ULL,
 
         // OTHER GATES
         u = 12638200394695180528ULL,
@@ -165,6 +170,29 @@ namespace Common {
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
+
+        // Guppy rules
+        // function = 155458554138578825ULL,
+        // functions = 7226689850546349518ULL,
+        // function_name = 6361558985692373033ULL,
+        subroutine_parameters = 7194359601375039272ULL,
+        subroutine_parameter = 13617813261817958475ULL,
+        type = 12075340201627130925ULL,
+        // function_body = 2788772483248937158ULL,
+        parameter_name = 12726161396389809054ULL,
+        // assignment = 7458258374037456624ULL,
+        // qubit_assignment = 15287957504402221314ULL,
+        // integer_assignment = 15799624338714905563ULL,
+        // float_assignment = 15010901291599723643ULL,
+        // variable_names = 13035807904021403226ULL,
+        // variable_name = 11584133888163274573ULL,
+        // function_call = 1406863417753387974ULL,
+        angle = 4619207558531745336ULL,
+        measure = 13586824709325088415ULL,
+        measure_array = 5009991113106631741ULL,
+        reset = 1086335023529244512ULL,
+        project_z = 2608459580584910443ULL,
+        // main = 2258945139493307336ULL,
     };
 }
 

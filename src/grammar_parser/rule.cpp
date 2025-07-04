@@ -42,8 +42,7 @@ Branch Rule::pick_branch(Constraints::Constraints& constraints){
         #endif
 
         while(!constraints.are_satisfied(hashed_rule_name, branch)){
-            // std::cout << "Branch " << rand_index << " for " << name << std::endl;
-
+            std::cout << "Branch " << rand_index << " for " << name << size << std::endl;
             rand_index = random_int(size - 1);
             branch = branches[rand_index];
         }

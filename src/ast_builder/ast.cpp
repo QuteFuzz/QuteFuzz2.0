@@ -110,17 +110,18 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 		
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
+		case Common::sdg: case Common::tdg: 
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1);
 			break;
 		
-		case Common::cx: case Common::cz: case Common::cnot:
+		case Common::cx: case Common::cz: case Common::cnot: case Common::ch: case Common::crz: 
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
 			context.set_best_entanglement(2);
 			break;
 
-		case Common::ccx: case Common::cswap:
+		case Common::ccx: case Common::cswap: case Common::toffoli:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(3);
 			context.set_best_entanglement(3);
@@ -144,9 +145,12 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
 			break;
 
-		 case Common::phasedxpowgate:
+		case Common::phasedxpowgate:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
+			break;
+		
+		case Common::type:
 			break;
 
 		default:
