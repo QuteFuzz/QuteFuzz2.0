@@ -1,4 +1,4 @@
-#include "../include/rule.h"
+#include "../../include/grammar_parser/rule.h"
 
 void Rule::print(std::ostream& os) const {
     for(const auto& elem : branches){
@@ -36,6 +36,10 @@ Branch Rule::pick_branch(Constraints::Constraints& constraints){
         int rand_index = random_int(size - 1);
         Branch branch = branches[rand_index];
         U64 hashed_rule_name = hash_rule_name(name);
+
+        #ifdef DEBUG
+        INFO("Picking branch while satisfying constraints");
+        #endif
 
         while(!constraints.are_satisfied(hashed_rule_name, branch)){
             // std::cout << "Branch " << rand_index << " for " << name << std::endl;

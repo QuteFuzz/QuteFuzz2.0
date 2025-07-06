@@ -1,4 +1,4 @@
-#include "../include/utils.h"
+#include "../../include/utils/utils.h"
 
 namespace Common {
     Qubit_combinations QUBIT_COMBINATIONS;
@@ -136,6 +136,9 @@ void set_possible_qubit_combinations(){
         }
     }
 
+    #if 0
+    std::cout << Common::QUBIT_COMBINATIONS << std::endl;
+    #endif
 }
 
 void pipe_to_command(std::string command, std::string write){

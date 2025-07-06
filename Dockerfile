@@ -13,9 +13,10 @@ RUN apt update && apt install -y \
     python3 \
     python3-pip \
     python3-venv \
+    gdb \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver pytket-quantinuum cirq --break-system-packages
+RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver pytket-quantinuum cirq guppylang --break-system-packages
 
 WORKDIR /qutefuzz
 

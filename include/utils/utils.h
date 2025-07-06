@@ -61,7 +61,7 @@ void pipe_to_command(std::string command, std::string write);
 std::string pipe_from_command(std::string command);
 
 namespace Common {
-    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circ";
+    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main";
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3; 
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.4 * WILDCARD_MAX));
@@ -137,39 +137,34 @@ namespace Common {
         u = 12638200394695180528ULL,
 
         // RULE NAMES
-        program = 6292337549112776011ULL,
         imports = 5522660700275282789ULL,
-        compiler_call = 16764506069072603013ULL,
-        circuit = 18088473315674432532ULL,
+        block = 1505885265403634530ULL,
         circuit_name = 5389401364268778602ULL,
-        circuit_def = 17654104105659481736ULL,
         float_literal = 6014115549703600901ULL,
         float_literals = 1060812461093276034ULL,
-        gate_name = 4107851538286704628ULL,
-        qubit_list = 18380990572907722739ULL,
-        parameter_list = 10044088521670889753ULL,
-        parameter = 1363275014107747824ULL,
+        main_circuit_name = 15359974437464362266ULL,
+
         body = 14793735007222968981ULL,
-        qreg_def = 11422033681961328082ULL,
         qreg_name = 10722739978486866664ULL,
         qreg_size = 11502232252882731618ULL,
-        qreg_defs = 3680647047563729043ULL,
         qubit = 9613145697666387222ULL,
         gate_application = 2267869270411795151ULL,
         gate_application_kind = 6595164713576809234ULL,
+        gate_name = 4107851538286704628ULL,
+        qubit_list = 18380990572907722739ULL,        
         statement = 7142774524121430294ULL,
-        qreg_decl = 3677861984610038255ULL,
-        qreg_append = 8492996956615407539ULL,
+        qubit_defs = 10682880043223733083ULL,
+        qubit_def = 11301569403047543754ULL,
+        qubit_def_singular = 9249986013525299186ULL,
+        qubit_def_register = 5722937179312204226ULL,
+        singular_qubit_apply = 16057399092026961573ULL,
+        register_qubit_apply = 9889855029909000101ULL,
+
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
-        InsertStrategy = 9472000366263819549ULL,
-        arg_gate_name = 3264921562381107747ULL,
-        phase_gate_name = 12512458278741438740ULL,
-        arg_gate_application = 13921932069523118606ULL,
-        phase_gate_application = 10453516286525280623ULL,
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
-        compiler_pass = 3974794937176199188ULL,
+        circuit_id = 12523072865437646660ULL,
     };
 }
 

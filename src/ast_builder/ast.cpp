@@ -1,4 +1,4 @@
-#include "../include/ast.h"
+#include "../../include/ast_builder/ast.h"
 
 
 void Ast::transition_from_init(std::shared_ptr<Node> node){
@@ -17,116 +17,92 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 
 	switch(hash){
 		
-		case Common::program: case Common::circuit_def: case Common::qubit_list: case Common::parameter_list: 
-		case Common::parameter: case Common::qreg_decl: case Common::qreg_append: 
-		case Common::gate_application_kind: case Common::statement:
-		case Common::InsertStrategy: case Common::arg_gate_application: case Common::phase_gate_application: 
-		case Common::gate_name: case Common::arg_gate_name: case Common::phase_gate_name:
-			break;
+		case Common::block: {
+			context.maybe_render_qig();
 
-		case Common::circuit: {
-			/*
-				if there's a previous circuit that has written its QIG, print it out first
-			*/
-			if(qig != nullptr){
-				fs::path img_path = current_circuit_dir / (current_circuit_name + ".png");
-				qig->render_graph(img_path, get_current_qreg_defs());
-			}
-
-			if(in_subroutine()){
-				/*
-					currently building subroutine, track qreg defs dependency for each circuit
-					store current state to restore later
-				*/
-				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_MINIMUM, std::min(5, WILDCARD_MAX), Common::statement);
-				current_circuit_name = "sub"+std::to_string(current_subroutine++);
-
-			} else {
-				/*
-					this is the main circuit
-				*/
-				constraints.add_rules_constraint(Common::body, Constraints::NUM_GIVEN_RULE_MINIMUM, std::min(20, WILDCARD_MAX), Common::statement);
-				current_circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
-				current_subroutine = 0;
-			}
+			constraints.add_size_constraint(
+				Common::body,
+				Constraints::NUM_GIVEN_RULE_EQUALS,
+				context.setup_block(),
+				Common::statement
+			);
 
 			break;
 		}
 
 		case Common::body: {
-			constraints.allow_subroutines(can_apply_subroutines());
-
-			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
-			qig = std::make_unique<Graph>(current_defs->num_qubits());
+			constraints.allow_subroutines(context.can_apply_subroutines());
+			context.set_qig();
 			break;
 		}
+
+		case Common::circuit_id:
+			node->add_child(std::make_shared<Node>(std::to_string(build_counter)));
+			break;
+
+		case Common::main_circuit_name:
+			node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
+			break;
 			
 		case Common::subroutines:
-			subs_node = node;
-			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_MAXIMUM, Common::MAX_SUBROUTINES, Common::circuit);
+			constraints.constrain_num_subroutines();
+			context.set_subroutines_node(node);
 			break;
 
 		case Common::gate_application:
-			best_entanglement = std::nullopt;
-			get_current_qreg_defs()->reset_qubits();
+			context.gate_application_reset();
 			break;
 
 		case Common::subroutine: {				
-			std::shared_ptr<Qreg_definitions> sub = get_random_subroutine();
-			int num_sub_qubits = sub->num_qubits();
+			std::shared_ptr<Block> subroutine = context.get_random_block();
+			int num_sub_qubits = subroutine->num_qubits();
 
-			node->add_child(std::make_shared<Node>(sub->owner()));
+			context.set_best_entanglement(num_sub_qubits);
+			node->add_child(std::make_shared<Node>(subroutine->owner()));
 			constraints.add_n_qubit_constraint(num_sub_qubits);
-			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(num_sub_qubits));
-			
-			// std::cout << str << std::endl;
-			// std::cout << *qig << std::endl;
+			break;
+		}
+  
+		case Common::circuit_name:
+			context.set_circuit_name(node);
+			break;
+
+		case Common::qubit_defs : {
+			constraints.add_size_constraint(
+				hash, 
+				Constraints::NUM_GIVEN_RULE_EQUALS, 
+				context.setup_qubit_defs(),
+				Common::qubit_def
+			);
 
 			break;
 		}
 
-		case Common::imports:
-			node->add_child(std::make_shared<Node>(imports()));
+		case Common::qubit_def : {
+			constraints.constrain_qubit_def(context.set_qubit_def());			
 			break;
-
-		case Common::compiler_call:
-			node->add_child(std::make_shared<Node>(compiler_call()));
-			break;
+		}
 
 		case Common::qreg_name:
-			node->add_child(std::make_shared<Node>(qreg_to_write->get_name()));
+			context.set_qreg_name(node);
 			break;
 
 		case Common::qreg_size:
-			node->add_child(std::make_shared<Node>(qreg_to_write->get_size_as_string()));
-			break;   
-  
-		case Common::qubit_name: 
-			node->add_child(std::make_shared<Node>(qubit_to_write->get_name()));
-			break;
-		
-		case Common::qubit_index:
-			node->add_child(std::make_shared<Node>(qubit_to_write->get_index_as_string()));
-			break;   
-
-		case Common::circuit_name:
-			node->add_child(std::make_shared<Node>(current_circuit_name));
-			break;
-
-		case Common::qreg_defs: {
-			std::shared_ptr<Qreg_definitions> current_defs = get_current_qreg_defs();
-
-			int min_qubits = (in_subroutine() ? Common::MIN_QUBITS : get_max_defined_qubits());
-			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_EQUALS, current_defs->setup_qregs(min_qubits), Common::qreg_def);
+			context.set_qreg_size(node);
+			break;  
+			
+		case Common::qubit: {
+			bool from_register = context.set_qubit();
+			constraints.constrain_qubit(from_register);
 			break;
 		}
 
-		case Common::qreg_def:
-			qreg_to_write = get_current_qreg_defs()->get_next_qreg();
+		case Common::qubit_name:
+			context.set_qubit_name(node);	
 			break;
-
-		case Common::qubit:
-			qubit_to_write = get_current_qreg_defs()->get_random_qubit(best_entanglement);
+		
+		case Common::qubit_index:
+			context.set_qubit_index(node);
 			break;
 
 		case Common::float_literal:
@@ -141,38 +117,31 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::cx: case Common::cz: case Common::cnot:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(2);
-			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(2));
-
-			// std::cout << str << std::endl;
-			// std::cout << *qig << std::endl;
+			context.set_best_entanglement(2);
 			break;
 
 		case Common::ccx: case Common::cswap:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(3);
-			best_entanglement = std::make_optional<std::vector<int>>(qig->get_best_entanglement(3));
-
-			// std::cout << str << std::endl;
-			// std::cout << *qig << std::endl;
-
+			context.set_best_entanglement(3);
 			break;
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
 			break;
 
 		case Common::u2:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
 			break;
 
 		case Common::u3: case Common::u:
 			node->add_child(std::make_shared<Node>(str));	
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
 			break;
 
 		 case Common::phasedxpowgate:
@@ -252,8 +221,6 @@ void Ast::write_branch(std::shared_ptr<Node> node){
     } else {
         ERROR("Unknown build state!");
     }
-
-	// std::cout << *root_ptr << std::endl;
         
     write_branch(node);
 }
@@ -261,8 +228,10 @@ void Ast::write_branch(std::shared_ptr<Node> node){
 void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int num_programs){
 
 	for(build_counter = 0; build_counter < num_programs; build_counter++){
-		current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
+		fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
 		fs::create_directory(current_circuit_dir);
+
+		context.set_circuits_dir(current_circuit_dir);
 		
 	    Result<Node, std::string> maybe_ast_root = build();
 
@@ -281,7 +250,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 
 			// render graph for main circuit
 			fs::path img_path = current_circuit_dir / "main_circ.png";
-			qig->render_graph(img_path, get_current_qreg_defs());
+			context.maybe_render_qig();
 
 			INFO("Program written to " << program_path.string());
 			INFO("AST written to " << ast_path.string());

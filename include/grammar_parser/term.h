@@ -1,7 +1,7 @@
 #ifndef TERM_H
 #define TERM_H
 
-#include "utils.h"
+#include "../utils/utils.h"
 
 class Rule;
 

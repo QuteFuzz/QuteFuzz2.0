@@ -2,7 +2,7 @@
 #define RULE_H
 
 #include "branch.h"
-#include "constraints.h"
+#include "../ast_builder/constraints.h"
 
 class Rule {
 
