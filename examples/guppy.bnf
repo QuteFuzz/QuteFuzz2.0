@@ -20,7 +20,7 @@ imports = "from guppylang.decorator import guppy"
 
 program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
-subroutines = (block circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
+subroutines = (block NEWLINE)*;
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
