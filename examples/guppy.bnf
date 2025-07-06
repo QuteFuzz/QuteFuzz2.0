@@ -4,8 +4,6 @@ DECORATOR = "@guppy";
 
 QUBIT_TYPE_ANNOT = "qubit";
 
-TAB = "\t";
-
 imports = "from guppylang.decorator import guppy"
         "from guppylang.std.angles import angle, pi"
         "from guppylang.std.builtins import array, owned, py"
@@ -22,15 +20,19 @@ imports = "from guppylang.decorator import guppy"
 
 program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
-subroutines = (block NEWLINE)*;
+subroutines = (block circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
-block     = circuit_def NEWLINE body NEWLINE;
+compiler_call = main_circuit_name ".measure_all() " NEWLINE
+                "pt = pytketTesting() " NEWLINE
+                "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-body = (statement NEWLINE)+ return_statement;
+block     = block_def NEWLINE body NEWLINE;
 
-circuit_def = DECORATOR NEWLINE "def " circuit_name "(" qubit_defs "):";
+block_def = DECORATOR NEWLINE "def " circuit_name "(" qubit_defs "):";
 
 qubit_defs = (qubit_def)+;
+
+body = (statement NEWLINE)+ return_statement;
 
 qubit_def = qubit_def_singular | qubit_def_register;
 
@@ -44,4 +46,23 @@ singular_qubit_apply = qubit_name;
 
 register_qubit_apply = qubit_name "[" qubit_index "]"; 
 
+statement   = gate_application;
+
 return_statement = "return";
+
+gate_application = 
+    ;
+
+gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
+
+gate_application_kind = 
+    ;
+
+qubit_list  = qubit (COMMA SPACE qubit)*;
+
+float_literals = 
+    float_literal 
+    | float_literal COMMA float_literal 
+    | float_literal COMMA float_literal COMMA float_literal
+    ;
+
