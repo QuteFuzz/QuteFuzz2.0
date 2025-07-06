@@ -1,19 +1,28 @@
 # Qiskit grammar
+
 program = imports NEWLINE subroutines NEWLINE circuit NEWLINE compiler_call NEWLINE;
+
+imports = "from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister " NEWLINE
+        "from qiskit.circuit import Parameter, ParameterVector " NEWLINE
+        "from diff_testing.lib import qiskitTesting " NEWLINE
+        "from pathlib import Path " NEWLINE
+        "from math import pi " NEWLINE;
 
 subroutines = (circuit NEWLINE circuit_name "=" circuit_name ".to_gate()" NEWLINE)*;
 
 circuit = circuit_def NEWLINE qreg_defs NEWLINE body;
 
+circuit_def = circuit_name " = QuantumCircuit()";
+
 qreg_defs = (qreg_def NEWLINE)+;
 
 body = (statement NEWLINE)+;
 
-circuit_def = circuit_name " = QuantumCircuit()";
-
 # In Qiskit, qreg are added in two separate lines
 qreg_def = qreg_decl NEWLINE qreg_append;
+
 qreg_decl = qreg_name EQUALS "QuantumRegister" LPAREN qreg_size RPAREN;
+
 qreg_append = circuit_name ".add_register" LPAREN qreg_name RPAREN;
 
 statement = gate_application;
@@ -23,18 +32,19 @@ gate_application =
     | circuit_name ".append(" subroutine ",[" qubit_list "])" 
     ;
 
+gate_name = x | y | z | h | cx | ccx | rz | rx | ry | u;
+
 gate_application_kind = 
     LPAREN qubit_list RPAREN 
     | LPAREN float_literals COMMA qubit_list RPAREN
     ;
 
-float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
-
-gate_name = x | y | z | h | cx | ccx | rz | rx | ry | u;
 qubit_list = qubit (COMMA SPACE qubit)*;
+
 qubit = qubit_name "[" qubit_index "]";
 
-parameter_list = parameter (COMMA SPACE parameter)*;
-parameter =  
-    float_literal 
-    | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
+float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
+
+compiler_call = main_circuit_name ".measure_active() " NEWLINE
+                "qt = qiskitTesting() " NEWLINE
+                "qt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;

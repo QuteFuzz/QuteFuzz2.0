@@ -109,7 +109,7 @@ std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
 }
 
 
-int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Qreg_definitions> current_defs){    
+int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Variables> current_defs){    
     std::string dot_string;
 
     // create dot string    

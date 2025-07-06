@@ -3,30 +3,55 @@
 
 #include "grammar.h"
 #include "ast.h"
-#include "pytket.h"
-#include "qiskit.h"
-#include "cirq.h"
 #include <sstream>
 #include <set>
 #include <iomanip>
 
-
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
 
-typedef struct {
-    std::shared_ptr<Grammar> grammar;
-    std::shared_ptr<Ast> builder;
-    std::string extension;
+struct Program_Spec {
 
-    void setup_builder(const std::string entry_name){
-        if(grammar->is_rule(entry_name)){
-            builder->set_entry(grammar->get_rule_pointer(entry_name));
-        } else {
-            std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
+    public:
+
+        Program_Spec(Grammar& _grammar): 
+            grammar(std::make_shared<Grammar>(_grammar)),
+            builder(std::make_shared<Ast>()),
+            extension(".py")
+        {}
+
+        void setup_builder(const std::string entry_name){
+            if(grammar->is_rule(entry_name)){
+                builder->set_entry(grammar->get_rule_pointer(entry_name));
+            } else {
+                std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
+            }
         }
-    }
 
-} Program_Spec;
+        friend std::ostream& operator<<(std::ostream& stream, Program_Spec spec){
+            stream << "  . " << spec.grammar->get_name() << ": ";
+            spec.grammar->print_rules();
+
+            return stream;
+        }
+
+        void print_grammar(){
+            grammar->print_grammar();
+        }
+
+        void print_tokens(){
+            grammar->print_tokens();
+        }
+
+        void ast_to_program(fs::path output_dir, int num_programs){
+            builder->ast_to_program(output_dir, extension, num_programs);
+        }
+    
+    private:
+        std::shared_ptr<Grammar> grammar;
+        std::shared_ptr<Ast> builder;
+        std::string extension;
+
+};
 
 class Run{
 
@@ -43,9 +68,7 @@ class Run{
             std::cout << "  These are the known grammar rules: " << std::endl;
 
             for(const auto& spec : specs){
-                std::cout << "  . " << spec.first << ": ";
-                spec.second->grammar->print_rules();
-                std::cout << std::endl;
+                std::cout << spec.second << std::endl;
             }
         }
 
@@ -69,7 +92,6 @@ class Run{
         bool run = true;
 
         fs::path output_dir;
-        fs::path results_dir;
 };
 
 #endif

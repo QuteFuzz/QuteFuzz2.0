@@ -6,15 +6,25 @@
 
 program = imports NEWLINE subroutines NEWLINE circuit NEWLINE compiler_call;
 
+imports = "from sympy import Symbol" NEWLINE
+        "from diff_testing.lib import pytketTesting" NEWLINE
+        "from pathlib import Path" NEWLINE
+        "from pytket import Circuit, Qubit, Bit" NEWLINE
+        "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE;
+
 subroutines = (circuit circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
+
+compiler_call = main_circuit_name ".measure_all() " NEWLINE
+                "pt = pytketTesting() " NEWLINE
+                "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
 circuit     = circuit_def NEWLINE qreg_defs NEWLINE body NEWLINE;
 
-qreg_defs = (qreg_def NEWLINE)+; # def /n | def /n def /n | def /n def /n def /n .....
+circuit_def = circuit_name " = Circuit()";
+
+qreg_defs = (qreg_def NEWLINE)+;
 
 body = (statement NEWLINE)+;
-
-circuit_def = circuit_name " = Circuit()";
 
 qreg_def    = qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
@@ -25,17 +35,16 @@ gate_application =
     | circuit_name ".add_gate(" subroutine ",[" qubit_list "])"  
     ;
 
+gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
+
 gate_application_kind = 
     LPAREN qubit_list RPAREN 
     | LPAREN float_literals COMMA qubit_list RPAREN
     ;
 
+qubit_list  = qubit (COMMA SPACE qubit)*;
+
 float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
 
-gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
-qubit_list  = qubit (COMMA SPACE qubit)*;
-qubit = qubit_name "[" qubit_index "]";
-
-parameter_list = parameter (COMMA SPACE parameter)*;
-parameter      = float_literal | "Symbol(\"" identifier SINGLE_QUOTE RPAREN;
+qubit = qubit_name "[" qubit_index "]" | qubit_name;
 

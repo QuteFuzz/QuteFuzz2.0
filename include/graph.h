@@ -2,7 +2,7 @@
 #define GRAPH_H
 
 #include "utils.h"
-#include "qubit.h"
+#include "variables.h"
 #include <fstream>
 #include <limits>
 
@@ -81,7 +81,7 @@ class Graph {
             return stream;
         }
 
-        int render_graph(fs::path& img_path, std::shared_ptr<Qreg_definitions> current_defs);
+        int render_graph(fs::path& img_path, std::shared_ptr<Variables> current_defs);
 
     private:
         int vertices = 0;

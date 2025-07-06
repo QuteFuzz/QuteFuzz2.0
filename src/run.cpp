@@ -36,29 +36,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;
-             
-                    Program_Spec spec;
-                    
-                    spec.grammar = std::make_shared<Grammar>(grammar);
-                    
-                    if(name == "pytket"){
-                        spec.builder = std::make_shared<Pytket>();
-                        spec.extension = ".py";
-
-                    } else if(name == "qiskit"){
-                        spec.builder = std::make_shared<Qiskit>();
-                        spec.extension = ".py";
-
-                    } else if(name == "cirq"){
-                        spec.builder = std::make_shared<Cirq>();
-                        spec.extension = ".py";
-                        
-                    } else {
-                        spec.builder = std::make_shared<Ast>();
-                        spec.extension = ".txt";
-                    }
-
-                    specs[name] = std::make_shared<Program_Spec>(spec);
+                    specs[name] = std::make_shared<Program_Spec>(grammar);
                     
                 }
 
@@ -150,10 +128,10 @@ void Run::loop(){
             help();
             
         } else if ((current_command == "print") && (current_spec != nullptr)){
-            current_spec->grammar->print_grammar();
+            current_spec->print_grammar();
         
         } else if ((current_command == "print_tokens") && (current_spec != nullptr)){
-            current_spec->grammar->print_tokens();
+            current_spec->print_tokens();
 
         } else if ((current_command == "plot") && (current_spec != nullptr)) {
             Common::plot = !Common::plot;
@@ -198,8 +176,7 @@ void Run::loop(){
         } else if ((current_spec != nullptr) && (n = safe_stoi(current_command)) && (n.has_value())){ 
             // Clear the outputs and plots directory first before generating new outputs
             remove_all_in_dir(output_dir);
-            remove_all_in_dir(results_dir);
-            current_spec->builder->ast_to_program(output_dir, current_spec->extension, n.value());
+            current_spec->ast_to_program(output_dir, n.value());
 
         } else {
             std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;
