@@ -138,14 +138,11 @@ namespace Common {
 
         // RULE NAMES
         imports = 5522660700275282789ULL,
-        compiler_call = 16764506069072603013ULL,
-        circuit = 18088473315674432532ULL,
+        block = 1505885265403634530ULL,
         circuit_name = 5389401364268778602ULL,
         float_literal = 6014115549703600901ULL,
         float_literals = 1060812461093276034ULL,
         main_circuit_name = 15359974437464362266ULL,
-        qreg_defs = 3680647047563729043ULL,
-        qreg_def = 11422033681961328082ULL,
 
         body = 14793735007222968981ULL,
         qreg_name = 10722739978486866664ULL,
@@ -158,15 +155,16 @@ namespace Common {
         statement = 7142774524121430294ULL,
         qubit_defs = 10682880043223733083ULL,
         qubit_def = 11301569403047543754ULL,
-        variable = 10336821957780101189ULL,
-        args = 9892491401042369916ULL,
+        qubit_def_singular = 9249986013525299186ULL,
+        qubit_def_register = 5722937179312204226ULL,
+        singular_qubit_apply = 16057399092026961573ULL,
+        register_qubit_apply = 9889855029909000101ULL,
 
         qubit_name = 8757953683662904688ULL,
         qubit_index = 6830264791288854081ULL,
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
-        compiler_pass = 3974794937176199188ULL,
     };
 }
 

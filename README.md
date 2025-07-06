@@ -60,8 +60,3 @@ Outputs are in the `outputs` folder.
 - Automatic test reduction
 - How to generate loops that terminate?
 
-## Todo
-- [x] Extend QIG to work for any number of qubits
-- [ ] Make the AST modifiable to allow polymorphic testing
-- [ ] Add support for loops
-- [ ] Add support for other front-ends 

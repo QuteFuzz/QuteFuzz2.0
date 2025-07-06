@@ -6,35 +6,42 @@ QUBIT_TYPE_ANNOT = "qubit";
 
 TAB = "\t";
 
-imports = "from guppylang.decorator import guppy" NEWLINE
-        "from guppylang.std.angles import angle, pi" NEWLINE
-        "from guppylang.std.builtins import array, owned, py" NEWLINE
-        "from guppylang.std.option import Option, nothing, some" NEWLINE
-        "from guppylang.std.quantum import (" NEWLINE
-            "cz," NEWLINE
-            "discard," NEWLINE
-            "h," NEWLINE
-            "measure," NEWLINE
-            "qubit," NEWLINE
-            "ry," NEWLINE
-            "rz," NEWLINE
-        ")" NEWLINE;
+imports = "from guppylang.decorator import guppy"
+        "from guppylang.std.angles import angle, pi"
+        "from guppylang.std.builtins import array, owned, py"
+        "from guppylang.std.option import Option, nothing, some"
+        "from guppylang.std.quantum import ("
+            "cz,"
+            "discard,"
+            "h,"
+            "measure,"
+            "qubit,"
+            "ry,"
+            "rz"
+        ")";
 
-program = imports NEWLINE subroutines NEWLINE circuit NEWLINE compiler_call;
+program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
-subroutines = (circuit NEWLINE)*;
+subroutines = (block NEWLINE)*;
 
-circuit     = circuit_def NEWLINE qubit_defs NEWLINE body NEWLINE;
+block     = circuit_def NEWLINE body NEWLINE;
 
-body = (statement NEWLINE)+;
+body = (statement NEWLINE)+ return_statement;
 
-circuit_def = DECORATOR NEWLINE "def " circuit_name "(" args "):";
+circuit_def = DECORATOR NEWLINE "def " circuit_name "(" qubit_defs "):";
 
-args = qubit_defs;
+qubit_defs = (qubit_def)+;
 
-qubit_defs = (qubit_def COMMA)+;
+qubit_def = qubit_def_singular | qubit_def_register;
 
-qubit_def = qubit_name " : " QUBIT_TYPE_ANNOT;
+qubit_def_singular = qubit_name " : " QUBIT_TYPE_ANNOT;
 
-qubit = qubit_name "[" qubit_index "]" | qubit_name;
+qubit_def_register = qreg_name " : array[" QUBIT_TYPE_ANNOT ", " qreg_size "]";
 
+qubit = singular_qubit_apply | register_qubit_apply;
+
+singular_qubit_apply = qubit_name;
+
+register_qubit_apply = qubit_name "[" qubit_index "]"; 
+
+return_statement = "return";

@@ -1,8 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "term.h"
-#include "grammar.h"
+#include "../grammar_parser/term.h"
+#include "../grammar_parser/grammar.h"
 
 enum Node_build_state {
     NB_INIT,

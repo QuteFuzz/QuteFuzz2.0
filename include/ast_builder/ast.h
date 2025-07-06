@@ -3,12 +3,12 @@
 
 #include <optional>
 #include <algorithm>
-#include "term.h"
-#include "grammar.h"
+#include "../grammar_parser/term.h"
+#include "../grammar_parser/grammar.h"
 #include "node.h"
 #include "constraints.h"
-#include "graph.h"
-#include "variables.h"
+#include "../qig/graph.h"
+#include "block.h"
 #include "context.h"
 
 class Ast{
@@ -39,7 +39,6 @@ class Ast{
         
             if(entry == nullptr){
                 res.set_error("Entry point not set");
-                return res;
         
             } else {
                 context.reset();
@@ -49,8 +48,9 @@ class Ast{
                 write_branch(root_ptr);
 
                 res.set_ok(*root_ptr);
-                return res;
             }
+
+            return res;
         }
 
         /// @brief Try to find particular node by searching from root pointer
@@ -63,13 +63,6 @@ class Ast{
         virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 
     protected:
-        virtual std::string imports(){
-            return "";
-        }
-
-        virtual std::string compiler_call(){
-            return "";
-        }
 
         /// @brief Simplest writer simply prints all terminals, or loops through all children until it eaches a terminal
         /// @param stream 
@@ -77,12 +70,13 @@ class Ast{
         /// @return 
         virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
             std::string str = node.get_string();
+            std::vector<std::shared_ptr<Node>> children = node.get_children();
 
             if(node.is_syntax()){
                 stream << str;            
-                return stream;    
+
             } else {
-                write_children(stream, node);
+                write_children(stream, children);
             }
         
             return stream;
@@ -91,13 +85,15 @@ class Ast{
         /// @brief Loop through and call `write` on each child of the given node
         /// @param stream 
         /// @param node
-        /// @param end_string a string to write at the end of each call to `write` (Optional)
         /// @return 
-        std::ofstream& write_children(std::ofstream& stream, const Node& node, const std::string end_string = ""){
-            std::vector<std::shared_ptr<Node>> children = node.get_children();
+        std::ofstream& write_children(std::ofstream& stream, 
+            const std::vector<std::shared_ptr<Node>>& children, 
+            std::string suffix = "")
+        {
 
             for(auto child : children){
-                write(stream, *child) << end_string;
+                write(stream, *child);
+                stream << suffix;
             }
 
             return stream;

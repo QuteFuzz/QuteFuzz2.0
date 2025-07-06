@@ -1,8 +1,9 @@
 #ifndef CONSTRAINTS_H
 #define CONSTRAINTS_H
 
-#include "term.h"
-#include "branch.h"
+#include "../grammar_parser/term.h"
+#include "../grammar_parser/branch.h"
+#include "qubit_def.h"
 
 /// @brief A constraint on some property of a branch
 namespace Constraints {
@@ -28,7 +29,7 @@ namespace Constraints {
 
             bool is_satisfied(const U64 _node, const Branch& b);
 
-            bool on(const U64 node_hash, Type t, size_t n, U64 _count_node);
+            bool is(const U64 node_hash, Type t, size_t n, U64 _count_node);
 
             friend std::ostream& operator<<(std::ostream& stream, Constraint& constraint){
                 stream << "============================================" << std::endl;
@@ -80,42 +81,64 @@ namespace Constraints {
 
     };
 
-    #define ON_RULES_CONSTRAINT(node_hash, type, n, count_node, must_satisfy) (Constraint(node_hash, type, n, count_node, false, must_satisfy))
-    #define N_QUBIT_CONSTRAINT(n, must_satisfy) (ON_RULES_CONSTRAINT(Common::qubit_list, NUM_GIVEN_RULE_EQUALS, n, Common::qubit, must_satisfy))
+    #define SIZE_CONSTRAINT(node_hash, type, n, count_node, must_satisfy) (Constraint(node_hash, type, n, count_node, false, must_satisfy))
+    #define N_QUBIT_CONSTRAINT(n, must_satisfy) (SIZE_CONSTRAINT(Common::qubit_list, NUM_GIVEN_RULE_EQUALS, n, Common::qubit, must_satisfy))
 
     struct Constraints {
         
         public:
-            Constraints(){}
+            Constraints(){
+                num_default_constraints = constraints.size();
+            }
 
             bool are_satisfied(const U64 _node, const Branch& b);
 
-            void add_rules_constraint(U64 node_hash, Type t, size_t n, U64 _count_node);
+            void push_back(const Constraint& constraint){
+                constraints.push_back(constraint);
+            }
 
             void add_n_qubit_constraint(size_t n, bool is_rotation = false);
 
-            inline void add_recursion_constraint(){ constraints[4].must_satisfy = true; }
+            inline void add_recursion_constraint(){ 
+                constraints[4].must_satisfy = true; 
+            }
 
-            inline void allow_subroutines(bool flag){ constraints[7].set_global(!flag); }
+            inline void allow_subroutines(bool flag){ 
+                constraints[7].set_global(!flag); 
+            }
 
-            inline void set_qubit_kind(bool from_register) { 
-                
-                if(from_register){
+            void constrain_qubit_def(Qubit_def::Type type){
+                if(type == Qubit_def::REGISTER){
                     constraints[8].must_satisfy = true;
                     constraints[9].must_satisfy = false;
                 } else {
                     constraints[8].must_satisfy = false;
                     constraints[9].must_satisfy = true;
                 }
-                
             }
+
+            void constrain_qubit(bool from_register){
+                if(from_register){
+                    constraints[10].must_satisfy = true;
+                    constraints[11].must_satisfy = false;
+                } else {
+                    constraints[10].must_satisfy = false;
+                    constraints[11].must_satisfy = true;
+                }
+            }
+
+            void constrain_num_subroutines(){
+                constraints[12].must_satisfy = true;
+            }
+
+            void add_size_constraint(U64 node_hash, Type t, size_t n, U64 _count_node);
             
             /// @brief Prints just the default constraints
             /// @param stream 
             /// @param constraints 
             /// @return 
             friend std::ostream& operator<<(std::ostream& stream, Constraints constraints){
-                for(int i = 0; i < 8; i++){
+                for(size_t i = 0; i < constraints.num_default_constraints; i++){
                     stream << constraints.constraints[i] << std::endl;
 
                 }
@@ -125,17 +148,49 @@ namespace Constraints {
         private:
     
             std::vector<Constraint> constraints = {
+                /*
+                    0, 1, 2, constraints for up to 3 qubits, others added during runtime
+                */
                 N_QUBIT_CONSTRAINT(1, false),
                 N_QUBIT_CONSTRAINT(2, false),
                 N_QUBIT_CONSTRAINT(3, false),
+
+                /*
+                    3, 4, constraints on gate applications with / without arguments
+                */
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, {Common::float_literals, Common::qubit_list}),
                 Constraint(Common::gate_application_kind, BRANCH_EQUALS, std::vector<U64>({Common::qubit_list})),
+
+                /*
+                    5, choose branch without reference to the rule
+                */
                 Constraint(BRANCH_IS_NON_RECURSIVE),
+
+                /*
+                    6, 7
+                */
                 Constraint(Common::gate_name, BRANCH_IN, std::vector<U64>({Common::ry}), false),
                 Constraint(Common::gate_application, BRANCH_EQUALS, {Common::circuit_name, Common::gate_name, Common::gate_application_kind}, true),
-                Constraint(Common::qubit, BRANCH_EQUALS, {Common::qubit_name, Common::qubit_index}),
-                Constraint(Common::qubit, BRANCH_EQUALS, std::vector<U64>({Common::qubit_name})),
+
+                /*
+                    8, 9, qubit definition is singular, or a register
+                */
+                Constraint(Common::qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::qubit_def_register})),
+                Constraint(Common::qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::qubit_def_singular})),
+
+                /*
+                    10, 11, qubit application is singular or from register
+                */
+                Constraint(Common::qubit, BRANCH_EQUALS, std::vector<U64>({Common::register_qubit_apply})),
+                Constraint(Common::qubit, BRANCH_EQUALS, std::vector<U64>({Common::singular_qubit_apply})),
+
+                /*
+                    12, how many subroutines should be generated?
+                */
+                Constraint(Common::subroutines, NUM_GIVEN_RULE_MAXIMUM, Common::MAX_SUBROUTINES, Common::block)
             };
+
+            size_t num_default_constraints;
 
     };
 }

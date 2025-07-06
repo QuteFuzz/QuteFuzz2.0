@@ -1,4 +1,4 @@
-#include "../include/branch.h"
+#include "../../include/grammar_parser/branch.h"
 
 void Branch::print(std::ostream& os) const {
     for(const auto& elem : terms){
@@ -8,23 +8,9 @@ void Branch::print(std::ostream& os) const {
     os << " [non_terminals: " << num_pointer_terms() << "] ";
 }
 
-/// @brief When adding a term to a branch, check whether it can be combined with the previous term that was added
-/// @param term 
 void Branch::add(const Term& term){
-    size_t size = terms.size();
-
     if(term.is_rule_pointer()) pointer_terms.push_back(std::make_shared<Term>(term));
-
-    if(size){
-        auto last_term = terms.end()-1; // reference to the last term in the branch
-        
-        if(last_term->is_syntax() && term.is_syntax()) *last_term += term;
-        else terms.push_back(term);
-
-    } else {
-        terms.push_back(term);
-
-    }
+    terms.push_back(term);
 }
 
 /// @brief Given the current branch and the nesting depth, work out which terms within a branch should be multiplied. The term's grouping scope tells you that, which is 
@@ -74,3 +60,4 @@ bool Branch::pointer_terms_in(std::vector<U64> term_hashes) const {
 
     return false;
 }
+

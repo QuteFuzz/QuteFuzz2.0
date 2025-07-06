@@ -1,4 +1,4 @@
-#include "../include/ast.h"
+#include "../../include/ast_builder/ast.h"
 
 
 void Ast::transition_from_init(std::shared_ptr<Node> node){
@@ -17,13 +17,13 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 
 	switch(hash){
 		
-		case Common::circuit: {
+		case Common::block: {
 			context.maybe_render_qig();
 
-			constraints.add_rules_constraint(
+			constraints.add_size_constraint(
 				Common::body,
 				Constraints::NUM_GIVEN_RULE_EQUALS,
-				context.setup_circuit_block(),
+				context.setup_block(),
 				Common::statement
 			);
 
@@ -45,7 +45,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 			
 		case Common::subroutines:
-			constraints.add_rules_constraint(hash, Constraints::NUM_GIVEN_RULE_MAXIMUM, Common::MAX_SUBROUTINES, Common::circuit);
+			constraints.constrain_num_subroutines();
 			context.set_subroutines_node(node);
 			break;
 
@@ -54,7 +54,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			break;
 
 		case Common::subroutine: {				
-			std::shared_ptr<Variables> subroutine = context.get_random_block();
+			std::shared_ptr<Block> subroutine = context.get_random_block();
 			int num_sub_qubits = subroutine->num_qubits();
 
 			context.set_best_entanglement(num_sub_qubits);
@@ -67,20 +67,21 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			context.set_circuit_name(node);
 			break;
 
-		case Common::qreg_defs: {
-			constraints.add_rules_constraint(
+		case Common::qubit_defs : {
+			constraints.add_size_constraint(
 				hash, 
 				Constraints::NUM_GIVEN_RULE_EQUALS, 
-				context.setup_qregs(), 
-				Common::qreg_def
+				context.setup_qubit_defs(),
+				Common::qubit_def
 			);
-		
+
 			break;
 		}
 
-		case Common::qreg_def:
-			context.set_qreg();
+		case Common::qubit_def : {
+			constraints.constrain_qubit_def(context.set_qubit_def());			
 			break;
+		}
 
 		case Common::qreg_name:
 			context.set_qreg_name(node);
@@ -89,26 +90,10 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::qreg_size:
 			context.set_qreg_size(node);
 			break;  
-
-		case Common::qubit_defs : {
-			constraints.add_rules_constraint(
-				hash, 
-				Constraints::NUM_GIVEN_RULE_EQUALS, 
-				context.setup_qubits(),
-				Common::qubit_def
-			);
-		
-			break;
-		}
-
-		case Common::qubit_def: {
-			context.set_qubit(true);
-			break;
-		}
- 
+			
 		case Common::qubit: {
 			bool from_register = context.set_qubit();
-			constraints.set_qubit_kind(from_register);
+			constraints.constrain_qubit(from_register);
 			break;
 		}
 
@@ -144,19 +129,19 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
 			break;
 
 		case Common::u2:
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
 			break;
 
 		case Common::u3: case Common::u:
 			node->add_child(std::make_shared<Node>(str));	
 			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_rules_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
+			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
 			break;
 
 		 case Common::phasedxpowgate:

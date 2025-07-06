@@ -1,4 +1,4 @@
-#include "../include/constraints.h"
+#include "../../include/ast_builder/constraints.h"
 
 namespace Constraints {
 
@@ -70,11 +70,11 @@ namespace Constraints {
         }
     }
 
-    bool Constraint::on(const U64 node_hash, Type t, size_t n, U64 _count_node){
+    bool Constraint::is(const U64 node_hash, Type t, size_t n, U64 _count_node){
         if((t == NUM_GIVEN_RULE_MAXIMUM) || (t == NUM_GIVEN_RULE_MINIMUM) || (t == NUM_GIVEN_RULE_EQUALS)){
             return (node_hash == node) && (n == std::get<size_t>(value)) && (count_node == _count_node);
         } else {
-            ERROR("Should only call on for rule constraints");
+            ERROR("Should only call on for constraints counting number of rules in a branch");
             return false;
         }
     }
@@ -87,20 +87,21 @@ namespace Constraints {
         return true;
     }
 
-    void Constraints::add_rules_constraint(U64 node_hash, Type t, size_t n, U64 _count_node){
+    void Constraints::add_size_constraint(U64 node_hash, Type t, size_t n, U64 _count_node){
 
         if(n > WILDCARD_MAX){
             ERROR("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules cannot be satisfied!");
+
         } else {
 
             for(Constraint& constraint : constraints){
-                if (constraint.on(node_hash, t, n, _count_node)){
+                if (constraint.is(node_hash, t, n, _count_node)){
                     constraint.must_satisfy = true;
                     return;
                 }
             }
 
-            constraints.push_back(ON_RULES_CONSTRAINT(node_hash, t, n, _count_node, true));
+            constraints.push_back(SIZE_CONSTRAINT(node_hash, t, n, _count_node, true));
             INFO("Constraint on " + std::to_string(node_hash) + " for " + std::to_string(n) + " rules added ");
     
         }
@@ -120,7 +121,7 @@ namespace Constraints {
         }
 
         for(Constraint& constraint : constraints){
-            if(constraint.on(Common::qubit_list, NUM_GIVEN_RULE_EQUALS, n, Common::qubit)){
+            if(constraint.is(Common::qubit_list, NUM_GIVEN_RULE_EQUALS, n, Common::qubit)){
                 constraint.must_satisfy = true;
                 return;
             }

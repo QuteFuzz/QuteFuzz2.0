@@ -1,8 +1,8 @@
 #ifndef RUN_H
 #define RUN_H
 
-#include "grammar.h"
-#include "ast.h"
+#include "grammar_parser/grammar.h"
+#include "frontend_parsers/guppy.h"
 #include <sstream>
 #include <set>
 #include <iomanip>
@@ -14,10 +14,16 @@ struct Program_Spec {
     public:
 
         Program_Spec(Grammar& _grammar): 
-            grammar(std::make_shared<Grammar>(_grammar)),
-            builder(std::make_shared<Ast>()),
+            grammar(std::make_shared<Grammar>(_grammar)),        
             extension(".py")
-        {}
+        {
+            if(grammar->get_name() == "guppy"){
+                builder = std::make_shared<Guppy>();
+            } else {
+                builder = std::make_shared<Ast>();
+            }
+            
+        }
 
         void setup_builder(const std::string entry_name){
             if(grammar->is_rule(entry_name)){
