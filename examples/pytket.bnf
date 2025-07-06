@@ -18,9 +18,9 @@ compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
                 "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-block     = circuit_def NEWLINE qubit_defs NEWLINE body NEWLINE;
+block     = block_def NEWLINE qubit_defs NEWLINE body NEWLINE;
 
-circuit_def = circuit_name " = Circuit()";
+block_def = circuit_name " = Circuit()";
 
 qubit_defs = (qubit_def NEWLINE)+;
 
