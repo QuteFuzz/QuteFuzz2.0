@@ -32,6 +32,7 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 
 		case Common::body: {
 			constraints.allow_subroutines(context.can_apply_subroutines());
+			node -> set_indent_depth(node->get_indent_depth() + 1);
 			context.set_qig();
 			break;
 		}
@@ -149,9 +150,6 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			node->add_child(std::make_shared<Node>(str));
 			constraints.add_n_qubit_constraint(1, true);
 			break;
-		
-		case Common::type:
-			break;
 
 		default:
 			break;   
@@ -202,8 +200,8 @@ void Ast::write_branch(std::shared_ptr<Node> node){
 
         for(size_t i = 0; i < branch.size(); i++){
             std::shared_ptr<Node> child_node;
-
-			child_node = std::make_shared<Node>(branch.at(i), node->get_depth() + 1);
+			
+			child_node = std::make_shared<Node>(branch.at(i), node->get_depth() + 1, node->get_indent_depth());
 			node->add_child(child_node); 
 
             write_branch(child_node);

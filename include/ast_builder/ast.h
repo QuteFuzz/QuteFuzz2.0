@@ -73,8 +73,7 @@ class Ast{
             std::vector<std::shared_ptr<Node>> children = node.get_children();
 
             if(node.is_syntax()){
-                stream << str;            
-
+                stream << str;
             } else {
                 write_children(stream, children);
             }
@@ -90,7 +89,6 @@ class Ast{
             const std::vector<std::shared_ptr<Node>>& children, 
             std::string suffix = "")
         {
-
             for(auto child : children){
                 write(stream, *child);
                 stream << suffix;

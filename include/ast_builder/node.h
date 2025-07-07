@@ -18,8 +18,9 @@ class Node : public std::enable_shared_from_this<Node> {
 
         /// @brief Create node from a term. 
         /// @param _term 
-        /// @param _depth 
-        Node(const Term& _term, int _depth) : term(_term), depth(_depth){}
+        /// @param _depth
+        /// @param _indent_depth 
+        Node(const Term& _term, int _depth, int _indent_depth) : term(_term), depth(_depth), indent_depth(_indent_depth) {}
 
         Node(const std::string syntax){
             term.set(syntax);
@@ -49,6 +50,7 @@ class Node : public std::enable_shared_from_this<Node> {
             str += end;
         }
 
+        /// @brief Indent for ast printing only
         std::string indent() const {
             std::string str = "\n";
 
@@ -188,6 +190,14 @@ class Node : public std::enable_shared_from_this<Node> {
             depth = _depth;
         }
 
+        int get_indent_depth() const {
+            return indent_depth;
+        }
+
+        void set_indent_depth(int _depth){
+            indent_depth = _depth;
+        }
+
         Node_build_state build_state() const {
             return nb;
         }
@@ -221,6 +231,7 @@ class Node : public std::enable_shared_from_this<Node> {
     private:
         Term term;
         int depth = 0;
+        int indent_depth = 0;
         std::vector<std::shared_ptr<Node>> children;
         size_t num_rule_pointer_nodes = 0;
         Node_build_state nb = NB_INIT;

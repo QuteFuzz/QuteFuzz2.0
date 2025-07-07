@@ -167,10 +167,14 @@ namespace Constraints {
                 Constraint(BRANCH_IS_NON_RECURSIVE),
 
                 /*
-                    6, 7
+                    6, Gate subset for swarm testing
                 */
                 Constraint(Common::gate_name, BRANCH_IN, std::vector<U64>({Common::ry}), false),
-                Constraint(Common::gate_application, BRANCH_EQUALS, {Common::circuit_name, Common::gate_name, Common::gate_application_kind}, true),
+                
+                /*
+                    7, Allow subroutines, by choosing only branch containing gate name and not subroutine names
+                */
+                Constraint(Common::gate_application, BRANCH_IN, {Common::gate_name, Common::gate_application_kind}, true),
 
                 /*
                     8, 9, qubit definition is singular, or a register

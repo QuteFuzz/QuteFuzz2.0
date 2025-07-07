@@ -1,30 +1,35 @@
 # Grammar for guppylang: https://github.com/CQCL/guppylang
 
-program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
 
-block     = block_def NEWLINE body NEWLINE;
+block       = block_def NEWLINE body NEWLINE;
 
-qreg_defs = (qreg_def NEWLINE)+; # def /n | def /n def /n | def /n def /n def /n .....
+body        = (statement NEWLINE)+ return_statement;
 
-body = (statement NEWLINE)+ return_statement;
-
-block_def = "@guppy" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> " type COLON
-            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> " type COLON
+block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> None" type COLON
+            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> None" type COLON
             ;
 
-subroutine_parameters = qubit_defs #Add additional traditional parameters in future
+subroutine_parameters = qubit_defs; #Add additional traditional parameters in future
 
-qubit_defs = (qubit_def)+;
+qubit_defs  = (qubit_def)+;
 
-qubit_def = qubit_def_singular | qubit_def_register;
+qubit_def   =   qubit_def_singular 
+                | qubit_def_register;
 
-qubit_def_singular = qubit_name COLON "qubit";
+qubit_def_singular = qubit_name COLON "qubit" # For external qubits
+                    # | qubit_name EQUALS "qubit" LPAREN RPAREN # For internal qubits
+                    ;
 
-qubit_def_register    = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
+qubit_def_register = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK
+                    # | qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN
+                    ;
 
 statement   = gate_application;
+
+return_statement = "return";
 
 gate_application = gate_name gate_application_kind;
 
@@ -33,7 +38,9 @@ gate_application_kind =
     | LPAREN float_literals COMMA qubit_list RPAREN
     ;
 
-float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
+float_literals = float_literal 
+                | float_literal COMMA float_literal 
+                | float_literal COMMA float_literal COMMA float_literal;
 
 gate_name = 
     x | y | z | h | cx | toffoli | rz | rx | ry
@@ -43,35 +50,26 @@ gate_name =
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
 
-qubit = singular_qubit_apply | register_qubit_apply;
+qubit       = singular_qubit_apply | register_qubit_apply;
 
 singular_qubit_apply = qubit_name;
 
 register_qubit_apply = qubit_name "[" qubit_index "]"; 
 
-
-
-imports = "from guppylang.decorator import guppy"
-        "from guppylang.std.angles import angle, pi"
-        "from guppylang.std.builtins import array, owned, py"
-        "from guppylang.std.option import Option, nothing, some"
-        "from guppylang.std.quantum import ("
-            "cz,"
-            "discard,"
-            "h,"
-            "measure,"
-            "qubit,"
-            "ry,"
-            "rz"
-        ")";
+imports = "from guppylang.decorator import guppy "
+        "from guppylang.std.angles import angle, pi "
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned "
+        "from guppylang.std.quantum import * "
+        "from selene_sim import build, Stim "
+        "from diff_testing.lib import guppyTesting "
+        "from pathlib import Path ";
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
                 "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-
-
-
-
-
-
+compiler_call = "runner = build(guppy.compile(main))" NEWLINE
+                    "print(list(runner.run(Stim(), n_qubits=" n_qubits ")))" NEWLINE
+                    main_circuit_name" .measure_all()" NEWLINE
+                    "gt = guppyTesting() " NEWLINE
+                    "gt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;

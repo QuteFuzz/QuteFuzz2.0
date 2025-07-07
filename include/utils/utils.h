@@ -172,16 +172,11 @@ namespace Common {
         circuit_id = 12523072865437646660ULL,
 
         // Guppy rules
-        // function = 155458554138578825ULL,
-        // functions = 7226689850546349518ULL,
-        // function_name = 6361558985692373033ULL,
         subroutine_parameters = 7194359601375039272ULL,
         subroutine_parameter = 13617813261817958475ULL,
         type = 12075340201627130925ULL,
-        // function_body = 2788772483248937158ULL,
         parameter_name = 12726161396389809054ULL,
         // assignment = 7458258374037456624ULL,
-        // qubit_assignment = 15287957504402221314ULL,
         // integer_assignment = 15799624338714905563ULL,
         // float_assignment = 15010901291599723643ULL,
         // variable_names = 13035807904021403226ULL,
@@ -192,7 +187,8 @@ namespace Common {
         measure_array = 5009991113106631741ULL,
         reset = 1086335023529244512ULL,
         project_z = 2608459580584910443ULL,
-        // main = 2258945139493307336ULL,
+        
+        // indent = 8881161079555216635ULL,
     };
 }
 

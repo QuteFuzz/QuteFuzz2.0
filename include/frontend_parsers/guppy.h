@@ -14,7 +14,13 @@ class Guppy : public Ast {
             size_t num_children = children.size();
 
             if(node.is_syntax()){
-                stream << str;            
+                stream << str;
+                // Always write tabs after newline so that the syntax is indented correctly
+                if(str.back() == '\n'){
+                    for(int i = 0; i < node.get_indent_depth(); i++){
+                        stream << "\t";
+                    }
+                }            
 
             } else {
 
@@ -36,6 +42,14 @@ class Guppy : public Ast {
                         write_children(stream, children, "\n");
                         break;
 
+                    case Common::body:
+                        //Indent first before first child
+                        for(int i = 0; i < node.get_indent_depth(); i++){
+                            stream << "\t";
+                        }
+                        write_children(stream, children);
+                        break;
+                        
                     default:
                         write_children(stream, children);
                         break;
