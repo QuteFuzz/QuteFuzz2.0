@@ -68,6 +68,7 @@ class Node {
             str += end;
         }
 
+        /// @brief Indent for ast printing only
         std::string indent() const {
             std::string str = "\n";
 

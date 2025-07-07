@@ -1,6 +1,6 @@
 # guppy
 
-program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 DECORATOR = "@guppy";
 

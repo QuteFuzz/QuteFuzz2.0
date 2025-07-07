@@ -59,7 +59,6 @@ class Ast{
             const std::vector<std::shared_ptr<Node>>& children, 
             std::string suffix = "")
         {
-
             for(auto child : children){
                 write(stream, *child);
                 stream << suffix;
