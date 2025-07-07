@@ -1,5 +1,5 @@
-#include "../../include/grammar_parser/term.h"
-#include "../../include/grammar_parser/rule.h"
+#include <term.h>
+#include <rule.h>
 
 void Term::set(std::shared_ptr<Rule> term){
     value = term;

@@ -1,8 +1,8 @@
 #ifndef RUN_H
 #define RUN_H
 
-#include "grammar_parser/grammar.h"
-#include "frontend_parsers/guppy.h"
+#include <grammar.h>
+#include <guppy.h>
 #include <sstream>
 #include <set>
 #include <iomanip>

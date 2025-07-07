@@ -1,7 +1,7 @@
 #ifndef QUBIT_DEF_H
 #define QUBIT_DEF_H
 
-#include "../utils/utils.h"
+#include <utils.h>
 
 namespace Qubit_def {
 

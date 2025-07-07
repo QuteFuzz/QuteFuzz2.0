@@ -1,4 +1,4 @@
-#include "../../include/ast_builder/constraints.h"
+#include <constraints.h>
 
 namespace Constraints {
 

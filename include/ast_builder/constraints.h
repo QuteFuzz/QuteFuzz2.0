@@ -1,9 +1,9 @@
 #ifndef CONSTRAINTS_H
 #define CONSTRAINTS_H
 
-#include "../grammar_parser/term.h"
-#include "../grammar_parser/branch.h"
-#include "qubit_def.h"
+#include <term.h>
+#include <branch.h>
+#include <qubit_def.h>
 
 /// @brief A constraint on some property of a branch
 namespace Constraints {

@@ -1,4 +1,4 @@
-#include "../../include/grammar_parser/rule.h"
+#include <rule.h>
 
 void Rule::print(std::ostream& os) const {
     for(const auto& elem : branches){

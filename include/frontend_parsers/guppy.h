@@ -1,7 +1,7 @@
 #ifndef GUPPY_H
 #define GUPPY_H
 
-#include "../ast_builder/ast.h"
+#include <ast.h>
 
 class Guppy : public Ast {
 

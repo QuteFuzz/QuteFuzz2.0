@@ -1,4 +1,4 @@
-#include "../../include/ast_builder/block.h"
+#include <block.h>
 
 size_t Block::add_qubit(bool external){
     std::shared_ptr<Qubit_def::Qubit> qubit = std::make_shared<Qubit_def::Qubit>("qubit");

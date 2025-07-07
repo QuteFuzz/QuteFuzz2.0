@@ -1,9 +1,9 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#include "block.h"
-#include "node.h"
-#include "../qig/graph.h"
+#include <block.h>
+#include <node.h>
+#include <graph.h>
 
 namespace Context {
 

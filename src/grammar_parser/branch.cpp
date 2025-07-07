@@ -1,4 +1,4 @@
-#include "../../include/grammar_parser/branch.h"
+#include <branch.h>
 
 void Branch::print(std::ostream& os) const {
     for(const auto& elem : terms){

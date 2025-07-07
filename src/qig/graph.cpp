@@ -1,4 +1,4 @@
-#include "../../include/qig/graph.h"
+#include <graph.h>
 
 std::vector<int> Graph::djikstras(int source_node){
 

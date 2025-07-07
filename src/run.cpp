@@ -1,4 +1,4 @@
-#include "../include/run.h"
+#include <run.h>
 
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
     // build all grammars

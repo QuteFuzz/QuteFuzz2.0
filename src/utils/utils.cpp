@@ -1,4 +1,4 @@
-#include "../../include/utils/utils.h"
+#include <utils.h>
 
 namespace Common {
     Qubit_combinations QUBIT_COMBINATIONS;

@@ -1,7 +1,7 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include "qubit_def.h"
+#include <qubit_def.h>
 
 class Block {
 

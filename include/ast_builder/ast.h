@@ -3,13 +3,14 @@
 
 #include <optional>
 #include <algorithm>
-#include "../grammar_parser/term.h"
-#include "../grammar_parser/grammar.h"
-#include "node.h"
-#include "constraints.h"
-#include "../qig/graph.h"
-#include "block.h"
-#include "context.h"
+#include <term.h>
+#include <grammar.h>
+#include <node.h>
+#include <constraints.h>
+#include <graph.h>
+#include <block.h>
+#include <context.h>
+
 
 class Ast{
     public:

@@ -1,4 +1,4 @@
-#include "../../include/ast_builder/ast.h"
+#include <ast.h>
 
 
 void Ast::transition_from_init(std::shared_ptr<Node> node){

@@ -1,7 +1,7 @@
 #ifndef BRANCH_H
 #define BRANCH_H
 
-#include "term.h"
+#include <term.h>
 
 typedef struct {
     std::vector<Term> remainders;

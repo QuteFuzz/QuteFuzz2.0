@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <fstream>
 
-#include "../utils/utils.h"
+#include <utils.h>
 
 namespace Token {
     typedef enum {

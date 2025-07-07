@@ -1,4 +1,4 @@
-#include "../../include/grammar_parser/lex.h"
+#include <lex.h>
 
 void Lexer::Lexer::lex(){
     std::string input, matched_string;
