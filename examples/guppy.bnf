@@ -22,7 +22,68 @@ imports = "from guppylang.decorator import guppy" NEWLINE
 
 subroutines = (block NEWLINE)*;
 
-block     = block_def NEWLINE body NEWLINE;
+block       = block_def NEWLINE body NEWLINE;
+
+body        = internal_qubit_defs (statement NEWLINE)+ return_statement;
+
+block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
+            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
+            ;
+
+block_args  = external_qubit_defs; # TODO: Add additional traditional parameters in future
+
+external_qubit_defs =   (external_qubit_def)+;
+
+internal_qubit_defs =   (internal_qubit_def NEWLINE)+;
+
+external_qubit_def  =   external_qubit_def_singular 
+                        | external_qubit_def_register;
+
+external_qubit_def_singular = qubit_name COLON "qubit";
+external_qubit_def_register = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+
+internal_qubit_def = internal_qubit_def_singular
+                    | internal_qubit_def_register;
+
+internal_qubit_def_singular = qubit_name EQUALS "qubit" LPAREN RPAREN;
+internal_qubit_def_register = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
+
+statement   = gate_application;
+
+return_statement = "return";
+
+gate_application = gate_name gate_application_kind;
+
+gate_application_kind = 
+    LPAREN qubit_list RPAREN 
+    | LPAREN float_literals COMMA qubit_list RPAREN
+    ;
+
+float_literals = float_literal 
+                | float_literal COMMA float_literal 
+                | float_literal COMMA float_literal COMMA float_literal;
+
+gate_name = 
+    x | y | z | h | cx | toffoli | rz | rx | ry
+    # | t | tdg | s | sdg | ch | crz | measure | measure_array
+    # | reset | project_z
+    ;
+
+qubit_list  = qubit (COMMA SPACE qubit)*;
+
+qubit       = singular_qubit_apply | register_qubit_apply;
+
+singular_qubit_apply = qubit_name;
+
+register_qubit_apply = qubit_name "[" qubit_index "]"; 
+
+imports = "from guppylang.decorator import guppy "
+        "from guppylang.std.angles import angle, pi "
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned "
+        "from guppylang.std.quantum import * "
+        "from selene_sim import build, Stim "
+        "from diff_testing.lib import guppyTesting "
+        "from pathlib import Path ";
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
