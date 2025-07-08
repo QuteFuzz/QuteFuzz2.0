@@ -27,7 +27,7 @@ class Guppy : public Ast {
                 U64 hash = node.get_hash();
 
                 switch(hash){  
-                    case Common::qubit_defs:
+                    case Common::qubit_defs: case Common::external_qubit_defs:
                         
                         for(size_t i = 0; i < num_children-1; i++){
                             write(stream, *children[i]);

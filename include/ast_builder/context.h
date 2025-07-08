@@ -31,6 +31,7 @@ namespace Context {
                 qig = nullptr;
                 best_entanglement = std::nullopt;
                 num_external_qubits = Common::MIN_QUBITS;
+                num_internal_qubits = Common::MIN_QUBITS;
             }
 
             void gate_application_reset(){
@@ -91,8 +92,12 @@ namespace Context {
                 return res;
             }
 
-            int setup_qubit_defs(){
-                return get_current_block()->setup_qubit_defs(num_external_qubits);
+            int setup_external_qubit_defs(){
+                return get_current_block()->setup_qubit_defs(num_external_qubits, true);
+            }
+
+            int setup_internal_qubit_defs(){
+                return get_current_block()->setup_qubit_defs(num_internal_qubits, false);
             }
 
             Qubit_def::Type set_qubit_def(){
@@ -147,11 +152,14 @@ namespace Context {
                     circuit_name = "sub"+std::to_string(subroutine_counter++);
                     num_statements_in_body = std::min(5, WILDCARD_MAX);
                     num_external_qubits = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
+                    num_internal_qubits = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
 
                 } else {
                     circuit_name = Common::TOP_LEVEL_CIRCUIT_NAME;
                     num_statements_in_body = std::min(10, WILDCARD_MAX);
-                    num_external_qubits = random_int(Common::MAX_QUBITS, get_max_defined_qubits());
+                    num_internal_qubits = random_int(Common::MAX_QUBITS, get_max_defined_qubits());
+                    //External qubits tells how many qubits should be ran by simulator
+                    num_external_qubits = num_internal_qubits; 
 
                     subroutine_counter = 0;
                 }
@@ -248,6 +256,7 @@ namespace Context {
             std::optional<std::vector<int>> best_entanglement = std::nullopt;
 
             int num_external_qubits = Common::MIN_QUBITS;
+            int num_internal_qubits = Common::MIN_QUBITS;
 
             fs::path circuit_dir;
 

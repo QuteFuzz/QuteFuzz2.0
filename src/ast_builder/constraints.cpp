@@ -87,6 +87,11 @@ namespace Constraints {
         return true;
     }
 
+    /// @brief Add a constraint on the number of rules that should be picked for a node
+    /// @param node_hash hash of the node to constrain
+    /// @param t type of the constraint (NUM_GIVEN_RULE_MAXIMUM, NUM_GIVEN_RULE_MINIMUM, NUM_GIVEN_RULE_EQUALS)
+    /// @param n number of rules for the constraint type
+    /// @param _count_node node to count in chosen branch
     void Constraints::add_size_constraint(U64 node_hash, Type t, size_t n, U64 _count_node){
 
         if(n > WILDCARD_MAX){

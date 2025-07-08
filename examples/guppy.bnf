@@ -6,26 +6,29 @@ subroutines = (block NEWLINE)*;
 
 block       = block_def NEWLINE body NEWLINE;
 
-body        = (statement NEWLINE)+ return_statement;
+body        = internal_qubit_defs (statement NEWLINE)+ return_statement;
 
-block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> None" type COLON
-            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN subroutine_parameters RPAREN " -> None" type COLON
+block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
+            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
             ;
 
-subroutine_parameters = qubit_defs; #Add additional traditional parameters in future
+block_args  = external_qubit_defs; # TODO: Add additional traditional parameters in future
 
-qubit_defs  = (qubit_def)+;
+external_qubit_defs =   (external_qubit_def)+;
 
-qubit_def   =   qubit_def_singular 
-                | qubit_def_register;
+internal_qubit_defs =   (internal_qubit_def NEWLINE)+;
 
-qubit_def_singular = qubit_name COLON "qubit" # For external qubits
-                    # | qubit_name EQUALS "qubit" LPAREN RPAREN # For internal qubits
-                    ;
+external_qubit_def  =   external_qubit_def_singular 
+                        | external_qubit_def_register;
 
-qubit_def_register = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK
-                    # | qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN
-                    ;
+external_qubit_def_singular = qubit_name COLON "qubit";
+external_qubit_def_register = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+
+internal_qubit_def = internal_qubit_def_singular
+                    | internal_qubit_def_register;
+
+internal_qubit_def_singular = qubit_name EQUALS "qubit" LPAREN RPAREN;
+internal_qubit_def_register = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
 
 statement   = gate_application;
 

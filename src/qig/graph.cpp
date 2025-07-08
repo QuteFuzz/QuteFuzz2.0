@@ -88,6 +88,8 @@ std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
     std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
 
+    assert(!possible_entanglements.empty());
+    assert(!edges.empty());
     std::vector<int> res = possible_entanglements[0];
 
 	for(const std::vector<int>& entanglement : possible_entanglements){

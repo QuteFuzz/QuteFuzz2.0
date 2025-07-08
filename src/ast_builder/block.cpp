@@ -33,6 +33,8 @@ size_t Block::add_qreg(int max_num_qubits, bool external){
 
     } else {
         qreg->make_qubits(internal_qubits);
+        
+        qubit_defs.push_back(std::make_shared<Qubit_def::Qubit_def>(qreg));
     }
 
     return qreg_size;
@@ -40,9 +42,9 @@ size_t Block::add_qreg(int max_num_qubits, bool external){
 
 /// @brief Qubit_def::Qubit definitions used by this block (Always picks qubit register definitions)
 /// TODO: Properly add support for single qubit definitions with needed checks for safety
-/// @param num_qubits
+/// @param num_qubits is the total number of qubits a suboutine should have (internal and external)
 /// @return `num_qubit_defs`
-size_t Block::setup_qubit_defs(int num_qubits){
+size_t Block::setup_qubit_defs(int num_qubits, bool external){
     int type_choice = 0; // random_int(1);
     size_t num_qubit_defs = 0;
 
@@ -55,13 +57,15 @@ size_t Block::setup_qubit_defs(int num_qubits){
             Use singular qubit or qubit register
         */
         if(type_choice){
-            num_qubits -= add_qubit();
+            num_qubits -= add_qubit(external);
         } else {
-            num_qubits -= add_qreg(num_qubits);
+            num_qubits -= add_qreg(num_qubits, external);
         }
-
+        
         // type_choice = random_int(1);
         num_qubit_defs++;
+        
+
     }
 
     return num_qubit_defs;

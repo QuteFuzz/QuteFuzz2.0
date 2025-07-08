@@ -79,11 +79,11 @@ class Block {
             return circuit == circuit_name;
         }
 
-        size_t add_qreg(int max_num_qubits, bool external = true);
+        size_t add_qreg(int max_num_qubits, bool external);
 
-        size_t add_qubit(bool external = true);
+        size_t add_qubit(bool external);
 
-        size_t setup_qubit_defs(int num_qubits);
+        size_t setup_qubit_defs(int num_qubits, bool external = true);
 
     private:
         std::string circuit;

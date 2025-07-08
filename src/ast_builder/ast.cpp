@@ -68,18 +68,39 @@ void Ast::prepare_node(std::shared_ptr<Node> node){
 			context.set_circuit_name(node);
 			break;
 
-		case Common::qubit_defs : {
+		case Common::qubit_defs: {
 			constraints.add_size_constraint(
 				hash, 
 				Constraints::NUM_GIVEN_RULE_EQUALS, 
-				context.setup_qubit_defs(),
+				context.setup_external_qubit_defs(),
 				Common::qubit_def
+			);
+			break;
+		}
+
+		case Common::external_qubit_defs: {
+			constraints.add_size_constraint(
+				hash, 
+				Constraints::NUM_GIVEN_RULE_EQUALS, 
+				context.setup_external_qubit_defs(),
+				Common::external_qubit_def
 			);
 
 			break;
 		}
 
-		case Common::qubit_def : {
+		case Common::internal_qubit_defs: {
+			constraints.add_size_constraint(
+				hash, 
+				Constraints::NUM_GIVEN_RULE_EQUALS, 
+				context.setup_internal_qubit_defs(),
+				Common::internal_qubit_def
+			);
+
+			break;
+		}
+
+		case Common::qubit_def: case Common::internal_qubit_def: case Common::external_qubit_def: {
 			constraints.constrain_qubit_def(context.set_qubit_def());			
 			break;
 		}

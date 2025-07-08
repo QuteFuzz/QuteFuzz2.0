@@ -110,25 +110,33 @@ namespace Constraints {
             void constrain_qubit_def(Qubit_def::Type type){
                 if(type == Qubit_def::REGISTER){
                     constraints[8].must_satisfy = true;
-                    constraints[9].must_satisfy = false;
+                    constraints[9].must_satisfy = true;
+                    constraints[10].must_satisfy = true;
+                    constraints[11].must_satisfy = false;
+                    constraints[12].must_satisfy = false;
+                    constraints[13].must_satisfy = false;
                 } else {
                     constraints[8].must_satisfy = false;
-                    constraints[9].must_satisfy = true;
+                    constraints[9].must_satisfy = false;
+                    constraints[10].must_satisfy = false;
+                    constraints[11].must_satisfy = true;
+                    constraints[12].must_satisfy = true;
+                    constraints[13].must_satisfy = true;
                 }
             }
 
             void constrain_qubit(bool from_register){
                 if(from_register){
-                    constraints[10].must_satisfy = true;
-                    constraints[11].must_satisfy = false;
+                    constraints[14].must_satisfy = true;
+                    constraints[15].must_satisfy = false;
                 } else {
-                    constraints[10].must_satisfy = false;
-                    constraints[11].must_satisfy = true;
+                    constraints[14].must_satisfy = false;
+                    constraints[15].must_satisfy = true;
                 }
             }
 
             void constrain_num_subroutines(){
-                constraints[12].must_satisfy = true;
+                constraints[16].must_satisfy = true;
             }
 
             void add_size_constraint(U64 node_hash, Type t, size_t n, U64 _count_node);
@@ -177,19 +185,24 @@ namespace Constraints {
                 Constraint(Common::gate_application, BRANCH_IN, {Common::gate_name, Common::gate_application_kind}, true),
 
                 /*
-                    8, 9, qubit definition is singular, or a register
+                    8, 9, 10, 11, 12, 13 qubit definition is singular, or a register
                 */
                 Constraint(Common::qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::qubit_def_register})),
+                Constraint(Common::internal_qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::internal_qubit_def_register})),
+                Constraint(Common::external_qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::external_qubit_def_register})),
                 Constraint(Common::qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::qubit_def_singular})),
+                Constraint(Common::internal_qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::internal_qubit_def_singular})),
+                Constraint(Common::external_qubit_def, BRANCH_EQUALS, std::vector<U64>({Common::external_qubit_def_singular})),
+                
 
                 /*
-                    10, 11, qubit application is singular or from register
+                    14, 15, qubit application is singular or from register
                 */
                 Constraint(Common::qubit, BRANCH_EQUALS, std::vector<U64>({Common::register_qubit_apply})),
                 Constraint(Common::qubit, BRANCH_EQUALS, std::vector<U64>({Common::singular_qubit_apply})),
 
                 /*
-                    12, how many subroutines should be generated?
+                    16, how many subroutines should be generated?
                 */
                 Constraint(Common::subroutines, NUM_GIVEN_RULE_MAXIMUM, Common::MAX_SUBROUTINES, Common::block)
             };
