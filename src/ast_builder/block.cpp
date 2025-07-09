@@ -1,78 +1,73 @@
-#include "../../include/ast_builder/block.h"
+#include <block.h>
 
-size_t Block::add_qubit(bool external){
-    std::shared_ptr<Qubit_def::Qubit> qubit = std::make_shared<Qubit_def::Qubit>("qubit");
+size_t Block::make_register_qubit_definition(int max_size, bool external){
 
-    if(external) {
-        external_qubits.push_back(qubit);
-        
-        // if adding externally, this qubit is also definition
-        qubit_defs.push_back(std::make_shared<Qubit_def::Qubit_def>(qubit));
+    size_t size;
 
-    } else {
-        internal_qubits.push_back(qubit);
-    }
+    if(max_size > 1) size = random_int(max_size, 1);
+    else size = max_size;
+    
+    Register_qubit_definition def(
+        Variable("qreg" + std::to_string(register_qubit_def_count++)),
+        Integer(std::to_string(size))    
+    );
+
+    if(external) def.make_qubits(external_qubits);
+    
+    qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
+
+    return size;
+}
+
+
+size_t Block::make_singular_qubit_definition(bool external){
+
+    Singular_qubit_definition def (
+        Variable("qubit" + std::to_string(singular_qubit_def_count++))
+    );
+
+    if(external) def.make_qubits(external_qubits);
+    
+    qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
 
     return 1;
 }
 
-size_t Block::add_qreg(int max_num_qubits, bool external){
 
-    size_t qreg_size;
-
-    if(max_num_qubits > 1) qreg_size = random_int(max_num_qubits, 1);
-    else qreg_size = max_num_qubits;
-
-    std::shared_ptr<Qubit_def::Qreg> qreg = std::make_shared<Qubit_def::Qreg>(qreg_size);
-    
-    if(external){
-        qreg->make_qubits(external_qubits);
-
-        // if adding externally, this qreg is also a definition
-        qubit_defs.push_back(std::make_shared<Qubit_def::Qubit_def>(qreg));
-
-    } else {
-        qreg->make_qubits(internal_qubits);
-    }
-
-    return qreg_size;
-}
-
-/// @brief Qubit_def::Qubit definitions used by this block (Always picks qubit register definitions)
-/// TODO: Properly add support for single qubit definitions with needed checks for safety
-/// @param num_qubits
-/// @return `num_qubit_defs`
-size_t Block::setup_qubit_defs(int num_qubits){
+void Block::make_qubit_definitions(bool external){
     int type_choice = 0; // random_int(1);
-    size_t num_qubit_defs = 0;
 
     #ifdef DEBUG
     INFO("Creating qubit definition");
     #endif
 
-    while(num_qubits > 0){
+    while(target_num_qubits > 0){
         /*
             Use singular qubit or qubit register
         */
         if(type_choice){
-            num_qubits -= add_qubit();
+            target_num_qubits -= make_singular_qubit_definition(external);
         } else {
-            num_qubits -= add_qreg(num_qubits);
+            target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
         }
 
         // type_choice = random_int(1);
-        num_qubit_defs++;
     }
+}
 
-    return num_qubit_defs;
+Qubit::Qubit* Block::get_qubit_at(size_t index){
+    assert(index < num_external_qubits());
+    return &external_qubits.at(index);
 }
 
 /// @brief Pick random qubit from combination of external and internal qubits
 /// @param best_entanglement 
 /// @return 
-std::shared_ptr<Qubit_def::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
+std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
 
-    std::shared_ptr<Qubit_def::Qubit> qubit = Qubit_def::DEFAULT_QUBIT;
+    assert(num_external_qubits());
+
+    Qubit::Qubit* qubit = get_qubit_at(0);
 
     #ifdef DEBUG
     INFO("Getting random qubit");
@@ -91,33 +86,16 @@ std::shared_ptr<Qubit_def::Qubit> Block::get_random_qubit(std::optional<std::vec
         qubit->set_used();
 
     } else {
+        size_t total_qubits = num_external_qubits();
 
-        size_t total_qubits = total_num_qubits();
-
-        if(total_qubits){
-            qubit = get_qubit_at(random_int(total_qubits - 1));
-            
-            while(qubit->is_used()){
-                qubit = get_qubit_at(random_int(total_qubits - 1));
-            }
-
-            qubit->set_used();        
+        qubit = get_qubit_at(random_int(total_qubits - 1));
         
+        while(qubit->is_used()){
+            qubit = get_qubit_at(random_int(total_qubits - 1));
         }
+
+        qubit->set_used();
     }
 
-    return qubit;
-}
-
-
-std::shared_ptr<Qubit_def::Qubit> Block::get_qubit_at(size_t index){
-    assert(index < total_num_qubits());
-
-    size_t externals_size = external_qubits.size();
-
-    if(index < externals_size){
-        return external_qubits[index];
-    } else {
-        return internal_qubits[index - externals_size];
-    }
+    return std::make_shared<Qubit::Qubit>(*qubit);
 }

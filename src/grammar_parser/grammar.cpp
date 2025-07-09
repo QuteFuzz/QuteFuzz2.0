@@ -1,4 +1,4 @@
-#include "../../include/grammar_parser/grammar.h"
+#include <grammar.h>
 
 Grammar::Grammar(const fs::path& filename): lexer(filename.string()), name(filename.stem()), path(filename) {
     // lexer.print_tokens();

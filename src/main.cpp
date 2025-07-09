@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../include/run.h"
+#include <run.h>
 
 int main(){
     

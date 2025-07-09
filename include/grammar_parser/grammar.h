@@ -1,11 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "lex.h"
+#include <lex.h>
 #include <errno.h>
 #include <math.h>
 #include <unordered_map>
-#include "rule.h"
+#include <rule.h>
 #include <cctype>
 #include <algorithm>
 

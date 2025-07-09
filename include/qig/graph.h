@@ -1,8 +1,8 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "../utils/utils.h"
-#include "../ast_builder/block.h"
+#include <utils.h>
+#include <block.h>
 #include <fstream>
 #include <limits>
 

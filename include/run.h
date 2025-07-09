@@ -1,11 +1,12 @@
 #ifndef RUN_H
 #define RUN_H
 
-#include "grammar_parser/grammar.h"
-#include "frontend_parsers/guppy.h"
+#include <grammar.h>
 #include <sstream>
 #include <set>
 #include <iomanip>
+
+#include <ast.h>
 
 const std::string OUTPUTS_FOLDER_NAME = "outputs";
 
@@ -17,21 +18,10 @@ struct Program_Spec {
             grammar(std::make_shared<Grammar>(_grammar)),        
             extension(".py")
         {
-            if(grammar->get_name() == "guppy"){
-                builder = std::make_shared<Guppy>();
-            } else {
-                builder = std::make_shared<Ast>();
-            }
-            
+            builder = std::make_shared<Ast>();   
         }
 
-        void setup_builder(const std::string entry_name){
-            if(grammar->is_rule(entry_name)){
-                builder->set_entry(grammar->get_rule_pointer(entry_name));
-            } else {
-                std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
-            }
-        }
+        void setup_builder(const std::string entry_name);
 
         friend std::ostream& operator<<(std::ostream& stream, Program_Spec spec){
             stream << "  . " << spec.grammar->get_name() << ": ";
@@ -48,10 +38,8 @@ struct Program_Spec {
             grammar->print_tokens();
         }
 
-        void ast_to_program(fs::path output_dir, int num_programs){
-            builder->ast_to_program(output_dir, extension, num_programs);
-        }
-    
+        void ast_to_program(fs::path output_dir, int num_programs);
+
     private:
         std::shared_ptr<Grammar> grammar;
         std::shared_ptr<Ast> builder;
