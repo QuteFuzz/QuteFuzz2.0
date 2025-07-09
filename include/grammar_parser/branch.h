@@ -48,24 +48,16 @@ class Branch {
 
         Term at(size_t index) const {return terms.at(index);}
 
-        inline size_t num_pointer_terms(U64 filter = 0ULL) const {
-            
-            if(filter == 0ULL){
-                return pointer_terms.size();
-            } else {
-                size_t count = 0;
+        size_t count_rule_occurances(const U64& hash) const {
 
-                for(const std::shared_ptr<Term>& term : pointer_terms){
-                    count += (term->get_hash() == filter);
-                }
+            size_t out = 0;
 
-                return count;
-            }        
+            for(size_t i = 0; i < terms.size(); i++){
+                out += (terms[i].is_pointer() && (terms[i] == hash));
+            }
+
+            return out;
         }
-
-        bool pointer_terms_match(std::vector<U64> term_hashes) const ;
-
-        bool pointer_terms_in(std::vector<U64> term_hashes) const ; 
 
         bool is_empty() const {return terms.empty();}
 
@@ -80,7 +72,6 @@ class Branch {
         bool recursive = false;
 
         std::vector<Term> terms;
-        std::vector<std::shared_ptr<Term>> pointer_terms;
         float prob = 0.0;
 };
 

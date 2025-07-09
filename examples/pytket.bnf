@@ -4,6 +4,13 @@
     tokens like NEWLINE and RPAREN are defined in the tokens.bnf file
 *)
 
+(*
+    Rule = collection branch
+    Branch = collection term
+    Term = variant<Rule, std::string>
+
+*)
+
 program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 imports = "from sympy import Symbol" NEWLINE
@@ -12,46 +19,51 @@ imports = "from sympy import Symbol" NEWLINE
         "from pytket import Circuit, Qubit, Bit" NEWLINE
         "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE;
 
-subroutines = (block circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
+subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
                 "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-block     = block_def NEWLINE qubit_defs NEWLINE body NEWLINE;
+block     = block_def NEWLINE external_qubit_definitions NEWLINE body NEWLINE;
 
 block_def = circuit_name " = Circuit()";
 
-qubit_defs = (qubit_def NEWLINE)+;
+external_qubit_definitions = (qubit_def NEWLINE)+;
 
-body = (statement NEWLINE)+;
+body = internal_qubit_definitions statements;
 
-qubit_def = qubit_def_singular | qubit_def_register;
+statements = (statement NEWLINE)+;
 
-qubit_def_register =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
+qubit_def = singular_qubit_def | register_qubit_def;
 
-# TODO: add support for qubit_def_singular (fuzzer always picks qubit_def_register branch)
+register_qubit_def =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
-statement   = gate_application;
+# TODO: add support for singular_qubit_def (fuzzer always picks register_qubit_def branch)
 
-gate_application = 
-    circuit_name DOT gate_name gate_application_kind
-    | circuit_name ".add_gate(" subroutine ",[" qubit_list "])"  
+statement = qubit_op;
+
+qubit_op =
+    gate_op
+    | subroutine_op
     ;
 
-gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
+gate_op = circuit_name DOT gate_name gate_op_kind;
+subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
 
-gate_application_kind = 
+gate_name   = X | Y | Z | CX | CY | CZ;
+
+gate_op_kind =
     LPAREN qubit_list RPAREN 
-    | LPAREN float_literals COMMA qubit_list RPAREN
+    | LPAREN float_list COMMA qubit_list RPAREN
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
 
-float_literals = float_literal | float_literal COMMA float_literal | float_literal COMMA float_literal COMMA float_literal;
+float_list = float_literal (COMMA float_literal)*;
 
-qubit = singular_qubit_apply | register_qubit_apply;
+qubit = singular_qubit | register_qubit;
 
-singular_qubit_apply = qubit_name;
+singular_qubit = qubit_name;
 
-register_qubit_apply = qubit_name "[" qubit_index "]"; 
+register_qubit = qubit_name "[" qubit_index "]"; 

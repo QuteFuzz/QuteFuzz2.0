@@ -1,17 +1,21 @@
 #ifndef RULE_H
 #define RULE_H
 
-#include "branch.h"
-#include <constraints.h>
+#include <branch.h>
+
+class Node;
 
 class Rule {
 
     public:
         Rule(){}
+        
         Rule(const std::string& _name) : name(_name) {
             hash = hash_rule_name(name);
         }
+        
         Rule(const std::vector<Branch>& _branches) : branches(_branches) {}
+
         ~Rule(){}
 
         std::string get_name() const {return name;}
@@ -32,7 +36,7 @@ class Rule {
 
         void assign_prob(const float _prob);
 
-        Branch pick_branch(Constraints::Constraints& constraints);
+        Branch pick_branch(std::shared_ptr<Node> parent);
 
         inline void mark_as_common(){common = true;} 
 

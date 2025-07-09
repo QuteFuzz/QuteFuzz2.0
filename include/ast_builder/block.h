@@ -1,98 +1,72 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include <qubit_def.h>
+#include <node.h>
+#include <qubit.h>
+#include <qubit_definition.h>
 
-class Block {
+class Block : public Node {
 
     public:
 
-        Block(std::string _circuit) : circuit(_circuit) {}
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits) : 
+            Node(str, hash),
+            owner(owner_name), 
+            target_num_qubits(_target_num_qubits) {}
 
-        inline std::string owner(){
-            return circuit;
+        inline bool owned_by(std::string other){return other == owner;}
+
+        inline std::string get_owner(){return owner;}
+
+        void set_can_apply_subroutines(bool flag){
+            can_apply_subroutines = flag;
         }
 
-        /// @brief Number of qubits defined by this block. Counts external qubits by default 
-        /// @param external_qubits 
-        /// @return 
-        inline size_t num_qubits(bool external = true){
-            return (external ? external_qubits.size() : internal_qubits.size());
+        bool get_can_apply_subroutines() const {
+            return can_apply_subroutines;
         }
 
-        inline size_t total_num_qubits(){
-            return external_qubits.size() + internal_qubits.size();
+        inline size_t num_external_qubits() const {
+            return external_qubits.size();
         }
 
-        /// @brief Reset all stores and pointers
-        void reset(){
-            external_qubits.clear();
-            internal_qubits.clear();
+        inline size_t num_qubit_definitions() const {
+            return qubit_defs.size();
         }
 
-        /// @brief Reset used flag for each qubit so that it can be chosen for this gate or subroutine
         void qubit_flag_reset(){
-            for(auto& qb : external_qubits){
-                qb->reset();
-            }
-
-            for(auto& qb : internal_qubits){
-                qb->reset();
+            for(Qubit::Qubit& qb : external_qubits){
+                qb.reset();
             }
         }
-    
-        inline std::shared_ptr<Qubit_def::Qubit_def> get_next_qubit_def(){
-            return qubit_defs[qubit_def_pointer++];
+
+        inline std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def(){
+            return std::make_shared<Qubit_definition::Qubit_definition>(qubit_defs[qubit_def_pointer++]);
         }
 
-        std::shared_ptr<Qubit_def::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
-
-        std::shared_ptr<Qubit_def::Qubit> get_qubit_at(size_t index);
-
-        friend std::ostream& operator<<(std::ostream& stream, Block block){
-            stream << "Owner " << block.circuit << std::endl; 
-            stream << "=====================" << std::endl;
-            stream << "Qubit definitions, size : " << block.qubit_defs.size() << std::endl;
-            for(const auto& qubit_def : block.qubit_defs){
-                stream << *qubit_def << std::endl;
-            }
-
-            stream << "=====================" << std::endl;
-            stream << "External Qubits, size: " << block.external_qubits.size() << std::endl;
-            for(const auto& qb : block.external_qubits){
-                stream << *qb << std::endl;
-            }
-
-            stream << "=====================" << std::endl;
-            stream << "Internal Qubits, size: " << block.internal_qubits.size() << std::endl;
-            for(const auto& qb : block.internal_qubits){
-                stream << *qb << std::endl;
-            }
-
-            return stream;
-        }
+        std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
         
-        /// @brief Are these qreg definitions owned by this circuit?
-        /// @param circuit_name 
-        /// @return 
-        bool owned_by(std::string circuit_name){
-            return circuit == circuit_name;
-        }
+        size_t make_register_qubit_definition(int max_size, bool external = true);
 
-        size_t add_qreg(int max_num_qubits, bool external = true);
+        size_t make_singular_qubit_definition(bool external = true);
 
-        size_t add_qubit(bool external = true);
+        void make_qubit_definitions(bool external = true);
 
-        size_t setup_qubit_defs(int num_qubits);
+        Qubit::Qubit* get_qubit_at(size_t index);
 
     private:
-        std::string circuit;
+        std::string owner;
+        int target_num_qubits = Common::MIN_QUBITS;
+        
+        bool can_apply_subroutines = false;
 
-        std::vector<std::shared_ptr<Qubit_def::Qubit>> external_qubits;
-        std::vector<std::shared_ptr<Qubit_def::Qubit>> internal_qubits;
+        std::vector<Qubit::Qubit> external_qubits;
+        std::vector<Qubit_definition::Qubit_definition> qubit_defs;
 
-        std::vector<std::shared_ptr<Qubit_def::Qubit_def>> qubit_defs;
         int qubit_def_pointer = 0;
+
+        int register_qubit_def_count = 0;
+        int singular_qubit_def_count = 0;
 };
 
 

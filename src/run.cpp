@@ -1,4 +1,17 @@
 #include <run.h>
+#include <ast.h>
+
+void Program_Spec::setup_builder(const std::string entry_name){
+    if(grammar->is_rule(entry_name)){
+        builder->set_entry(grammar->get_rule_pointer(entry_name));
+    } else {
+        std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
+    }
+}
+
+void Program_Spec::ast_to_program(fs::path output_dir, int num_programs){
+    builder->ast_to_program(output_dir, extension, num_programs);
+}
 
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
     // build all grammars

@@ -27,21 +27,15 @@ class Term {
 
         bool is_pointer() const;
 
-        bool is_defined_in_common() const;
-
-        bool is_rule_pointer() const;
-
         friend std::ostream& operator<<(std::ostream& stream, Term term);
 
         void set_nesting_depth(unsigned int nd);
 
         unsigned int get_nesting_depth() const;
 
-        Term& operator+=(const Term& ext);
+        bool operator==(const Term& other) const;
 
-        bool operator==(const Term& other);
-
-        bool operator==(const U64& hash);
+        bool operator==(const U64& hash) const;
 
     private:
         std::variant<std::shared_ptr<Rule>, std::string> value;

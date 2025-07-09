@@ -1,4 +1,5 @@
 #include <rule.h>
+#include <node.h>
 
 void Rule::print(std::ostream& os) const {
     for(const auto& elem : branches){
@@ -26,32 +27,24 @@ void Rule::add(const Branch& branch){
     }
 }
 
-/// @brief Randomly pick a branch from the rule that satisfies a given constraint
-/// @param c 
-/// @return 
-Branch Rule::pick_branch(Constraints::Constraints& constraints){
+Branch Rule::pick_branch(std::shared_ptr<Node> parent){
     size_t size = branches.size();
 
     if(size > 0){
-        int rand_index = random_int(size - 1);
-        Branch branch = branches[rand_index];
-        U64 hashed_rule_name = hash_rule_name(name);
+        Branch branch = branches[random_int(size - 1)];
 
         #ifdef DEBUG
-        INFO("Picking branch while satisfying constraints");
+        INFO("Picking branch for " + name + " while satisfying constraints");
         #endif
 
-        while(!constraints.are_satisfied(hashed_rule_name, branch)){
-            // std::cout << "Branch " << rand_index << " for " << name << std::endl;
-
-            rand_index = random_int(size - 1);
-            branch = branches[rand_index];
+        while(!parent->branch_satisfies_constraint(branch)){
+            branch = branches[random_int(size - 1)];
         }
 
         return branch;
 
     } else {
-        throw std::runtime_error("There are no branches for rule " + name);
+        return Branch();
     }
 }
 

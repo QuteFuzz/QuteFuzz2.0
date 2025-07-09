@@ -1,13 +1,15 @@
-# Grammar for guppylang: https://github.com/CQCL/guppylang
+# guppy
+
+program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 DECORATOR = "@guppy";
 
 QUBIT_TYPE_ANNOT = "qubit";
 
-imports = "from guppylang.decorator import guppy"
-        "from guppylang.std.angles import angle, pi"
-        "from guppylang.std.builtins import array, owned, py"
-        "from guppylang.std.option import Option, nothing, some"
+imports = "from guppylang.decorator import guppy" NEWLINE
+        "from guppylang.std.angles import angle, pi" NEWLINE
+        "from guppylang.std.builtins import array, owned, py" NEWLINE
+        "from guppylang.std.option import Option, nothing, some" NEWLINE
         "from guppylang.std.quantum import ("
             "cz,"
             "discard,"
@@ -16,53 +18,58 @@ imports = "from guppylang.decorator import guppy"
             "qubit,"
             "ry,"
             "rz"
-        ")";
-
-program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+        ")" NEWLINE;
 
 subroutines = (block NEWLINE)*;
+
+block     = block_def NEWLINE body NEWLINE;
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
                 "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-block     = block_def NEWLINE body NEWLINE;
+block_def = DECORATOR NEWLINE "def " circuit_name "(" external_qubit_definitions "):";
 
-block_def = DECORATOR NEWLINE "def " circuit_name "(" qubit_defs "):";
+external_qubit_definitions = qubit_def (COMMA qubit_def)*;
 
-qubit_defs = (qubit_def)+;
+qubit_def = singular_qubit_def | register_qubit_def;
 
-body = (statement NEWLINE)+ return_statement;
+singular_qubit_def = qubit_name " : " QUBIT_TYPE_ANNOT;
 
-qubit_def = qubit_def_singular | qubit_def_register;
+register_qubit_def = qreg_name " : array[" QUBIT_TYPE_ANNOT ", " qreg_size "]";
 
-qubit_def_singular = qubit_name " : " QUBIT_TYPE_ANNOT;
+body = internal_qubit_definitions statements;
 
-qubit_def_register = qreg_name " : array[" QUBIT_TYPE_ANNOT ", " qreg_size "]";
+statements = (statement NEWLINE)+ return_statement;
 
-qubit = singular_qubit_apply | register_qubit_apply;
+qubit = register_qubit | singular_qubit;
 
-singular_qubit_apply = qubit_name;
+register_qubit = qubit_name "[" qubit_index "]";
 
-register_qubit_apply = qubit_name "[" qubit_index "]"; 
+singular_qubit = qubit_name;
 
-statement   = gate_application;
+statement = qubit_op;
 
-return_statement = "return";
-
-gate_application = 
+qubit_op =
+    gate_op
+    | subroutine_op
     ;
 
-gate_name   = X | Y | Z | H | CX | CCX | Rz | Rx | Ry | U1 | U2 | U3;
+gate_op = gate_name gate_op_kind;
 
-gate_application_kind = 
+gate_name   = X | Y | Z | CX | CY | CZ;
+
+gate_op_kind =
+    LPAREN qubit_list RPAREN 
+    | LPAREN float_list COMMA qubit_list RPAREN
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
 
-float_literals = 
-    float_literal 
-    | float_literal COMMA float_literal 
-    | float_literal COMMA float_literal COMMA float_literal
-    ;
+qubit = singular_qubit | register_qubit;
 
+singular_qubit = qubit_name;
+
+register_qubit = qubit_name "[" qubit_index "]"; 
+
+float_list = float_literal (COMMA float_literal)*;

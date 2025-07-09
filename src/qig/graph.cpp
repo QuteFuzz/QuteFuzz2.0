@@ -118,8 +118,8 @@ int Graph::render_graph(fs::path&  img_path, std::shared_ptr<Block> current_defs
     for (int i = 0; i < n; ++i){
         for (int j = i+1; j < n; ++j){
             if (graph[i][j]) {
-                std::string qubit_i = current_defs->get_qubit_at(i)->get_name(true);
-                std::string qubit_j = current_defs->get_qubit_at(j)->get_name(true);
+                std::string qubit_i = current_defs->get_qubit_at(i)->get_name()->get_string();
+                std::string qubit_j = current_defs->get_qubit_at(j)->get_name()->get_string();
 
                 dot_string += ("  " + qubit_i + " -- " + qubit_j + " [label=" + std::to_string(graph[i][j]) + ", color=\"blue\", penwidth=2];\n");
             }

@@ -6,11 +6,8 @@
 #include <term.h>
 #include <grammar.h>
 #include <node.h>
-#include <constraints.h>
 #include <graph.h>
-#include <block.h>
 #include <context.h>
-
 
 class Ast{
     public:
@@ -24,42 +21,11 @@ class Ast{
             entry = _entry;
         }   
 
-        Result<Branch, std::string> pick_branch(const std::shared_ptr<Rule> rule);
+        void write_branch(std::shared_ptr<Node> parent, const Term& term);
 
-        void transition_from_ready(std::shared_ptr<Node> node);
+        std::shared_ptr<Node> get_node_from_term(const Term& term);
 
-        void transition_from_init(std::shared_ptr<Node> node);
-
-        void prepare_node(std::shared_ptr<Node> node);
-
-        void write_branch(std::shared_ptr<Node> node);
-
-
-        Result<Node, std::string> build(){
-            Result<Node, std::string> res;
-        
-            if(entry == nullptr){
-                res.set_error("Entry point not set");
-        
-            } else {
-                context.reset();
-
-                root_ptr = std::make_shared<Node>(entry, 0);
-
-                write_branch(root_ptr);
-
-                res.set_ok(*root_ptr);
-            }
-
-            return res;
-        }
-
-        /// @brief Try to find particular node by searching from root pointer
-        /// @param hash 
-        /// @return 
-        std::shared_ptr<const Node> find(Common::Rule_hash hash){            
-            return root_ptr->find(hash);
-        }
+        Result<Node, std::string> build();
 
         virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 
@@ -73,7 +39,7 @@ class Ast{
             std::string str = node.get_string();
             std::vector<std::shared_ptr<Node>> children = node.get_children();
 
-            if(node.is_syntax()){
+            if(node.get_node_kind() == TERMINAL){
                 stream << str;            
 
             } else {
@@ -99,17 +65,12 @@ class Ast{
 
             return stream;
         }
-
-        int recursions = 5;
         
         std::shared_ptr<Rule> entry = nullptr;
-        std::shared_ptr<Node> root_ptr = nullptr;
 
         std::random_device rd;
         std::mt19937 gen;
         std::uniform_real_distribution<float> float_dist;
-
-        Constraints::Constraints constraints;
         
         Context::Context context;
 };

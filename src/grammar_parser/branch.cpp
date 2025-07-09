@@ -4,12 +4,9 @@ void Branch::print(std::ostream& os) const {
     for(const auto& elem : terms){
         os << elem << " ";
     }
-
-    os << " [non_terminals: " << num_pointer_terms() << "] ";
 }
 
 void Branch::add(const Term& term){
-    if(term.is_rule_pointer()) pointer_terms.push_back(std::make_shared<Term>(term));
     terms.push_back(term);
 }
 
@@ -28,36 +25,3 @@ void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) con
         }
     }
 }
-
-bool Branch::pointer_terms_match(std::vector<U64> term_hashes) const {
-    size_t size = num_pointer_terms();
-
-    if(size == term_hashes.size()){
-        
-        for(size_t i = 0; i < size; ++i){
-            Term t = *pointer_terms[i];
-            if (!(t == term_hashes[i])) return false;
-        }
-
-        return true;
-
-    } else {
-        return false;
-    }
-}
-
-bool Branch::pointer_terms_in(std::vector<U64> term_hashes) const {
-    for(const U64& term_hash : term_hashes){
-
-        auto it = std::find_if(pointer_terms.begin(), pointer_terms.end(), [term_hash](const std::shared_ptr<Term>& ptr){
-            return ptr && (*ptr == term_hash);
-        });
-
-        if(it != pointer_terms.end()){
-            return true;
-        }
-    }
-
-    return false;
-}
-

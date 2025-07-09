@@ -1,228 +1,187 @@
 #include <ast.h>
 
+#include <block.h>
+#include <gate.h>
+#include <statements.h>
+#include <float.h>
+#include <float_list.h>
+#include <qubit_list.h>
+#include <external_qubit_defs.h>
+#include <qubit_op.h>
+#include <gate_op_kind.h>
+#include <subroutines.h>
 
-void Ast::transition_from_init(std::shared_ptr<Node> node){
-    node->set_build_state(NB_READY);
-}
+std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
-void Ast::transition_from_ready(std::shared_ptr<Node> node){
-	node->set_build_state(NB_DONE);
-}
+	if(term.is_syntax()){
+		return std::make_shared<Node>(term.get_syntax());
 
-void Ast::prepare_node(std::shared_ptr<Node> node){
+	} else {
+	
+		U64 hash = term.get_hash();
+		std::string str = term.get_string();
 
-	U64 hash = (Common::Rule_hash)node->get_hash(); 
+		switch(hash){
 
-	std::string str = node->get_string();
+			case Common::block:
+				return context.setup_block(str, hash);
 
-	switch(hash){
+			case Common::body: {
+				context.set_can_apply_subroutines();
+				return std::make_shared<Node>(str, hash);
+			}
+
+			case Common::statements: {
+				// qig set after all definitions have been made
+				// context.set_qig();
+
+				int num_statements = std::min(5, WILDCARD_MAX);
+
+				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, num_statements);
+
+				return node;
+			}
+
+			case Common::circuit_id:
+				return std::make_shared<Integer>(std::to_string(build_counter));
+
+			case Common::main_circuit_name:				
+				return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
+				
+			case Common::subroutines: {
+				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
+				
+				context.set_subroutines_node(node);
+
+				return node;
+			}
+
+			case Common::gate_op_kind :
+				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
+
+			case Common::qubit_op:
+				context.reset(Context::QUBIT_OP);
+				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
+
+			case Common::subroutine: {				
+				std::shared_ptr<Block> subroutine = context.get_random_block();
+				int num_sub_qubits = subroutine->num_external_qubits();
+
+				return context.get_current_gate(subroutine->get_owner(), num_sub_qubits, 0);				
+			}
+	
+			case Common::circuit_name:
+				return std::make_shared<Variable>(context.get_current_block_owner());
+
+			case Common::qreg_size:
+				return context.get_current_qubit_definition_size();
+
+			case Common::qreg_name:
+				return context.get_current_qubit_definition_name();
+
+			case Common::qubit_def :
+				return context.get_current_qubit_definition();
+
+			case Common::external_qubit_definitions: {
+				size_t num_qubit_definitions = context.make_qubit_definitions();
+				return std::make_shared<External_qubit_defs>(str, hash, num_qubit_definitions);
+			}
+
+			case Common::qubit_list: {
+				size_t num_qubits = context.get_current_gate_num_qubits();
+				return std::make_shared<Qubit_list>(str, hash, num_qubits);
+			}
+
+			case Common::qubit_index:
+				return context.get_current_qubit_index();
+
+			case Common::qubit_name:
+				return context.get_current_qubit_name();
+
+			case Common::qubit: 
+				return context.get_current_qubit();
 		
-		case Common::block: {
-			context.maybe_render_qig();
+			case Common::float_list : {
+				size_t num_floats = context.get_current_gate_num_params();
+				return std::make_shared<Float_list>(str, hash, num_floats);
+			}
 
-			constraints.add_size_constraint(
-				Common::body,
-				Constraints::NUM_GIVEN_RULE_EQUALS,
-				context.setup_block(),
-				Common::statement
-			);
+			case Common::float_literal:
+				return std::make_shared<Float>("6.9");
+	
+			case Common::h: case Common::x: case Common::y: case Common::z: {
+				return context.get_current_gate(str, 1, 0);
+			}
 
-			break;
+			case Common::cx : case Common::cy: case Common::cz: case Common::cnot: {
+				return context.get_current_gate(str, 2, 0);
+			}
+
+			case Common::ccx: case Common::cswap:{
+				return context.get_current_gate(str, 3, 0);
+			}
+
+			case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
+				return context.get_current_gate(str, 1, 1);
+			}
+
+			case Common::u2:{
+				return context.get_current_gate(str, 1, 2);
+			}
+
+			case Common::u3: case Common::u:{
+				return context.get_current_gate(str, 1, 3);
+			}
+
+			default:
+				return std::make_shared<Node>(str, hash);
 		}
-
-		case Common::body: {
-			constraints.allow_subroutines(context.can_apply_subroutines());
-			context.set_qig();
-			break;
-		}
-
-		case Common::circuit_id:
-			node->add_child(std::make_shared<Node>(std::to_string(build_counter)));
-			break;
-
-		case Common::main_circuit_name:
-			node->add_child(std::make_shared<Node>(Common::TOP_LEVEL_CIRCUIT_NAME));
-			break;
-			
-		case Common::subroutines:
-			constraints.constrain_num_subroutines();
-			context.set_subroutines_node(node);
-			break;
-
-		case Common::gate_application:
-			context.gate_application_reset();
-			break;
-
-		case Common::subroutine: {				
-			std::shared_ptr<Block> subroutine = context.get_random_block();
-			int num_sub_qubits = subroutine->num_qubits();
-
-			context.set_best_entanglement(num_sub_qubits);
-			node->add_child(std::make_shared<Node>(subroutine->owner()));
-			constraints.add_n_qubit_constraint(num_sub_qubits);
-			break;
-		}
-  
-		case Common::circuit_name:
-			context.set_circuit_name(node);
-			break;
-
-		case Common::qubit_defs : {
-			constraints.add_size_constraint(
-				hash, 
-				Constraints::NUM_GIVEN_RULE_EQUALS, 
-				context.setup_qubit_defs(),
-				Common::qubit_def
-			);
-
-			break;
-		}
-
-		case Common::qubit_def : {
-			constraints.constrain_qubit_def(context.set_qubit_def());			
-			break;
-		}
-
-		case Common::qreg_name:
-			context.set_qreg_name(node);
-			break;
-
-		case Common::qreg_size:
-			context.set_qreg_size(node);
-			break;  
-			
-		case Common::qubit: {
-			bool from_register = context.set_qubit();
-			constraints.constrain_qubit(from_register);
-			break;
-		}
-
-		case Common::qubit_name:
-			context.set_qubit_name(node);	
-			break;
-		
-		case Common::qubit_index:
-			context.set_qubit_index(node);
-			break;
-
-		case Common::float_literal:
-			node->add_child(std::make_shared<Node>(std::to_string(random_float(0.5))));
-			break;
-		
-		case Common::h: case Common::x: case Common::y: case Common::z: case Common::s: case Common::t:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(1);
-			break;
-		
-		case Common::cx: case Common::cz: case Common::cnot:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(2);
-			context.set_best_entanglement(2);
-			break;
-
-		case Common::ccx: case Common::cswap:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(3);
-			context.set_best_entanglement(3);
-			break;
-
-		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 1, Common::float_literal);
-			break;
-
-		case Common::u2:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 2, Common::float_literal);
-			break;
-
-		case Common::u3: case Common::u:
-			node->add_child(std::make_shared<Node>(str));	
-			constraints.add_n_qubit_constraint(1, true);
-			constraints.add_size_constraint(Common::float_literals, Constraints::NUM_GIVEN_RULE_EQUALS, 3, Common::float_literal);
-			break;
-
-		 case Common::phasedxpowgate:
-			node->add_child(std::make_shared<Node>(str));
-			constraints.add_n_qubit_constraint(1, true);
-			break;
-
-		default:
-			break;   
 	}
 }
 
-/// @brief Given a rule, pick one branch from that rule
-/// @param rule 
-/// @return 
-Result<Branch, std::string> Ast::pick_branch(const std::shared_ptr<Rule> rule){
-    Result<Branch, std::string> result;
+void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 
-    std::vector<Branch> branches = rule->get_branches();
+	if(term.is_pointer()){
 
-    if(branches.empty()){
-        result.set_ok(Branch());
-        return result;
-    }
-    
-    // if we have done a set number of recursions already and this rule has a non recursive branch, choose that instead
-    if ((recursions <= 0) && rule->get_recursive_flag()){
-        constraints.add_recursion_constraint();
-        result.set_ok(rule->pick_branch(constraints));   
-        return result;
-    }
-
-    result.set_ok(rule->pick_branch(constraints));
-    recursions -= 1;
-
-    return result;
-}
-
-/// @brief Write branch terms to node children. Choosen branch must satisfy given constraints
-/// @param node 
-/// @param depth 
-/// @param constraints 
-void Ast::write_branch(std::shared_ptr<Node> node){
-
-    Node_build_state old_build_state = node->build_state();
-
-    if(node->is_syntax() || (old_build_state == NB_DONE)){
-        node->set_build_state(NB_DONE);
-		return;
-
-	} else if (old_build_state == NB_READY){
-
-        Branch branch = node->get_branch();
+		Branch branch = term.get_rule()->pick_branch(parent);
 
         for(size_t i = 0; i < branch.size(); i++){
-            std::shared_ptr<Node> child_node;
+			Term child_term = branch.at(i);
 
-			child_node = std::make_shared<Node>(branch.at(i), node->get_depth() + 1);
-			node->add_child(child_node); 
+			std::shared_ptr<Node> child_node = get_node_from_term(child_term);
 
-            write_branch(child_node);
+			parent->add_child(child_node);
+
+			write_branch(child_node, child_term);
         }
 
-        transition_from_ready(node);
+		parent->transition_to_done();
+	}
 
-    } else if (old_build_state == NB_INIT){
-		prepare_node(node);
+	// done
+	parent->transition_to_done();
+}
 
-        Term t = node->get_term();
-        
-        if(!node->has_chosen_branch()) {
-            node->save_branch(pick_branch(t.get_rule()).get_ok());
-        }
+Result<Node, std::string> Ast::build(){
+	Result<Node, std::string> res;
 
-        transition_from_init(node);
-    
-    } else {
-        ERROR("Unknown build state!");
-    }
-        
-    write_branch(node);
+	if(entry == nullptr){
+		res.set_error("Entry point not set");
+
+	} else {
+		context.reset(Context::PROGRAM);
+
+		Term entry_as_term;
+		entry_as_term.set(entry);
+
+		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term);
+
+		write_branch(root_ptr, entry_as_term);
+
+		res.set_ok(*root_ptr);
+	}
+
+	return res;
 }
 
 void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int num_programs){
@@ -242,17 +201,14 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			fs::path program_path = current_circuit_dir / ("circuit" + extension);
 			std::ofstream stream(program_path.string());
 			write(stream, ast_root);
+
+			INFO("Program written to " << program_path.string());
 			
 			// write AST
 			fs::path ast_path = current_circuit_dir / "circuit.ast";
 			std::ofstream ast_stream(ast_path.string());
 			ast_stream << ast_root << std::endl;
 
-			// render graph for main circuit
-			fs::path img_path = current_circuit_dir / "main_circ.png";
-			context.maybe_render_qig();
-
-			INFO("Program written to " << program_path.string());
 			INFO("AST written to " << ast_path.string());
 
 		} else {
