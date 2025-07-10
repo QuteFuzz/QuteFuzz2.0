@@ -8,6 +8,10 @@ class Variable : public Node {
     public:
         using Node::Node;
 
+        Variable() : 
+            Node("dummy")
+        {}
+
     private:
 
 };

@@ -15,6 +15,12 @@ namespace Qubit_definition {
 
         public:
 
+            Qubit_definition() : 
+                Node("qubit_def", hash_rule_name("qubit_def")),
+                value(Register_qubit_definition()), 
+                type(REGISTER)
+            {}
+
             Qubit_definition(Register_qubit_definition def) :
                 Node("qubit_def", hash_rule_name("qubit_def")),
                 value(def), 
@@ -46,7 +52,7 @@ namespace Qubit_definition {
 
                 ERROR("Singular qubit definitions do not have sizes!");
 
-                return std::make_shared<Integer>("ERROR");
+                return std::make_shared<Integer>();
             }
 
         private:

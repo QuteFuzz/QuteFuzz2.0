@@ -82,30 +82,36 @@ int Graph::score(){
     // return 0;
 }
 
-std::vector<int> Graph::get_best_entanglement(int n_qubits_in_entanglement){
-    int best_score = -INT32_MAX;
+std::optional<std::vector<int>> Graph::get_best_entanglement(int n_qubits_in_entanglement){
+    if((n_qubits_in_entanglement >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT) && (vertices >= Common::MIN_QUBITS)){
 
-    std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
-    std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
+        int best_score = -INT32_MAX;
 
-    std::vector<int> res = possible_entanglements[0];
+        std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
+        std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
 
-	for(const std::vector<int>& entanglement : possible_entanglements){
-        add_entanglement(entanglement, edges);
+        std::vector<int> res = possible_entanglements[0];
 
-		int curr_score = score();
+        for(const std::vector<int>& entanglement : possible_entanglements){
+            add_entanglement(entanglement, edges);
 
-		if(curr_score > best_score){
-			best_score = curr_score;
-			res = entanglement;
-		}
+            int curr_score = score();
 
-        remove_entanglement(entanglement, edges);
-	}
+            if(curr_score > best_score){
+                best_score = curr_score;
+                res = entanglement;
+            }
 
-    add_entanglement(res, edges);
+            remove_entanglement(entanglement, edges);
+        }
 
-    return res;
+        add_entanglement(res, edges);
+
+        return std::make_optional<std::vector<int>>(res);
+    
+    } else {
+        return std::nullopt;
+    }
 }
 
 

@@ -8,6 +8,10 @@ class Integer : public Node {
     public:
         using Node::Node;
 
+        Integer() : 
+            Node("42")
+        {}
+
     private:
 
 };

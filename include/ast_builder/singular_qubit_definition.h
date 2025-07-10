@@ -7,6 +7,11 @@ class Singular_qubit_definition : public Node {
 
     public:
 
+        /// dummy qubit def
+        Singular_qubit_definition() : 
+            Node("singular_qubit_def", hash_rule_name("singular_qubit_def"))
+        {}
+
         Singular_qubit_definition(Variable _name) : 
             Node("singular_qubit_def", hash_rule_name("singular_qubit_def")),
             name(_name)

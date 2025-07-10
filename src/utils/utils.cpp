@@ -86,25 +86,28 @@ std::optional<int> safe_stoi(const std::string& str) {
 /// @param r 
 /// @return 
 std::vector<std::vector<int>> n_choose_r(const int n, const int r){
-    assert((n >= r) && (r >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT));
+    if((n >= r) && (r >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT)){
 
-    std::vector<std::vector<int>> res;
+        std::vector<std::vector<int>> res;
 
-    std::string bitmask(r, 1);
-    bitmask.resize(n, 0);
+        std::string bitmask(r, 1);
+        bitmask.resize(n, 0);
 
-    do{
-        std::vector<int> comb;
+        do{
+            std::vector<int> comb;
 
-        for(int i = 0; i < n; i++){
-            if (bitmask[i]) comb.push_back(i);
-        }
+            for(int i = 0; i < n; i++){
+                if (bitmask[i]) comb.push_back(i);
+            }
 
-        res.push_back(comb);
+            res.push_back(comb);
 
-    } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
+        } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
 
-    return res;
+        return res;
+    } else {
+        throw std::runtime_error(ANNOT("n must be less than r, and r must be >= " + std::to_string(Common::MIN_N_QUBITS_IN_ENTANGLEMENT)));
+    }
 }
 
 
@@ -146,13 +149,13 @@ void pipe_to_command(std::string command, std::string write){
     FILE* pipe = popen(command.c_str(), "w");
 
     if(!pipe){
-        throw std::runtime_error("Failed to open pipe to command " + command);
+        throw std::runtime_error(ANNOT("Failed to open pipe to command " + command));
     }
 
     fwrite(write.c_str(), sizeof(char), write.size(), pipe);
     
     if(pclose(pipe)){
-        throw std::runtime_error("Command " + command + " failed");
+        throw std::runtime_error(ANNOT("Command " + command + " failed"));
     }
 
     if(Common::verbose){
@@ -165,7 +168,7 @@ std::string pipe_from_command(std::string command){
     FILE* pipe = popen(command.c_str(), "r");
 
     if(!pipe){
-        throw std::runtime_error("Failed to open pipe to command " + command);
+        throw std::runtime_error(ANNOT("Failed to open pipe to command " + command));
     }
 
     std::array<char, 1024> buffer;
@@ -176,7 +179,7 @@ std::string pipe_from_command(std::string command){
     }
 
     if(pclose(pipe)){
-        throw std::runtime_error("Command " + command + " failed");
+        throw std::runtime_error(ANNOT("Command " + command + " failed"));
     }
 
     if(Common::verbose){

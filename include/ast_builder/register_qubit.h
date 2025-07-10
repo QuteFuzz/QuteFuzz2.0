@@ -9,6 +9,11 @@ class Register_qubit : public Node {
 
     public:
 
+        /// @brief Dummy qubit
+        Register_qubit() :
+            Node("Register_qubit", hash_rule_name("register_qubit"))
+        {}
+
         Register_qubit(Variable _name, Integer _index) : 
             Node("Register_qubit", hash_rule_name("register_qubit")),
             name(_name),

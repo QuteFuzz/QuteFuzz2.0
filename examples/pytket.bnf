@@ -51,7 +51,7 @@ qubit_op =
 gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
 
-gate_name   = X | Y | Z | CX | CY | CZ;
+gate_name   = X | Y | Z | CX | CY | CZ | Rx;
 
 gate_op_kind =
     LPAREN qubit_list RPAREN 

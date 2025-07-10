@@ -44,8 +44,11 @@ namespace Context {
     }
 
     std::shared_ptr<Block> Context::get_current_block() const {
-        assert(blocks.size());
-        return blocks.back();
+        if(blocks.size()) {
+            return blocks.back();
+        } else {
+            return std::make_shared<Block>(dummy_block);
+        }
     }
 
     /// @brief This is completely safe. If this function is called, then `set_can_apply_subroutines` must've passed
@@ -112,25 +115,31 @@ namespace Context {
 
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
-        assert(current_gate != nullptr);
-        current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement());
+        if(current_gate == nullptr) {
+            current_qubit = get_current_block()->get_random_qubit(std::nullopt);        
+        } else {
+            current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement());
+        }
+
         return current_qubit;
     }
 
     std::shared_ptr<Integer> Context::get_current_qubit_index(){
         if(current_qubit != nullptr){
             return current_qubit->get_index();
+        } else {
+            WARNING("Current qubit not set but trying to get index! Using dummy instead");
+            return std::make_shared<Integer>(dummy_int);
         }
-
-        throw std::runtime_error("Current qubit not set but trying to get index!");
     }
 
     std::shared_ptr<Variable> Context::get_current_qubit_name(){
         if(current_qubit != nullptr){
             return current_qubit->get_name();
+        } else {
+            WARNING("Current qubit not set but trying to get name! Using dummy instead");
+            return std::make_shared<Variable>(dummy_var);
         }
-
-        throw std::runtime_error("Current qubit not set but trying to get name!");
     }
 
     std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
@@ -141,17 +150,19 @@ namespace Context {
     std::shared_ptr<Integer> Context::get_current_qubit_definition_size(){
         if(current_qubit_definition != nullptr){
             return current_qubit_definition->get_size();
+        } else  {
+            WARNING("Current qubit not set but trying to get size! Using dummy instead");
+            return std::make_shared<Integer>(dummy_int);
         }
-
-        throw std::runtime_error("Current qubit definition not set but trying to get size!");
     }
 
     std::shared_ptr<Variable> Context::get_current_qubit_definition_name(){
         if(current_qubit_definition != nullptr){
             return current_qubit_definition->get_name();
+        } else {
+            WARNING("Current qubit not set but trying to get name! Using dummy instead");
+            return std::make_shared<Variable>(dummy_var);
         }
-
-        throw std::runtime_error("Current qubit definition not set but trying to get name!");
     }
 
     std::shared_ptr<Gate> Context::get_current_gate(std::string str, int num_qubits, int num_params){
@@ -162,17 +173,19 @@ namespace Context {
     int Context::get_current_gate_num_params(){
         if(current_gate != nullptr){
             return current_gate->get_num_params();
+        } else {
+            WARNING("Current gate not set but trying to get num params! Assumed 1 parameter");
+            return 1;
         }
-
-        throw std::runtime_error("Current gate not set but trying to get num params!");
     }
 
     int Context::get_current_gate_num_qubits(){
         if(current_gate != nullptr){
             return current_gate->get_num_qubits();
+        } else {
+            WARNING("Current gate not set but trying to get num params! Assumed 1 qubit");
+            return 1;
         }
-
-        throw std::runtime_error("Current gate not set but trying to get num qubits!");
     }
 
     void Context::render_qig(){

@@ -7,6 +7,10 @@
 class Singular_qubit : public Node {
 
     public:
+        /// @brief Dummy qubit
+        Singular_qubit() :
+            Node("Singular_qubit", hash_rule_name("singular_qubit"))
+        {}
 
         Singular_qubit(Variable _name) : 
             Node("Singular_qubit", hash_rule_name("singular_qubit")),

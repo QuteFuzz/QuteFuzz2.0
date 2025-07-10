@@ -56,8 +56,8 @@ void Block::make_qubit_definitions(bool external){
 }
 
 Qubit::Qubit* Block::get_qubit_at(size_t index){
-    assert(index < num_external_qubits());
-    return &external_qubits.at(index);
+    if(index < num_external_qubits()) return &external_qubits.at(index);
+    else return &dummy_qubit;
 }
 
 /// @brief Pick random qubit from combination of external and internal qubits
@@ -65,37 +65,41 @@ Qubit::Qubit* Block::get_qubit_at(size_t index){
 /// @return 
 std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
 
-    assert(num_external_qubits());
+    if(num_external_qubits()){
 
-    Qubit::Qubit* qubit = get_qubit_at(0);
+        Qubit::Qubit* qubit = get_qubit_at(0);
 
-    #ifdef DEBUG
-    INFO("Getting random qubit");
-    #endif
+        #ifdef DEBUG
+        INFO("Getting random qubit");
+        #endif
 
-    if(best_entanglement.has_value()){
-        std::vector<int> e = best_entanglement.value();
+        if(best_entanglement.has_value()){
+            std::vector<int> e = best_entanglement.value();
 
-        qubit = get_qubit_at(e[0]);
-        int pointer = 0;
+            qubit = get_qubit_at(e[0]);
+            int pointer = 0;
 
-        while(qubit->is_used()){
-            qubit = get_qubit_at(e[++pointer]);
-        }
+            while(qubit->is_used()){
+                qubit = get_qubit_at(e[++pointer]);
+            }
 
-        qubit->set_used();
+            qubit->set_used();
 
-    } else {
-        size_t total_qubits = num_external_qubits();
+        } else {
+            size_t total_qubits = num_external_qubits();
 
-        qubit = get_qubit_at(random_int(total_qubits - 1));
-        
-        while(qubit->is_used()){
             qubit = get_qubit_at(random_int(total_qubits - 1));
+            
+            while(qubit->is_used()){
+                qubit = get_qubit_at(random_int(total_qubits - 1));
+            }
+
+            qubit->set_used();
         }
 
-        qubit->set_used();
+        return std::make_shared<Qubit::Qubit>(*qubit);
+    
+    } else {
+        return std::make_shared<Qubit::Qubit>(dummy_qubit);
     }
-
-    return std::make_shared<Qubit::Qubit>(*qubit);
 }
