@@ -11,13 +11,16 @@ class Graph {
     public:
         Graph(){}
 
-        Graph(int _vertices) :
+        Graph(std::string _owner, int _vertices) :
+        owner(_owner),
         vertices(_vertices), 
         num_pairs((vertices * (vertices - 1)) / 2),
         graph(vertices, std::vector<int>(vertices, 0)), 
         shortest_distances(vertices, std::vector<int>(vertices, 0)){
             assert(vertices >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT);
         }
+
+        inline std::string get_owner(){return owner;}
 
         std::vector<int> djikstras(int source_node);
 
@@ -81,9 +84,11 @@ class Graph {
             return stream;
         }
 
-        int render_graph(fs::path& img_path, std::shared_ptr<Block> current_defs);
+        void render_graph(fs::path& img_path, std::shared_ptr<Block> block);
 
     private:
+        std::string owner;
+
         int vertices = 0;
         int num_pairs = 0;
         std::vector<std::vector<int>> graph;

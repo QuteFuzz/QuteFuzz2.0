@@ -42,6 +42,8 @@ namespace Context {
             
 			size_t make_qubit_definitions(bool external = true);
 
+			std::shared_ptr<Block> get_block(std::string owner);
+
 			std::shared_ptr<Qubit::Qubit> get_current_qubit();
 
 			std::shared_ptr<Integer> get_current_qubit_index();
@@ -67,6 +69,8 @@ namespace Context {
 			void set_subroutines_node(std::shared_ptr<Node> _node){
 				subroutines_node = _node;
 			}
+
+			void render_qig();
 
 			void set_qig();
 

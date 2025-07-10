@@ -25,7 +25,9 @@ namespace Context {
                 (block->num_external_qubits() <= current_block->num_external_qubits())
             )
             {
+                #ifdef DEBUG
                 INFO("Block " + current_block_owner + " can apply subroutines");
+                #endif
                 current_block->set_can_apply_subroutines(true);
             }
         }
@@ -46,17 +48,23 @@ namespace Context {
         return blocks.back();
     }
 
-    /// @brief This is completely safe. If this function is called, then the check to see whether subroutines can be chosen must've passed
-    /// So you just need to return a current block that's not the main block, or the current block being generated
+    /// @brief This is completely safe. If this function is called, then `set_can_apply_subroutines` must've passed
+    /// So you just need to return a current block that's not the main block, or the current block and needs <= num qubits in current block
+    /// Qubit comparison needed because `set_can_apply_subroutines` only tells you that there's at least one block that can be picked
     /// @return 
     std::shared_ptr<Block> Context::get_random_block(){
         std::shared_ptr<Block> block = blocks.at(random_int(blocks.size()-1));
+        std::shared_ptr<Block> current_block = get_current_block();
 
         #ifdef DEBUG
         INFO("Getting random block");
         #endif
 
-        while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || block->owned_by(current_block_owner)){                
+        while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
+            block->owned_by(current_block_owner) ||
+            (block->num_external_qubits() > current_block->num_external_qubits())
+        )
+        {
             block = blocks.at(random_int(blocks.size()-1));
         }
 
@@ -91,6 +99,17 @@ namespace Context {
 
         return current_block->num_qubit_definitions();
     }
+
+    std::shared_ptr<Block> Context::get_block(std::string owner){
+        for(const std::shared_ptr<Block>& block : blocks){
+            if(block->owned_by(owner)) return block; 
+        }
+
+        INFO("Block owner by " + owner + " not defined!");
+
+        return nullptr;
+    }
+
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
         assert(current_gate != nullptr);
@@ -156,15 +175,19 @@ namespace Context {
         throw std::runtime_error("Current gate not set but trying to get num qubits!");
     }
 
-    void Context::set_qig(){
-
+    void Context::render_qig(){
         if(qig != nullptr){
             // render old qig
-            // TODO: get name from qig, then use that to search blocks for the correct block to pass to render_graph 
-            // fs::path img_path = circuit_dir / (current_block_owner + ".png");
-            // qig->render_graph(img_path, get_current_block());
+            std::string qig_owner = qig->get_owner();
+            std::shared_ptr<Block> assosiated_block = get_block(qig_owner);
+
+            fs::path img_path = circuit_dir / (qig_owner + "_qig.png");
+            qig->render_graph(img_path, assosiated_block);
         }
-        
-        qig = std::make_shared<Graph>(get_current_block()->num_external_qubits());
+    }
+
+    void Context::set_qig(){
+        render_qig();
+        qig = std::make_shared<Graph>(current_block_owner, get_current_block()->num_external_qubits());
     }
 }

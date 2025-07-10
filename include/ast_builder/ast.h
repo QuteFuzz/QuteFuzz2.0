@@ -11,7 +11,7 @@
 
 class Ast{
     public:
-        Ast() : gen(rd()), float_dist(0.0, 1.0) {}
+        Ast() : gen(rd()) {}
 
         ~Ast() = default;
 
@@ -28,6 +28,8 @@ class Ast{
         Result<Node, std::string> build();
 
         virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
+
+        void render_ast(const Node& root, const fs::path& current_circuit_dir);
 
     protected:
 
@@ -70,7 +72,6 @@ class Ast{
 
         std::random_device rd;
         std::mt19937 gen;
-        std::uniform_real_distribution<float> float_dist;
         
         Context::Context context;
 };

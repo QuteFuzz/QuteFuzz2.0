@@ -33,9 +33,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::statements: {
 				// qig set after all definitions have been made
-				// context.set_qig();
+				context.set_qig();
 
-				int num_statements = std::min(5, WILDCARD_MAX);
+				int num_statements = WILDCARD_MAX;
 
 				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, num_statements);
 
@@ -204,15 +204,35 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 
 			INFO("Program written to " << program_path.string());
 			
-			// write AST
-			fs::path ast_path = current_circuit_dir / "circuit.ast";
-			std::ofstream ast_stream(ast_path.string());
-			ast_stream << ast_root << std::endl;
+			// render AST
+			// render_ast(ast_root, current_circuit_dir);
 
-			INFO("AST written to " << ast_path.string());
+			// render QIG for main
+			context.render_qig();
 
 		} else {
         	ERROR(maybe_ast_root.get_error());
 		}
     }
 }
+
+void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
+
+	std::string dot_string;
+
+	dot_string += "digraph AST {\n";
+
+	root.make_dot_string(dot_string);
+
+    dot_string += "}\n";
+
+    // render graph
+	fs::path ast_path = current_circuit_dir / "ast.png";
+
+    const std::string str = ast_path.string();
+    std::string command = "dot -Tpng -o " + str;
+    
+    pipe_to_command(command, dot_string);
+    INFO("AST rendered to " + ast_path.string());
+}
+

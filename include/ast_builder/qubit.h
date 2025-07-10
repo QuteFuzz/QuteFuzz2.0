@@ -67,6 +67,16 @@ namespace Qubit {
 
                 return std::make_shared<Integer>("ERROR");
             }
+
+            inline std::string resolved_name(){
+
+                if(type == REGISTER){
+                    return get_name()->get_string() + "_" + get_index()->get_string();
+                } else {
+                    return get_name()->get_string();
+                }
+
+            }
             
         private:
             std::variant<Register_qubit, Singular_qubit> value;

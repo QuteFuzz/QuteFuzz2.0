@@ -17,13 +17,11 @@
 #include <cstdint>
 #include <optional>
 #include <array>
+#include <iomanip>
+
 #include "assert.h"
 
-#ifdef DEBUG 
-    #define WILDCARD_MAX 10
-#else
-    #define WILDCARD_MAX 20
-#endif
+#define WILDCARD_MAX 20
 
 #define UNUSED(x) (void)(x)
 #define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
@@ -59,6 +57,8 @@ int vector_max(std::vector<int> in);
 void pipe_to_command(std::string command, std::string write);
 
 std::string pipe_from_command(std::string command);
+
+std::string escape(const std::string& str);
 
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main";

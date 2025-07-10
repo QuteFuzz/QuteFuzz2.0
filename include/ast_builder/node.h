@@ -132,6 +132,13 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
+        void make_dot_string(std::string& ret) const {
+            for(const std::shared_ptr<Node>& child : children){                
+                ret += "    " + escape(string) + " -> " + escape(child->get_string()) + ";\n";
+                child->make_dot_string(ret);                   
+            }
+        }
+
     protected:
         std::string string;
         U64 hash;

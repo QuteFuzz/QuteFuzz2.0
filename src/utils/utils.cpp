@@ -74,6 +74,7 @@ std::optional<int> safe_stoi(const std::string& str) {
         int ret = (str == "") ? 1 : std::stoi(str);
         return std::optional<int>(ret);
     } catch (const std::invalid_argument& e) {
+        ERROR(e.what());
         return std::nullopt;
     }
 }
@@ -183,4 +184,10 @@ std::string pipe_from_command(std::string command){
     }
 
     return result;
+}
+
+std::string escape(const std::string& str){
+    std::ostringstream oss;
+    oss << std::quoted(str);
+    return oss.str();
 }
