@@ -51,6 +51,7 @@ void Block::make_qubit_definitions(bool external){
             target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
         }
         
+        
         // type_choice = random_int(1);
     }
 }

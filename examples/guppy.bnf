@@ -2,23 +2,7 @@
 
 program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
-DECORATOR = "@guppy";
-
-QUBIT_TYPE_ANNOT = "qubit";
-
-imports = "from guppylang.decorator import guppy" NEWLINE
-        "from guppylang.std.angles import angle, pi" NEWLINE
-        "from guppylang.std.builtins import array, owned, py" NEWLINE
-        "from guppylang.std.option import Option, nothing, some" NEWLINE
-        "from guppylang.std.quantum import ("
-            "cz,"
-            "discard,"
-            "h,"
-            "measure,"
-            "qubit,"
-            "ry,"
-            "rz"
-        ")" NEWLINE;
+program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
 
@@ -89,48 +73,8 @@ compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE
                 "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
-block_def = DECORATOR NEWLINE "def " circuit_name "(" external_qubit_definitions "):";
-
-external_qubit_definitions = qubit_def (COMMA qubit_def)*;
-
-qubit_def = singular_qubit_def | register_qubit_def;
-
-singular_qubit_def = qubit_name " : " QUBIT_TYPE_ANNOT;
-
-register_qubit_def = qreg_name " : array[" QUBIT_TYPE_ANNOT ", " qreg_size "]";
-
-body = internal_qubit_definitions statements;
-
-statements = (statement NEWLINE)+ return_statement;
-
-qubit = register_qubit | singular_qubit;
-
-register_qubit = qubit_name "[" qubit_index "]";
-
-singular_qubit = qubit_name;
-
-statement = qubit_op;
-
-qubit_op =
-    gate_op
-    | subroutine_op
-    ;
-
-gate_op = gate_name gate_op_kind;
-
-gate_name   = X | Y | Z | CX | CY | CZ;
-
-gate_op_kind =
-    LPAREN qubit_list RPAREN 
-    | LPAREN float_list COMMA qubit_list RPAREN
-    ;
-
-qubit_list  = qubit (COMMA SPACE qubit)*;
-
-qubit = singular_qubit | register_qubit;
-
-singular_qubit = qubit_name;
-
-register_qubit = qubit_name "[" qubit_index "]"; 
-
-float_list = float_literal (COMMA float_literal)*;
+compiler_call = "runner = build(guppy.compile(main))" NEWLINE
+                    "print(list(runner.run(Stim(), n_qubits=" n_qubits ")))" NEWLINE
+                    main_circuit_name" .measure_all()" NEWLINE
+                    "gt = guppyTesting() " NEWLINE
+                    "gt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
