@@ -2,8 +2,6 @@
 
 program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
-program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
-
 subroutines = (block NEWLINE)*;
 
 block       = block_def NEWLINE body NEWLINE;
@@ -68,10 +66,6 @@ imports = "from guppylang.decorator import guppy "
         "from selene_sim import build, Stim "
         "from diff_testing.lib import guppyTesting "
         "from pathlib import Path ";
-
-compiler_call = main_circuit_name ".measure_all() " NEWLINE
-                "pt = pytketTesting() " NEWLINE
-                "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
 
 compiler_call = "runner = build(guppy.compile(main))" NEWLINE
                     "print(list(runner.run(Stim(), n_qubits=" n_qubits ")))" NEWLINE
