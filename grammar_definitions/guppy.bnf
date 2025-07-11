@@ -6,23 +6,23 @@ subroutines = (block NEWLINE)*;
 
 block       = block_def NEWLINE body NEWLINE;
 
-body        = internal_qubit_defs (statement NEWLINE)+ return_statement;
+body        = internal_qubit_definitions (statement NEWLINE)+ return_statement;
 
 block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
             | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
             ;
 
-block_args  = external_qubit_defs; # TODO: Add additional traditional parameters in future
+block_args  = external_qubit_definitions; # TODO: Add additional traditional parameters in future
 
-external_qubit_defs =   (external_qubit_def)+;
+external_qubit_definitions =   qubit_def (COMMA qubit_def)*;
 
-internal_qubit_defs =   (internal_qubit_def NEWLINE)+;
+internal_qubit_definitions =   (internal_qubit_def NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
 
-external_qubit_def  =   external_qubit_def_singular 
-                        | external_qubit_def_register;
+qubit_def  =   singular_qubit_def 
+                | register_qubit_def;
 
-external_qubit_def_singular = qubit_name COLON "qubit";
-external_qubit_def_register = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+singular_qubit_def= qubit_name COLON "qubit";
+register_qubit_def = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
 
 internal_qubit_def = internal_qubit_def_singular
                     | internal_qubit_def_register;
@@ -30,20 +30,24 @@ internal_qubit_def = internal_qubit_def_singular
 internal_qubit_def_singular = qubit_name EQUALS "qubit" LPAREN RPAREN;
 internal_qubit_def_register = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
 
-statement   = gate_application;
+statement = qubit_op;
+
+qubit_op =
+    gate_op
+    | subroutine_op
+    ;
 
 return_statement = "return";
 
-gate_application = gate_name gate_application_kind;
+gate_op = gate_name gate_op_kind;
 
-gate_application_kind = 
-    LPAREN qubit_list RPAREN 
-    | LPAREN float_literals COMMA qubit_list RPAREN
-    ;
+subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
 
-float_literals = float_literal 
-                | float_literal COMMA float_literal 
-                | float_literal COMMA float_literal COMMA float_literal;
+gate_op_kind =  LPAREN qubit_list RPAREN 
+                | LPAREN float_list COMMA qubit_list RPAREN
+                ;
+
+float_list = float_literal (COMMA float_literal)*;
 
 gate_name = 
     x | y | z | h | cx | toffoli | rz | rx | ry
@@ -53,18 +57,18 @@ gate_name =
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
 
-qubit       = singular_qubit_apply | register_qubit_apply;
+qubit       = singular_qubit | register_qubit;
 
 singular_qubit_apply = qubit_name;
 
 register_qubit_apply = qubit_name "[" qubit_index "]"; 
 
-imports = "from guppylang.decorator import guppy "
-        "from guppylang.std.angles import angle, pi "
-        "from guppylang.std.builtins import array, owned, py, comptime, result, owned "
-        "from guppylang.std.quantum import * "
-        "from selene_sim import build, Stim "
-        "from diff_testing.lib import guppyTesting "
+imports = "from guppylang.decorator import guppy " NEWLINE
+        "from guppylang.std.angles import angle, pi " NEWLINE
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned " NEWLINE
+        "from guppylang.std.quantum import * " NEWLINE
+        "from selene_sim import build, Stim " NEWLINE
+        "from diff_testing.lib import guppyTesting " NEWLINE
         "from pathlib import Path ";
 
 compiler_call = "runner = build(guppy.compile(main))" NEWLINE

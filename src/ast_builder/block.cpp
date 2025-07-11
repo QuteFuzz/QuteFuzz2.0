@@ -7,29 +7,44 @@ size_t Block::make_register_qubit_definition(int max_size, bool external){
     if(max_size > 1) size = random_int(max_size, 1);
     else size = max_size;
     
-    Register_qubit_definition def(
-        Variable("qreg" + std::to_string(register_qubit_def_count++)),
-        Integer(std::to_string(size))    
-    );
-
-    if(external) def.make_qubits(external_qubits);
+    if(external) {
+        Register_qubit_definition def(
+            Variable("qreg" + std::to_string(register_qubit_def_count++)),
+            Integer(std::to_string(size))    
+        );
+        def.make_qubits(external_qubits);
+        qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
+    } 
+    else {
+        Register_qubit_definition_int def(
+            Variable("qreg" + std::to_string(register_qubit_def_count++)),
+            Integer(std::to_string(size))    
+        );
+        def.make_qubits(internal_qubits);
+        qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
+    }
     
-    qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
-
     return size;
 }
 
 
 size_t Block::make_singular_qubit_definition(bool external){
 
-    Singular_qubit_definition def (
-        Variable("qubit" + std::to_string(singular_qubit_def_count++))
-    );
-
-    if(external) def.make_qubits(external_qubits);
+    if(external) {
+        Singular_qubit_definition def (
+            Variable("qubit" + std::to_string(singular_qubit_def_count++))
+        );
+        def.make_qubits(external_qubits);
+        qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
+    }
+    else {
+        Singular_qubit_definition_int def(
+            Variable("qubit" + std::to_string(singular_qubit_def_count++))
+        );
+        def.make_qubits(internal_qubits);
+        qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
+    }
     
-    qubit_defs.push_back(Qubit_definition::Qubit_definition(def));
-
     return 1;
 }
 
@@ -41,17 +56,18 @@ void Block::make_qubit_definitions(bool external){
     INFO("Creating qubit definition");
     #endif
 
-    while(target_num_qubits > 0){
+    while(external ? target_num_qubits : target_num_qubits_int > 0){
         /*
             Use singular qubit or qubit register
         */
         if(type_choice){
-            target_num_qubits -= make_singular_qubit_definition(external);
+            if(external) target_num_qubits -= make_singular_qubit_definition(external);
+            else target_num_qubits_int -= make_singular_qubit_definition(external);
         } else {
-            target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
+            if(external) target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
+            else target_num_qubits_int -= make_register_qubit_definition(target_num_qubits_int, external);
         }
-        
-        
+        std::cout << target_num_qubits << "int: " << target_num_qubits_int << std::endl;
         // type_choice = random_int(1);
     }
 }

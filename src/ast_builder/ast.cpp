@@ -7,6 +7,7 @@
 #include <float_list.h>
 #include <qubit_list.h>
 #include <external_qubit_defs.h>
+#include <internal_qubit_defs.h>
 #include <qubit_op.h>
 #include <gate_op_kind.h>
 #include <subroutines.h>
@@ -79,12 +80,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qreg_name:
 				return context.get_current_qubit_definition_name();
 
-			case Common::qubit_def :
+			case Common::qubit_def: case Common::internal_qubit_def:
 				return context.get_current_qubit_definition();
 
 			case Common::external_qubit_definitions: {
 				size_t num_qubit_definitions = context.make_qubit_definitions();
 				return std::make_shared<External_qubit_defs>(str, hash, num_qubit_definitions);
+			}
+
+			case Common::internal_qubit_definitions: {
+				size_t num_qubit_definitions = context.make_qubit_definitions(false);
+				return std::make_shared<Internal_qubit_defs>(str, hash, num_qubit_definitions);
 			}
 
 			case Common::qubit_list: {
@@ -117,7 +123,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return context.get_current_gate(str, 2, 0);
 			}
 
-			case Common::ccx: case Common::cswap:{
+			case Common::ccx: case Common::cswap: case Common::toffoli:{
 				return context.get_current_gate(str, 3, 0);
 			}
 
@@ -146,8 +152,9 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 		Branch branch = term.get_rule()->pick_branch(parent);
 
         for(size_t i = 0; i < branch.size(); i++){
+			
 			Term child_term = branch.at(i);
-
+			
 			std::shared_ptr<Node> child_node = get_node_from_term(child_term);
 
 			parent->add_child(child_node);

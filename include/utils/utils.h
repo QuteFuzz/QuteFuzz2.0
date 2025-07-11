@@ -170,8 +170,8 @@ namespace Common {
         // For internal and external distinction
         external_qubit_def = 9661442208072337020ULL,
         internal_qubit_def = 10908892387837367554ULL,
-        external_qubit_defs = 17479888943070858109ULL,
-        internal_qubit_defs = 4723126571810369283ULL,
+        // external_qubit_defs = 17479888943070858109ULL,
+        // internal_qubit_defs = 4723126571810369283ULL,
         internal_qubit_def_singular = 6970351297996543450ULL,
         internal_qubit_def_register = 521869151749140490ULL,
         external_qubit_def_singular = 15741319533795746468ULL,
