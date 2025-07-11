@@ -4,9 +4,9 @@ program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
 
-block       = block_def NEWLINE body NEWLINE;
+block       = block_def NEWLINE indented_body NEWLINE;
 
-body        = internal_qubit_definitions (statement NEWLINE)+ return_statement;
+indented_body   = internal_qubit_definitions (statement NEWLINE)+ return_statement;
 
 block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
             | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
@@ -32,16 +32,11 @@ internal_qubit_def_register = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg
 
 statement = qubit_op;
 
-qubit_op =
-    gate_op
-    | subroutine_op
-    ;
+qubit_op = gate_op;
 
 return_statement = "return";
 
 gate_op = gate_name gate_op_kind;
-
-subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
                 | LPAREN float_list COMMA qubit_list RPAREN
@@ -69,7 +64,7 @@ imports = "from guppylang.decorator import guppy " NEWLINE
         "from guppylang.std.quantum import * " NEWLINE
         "from selene_sim import build, Stim " NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
-        "from pathlib import Path ";
+        "from pathlib import Path " NEWLINE;
 
 compiler_call = "runner = build(guppy.compile(main))" NEWLINE
                     "print(list(runner.run(Stim(), n_qubits=" n_qubits ")))" NEWLINE

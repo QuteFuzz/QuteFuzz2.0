@@ -7,8 +7,8 @@ class Internal_qubit_defs : public Node {
 
     public:
 
-        Internal_qubit_defs(std::string str, U64 hash, int num_defs):
-            Node(str, hash)
+        Internal_qubit_defs(std::string str, U64 hash, int num_defs, int indent_depth):
+            Node(str, hash, indent_depth)
         {
             constraint = std::make_optional<Size_constraint>(Common::internal_qubit_def, num_defs);
         }

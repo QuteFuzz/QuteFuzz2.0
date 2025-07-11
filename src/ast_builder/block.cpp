@@ -67,7 +67,7 @@ void Block::make_qubit_definitions(bool external){
             if(external) target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
             else target_num_qubits_int -= make_register_qubit_definition(target_num_qubits_int, external);
         }
-        std::cout << target_num_qubits << "int: " << target_num_qubits_int << std::endl;
+
         // type_choice = random_int(1);
     }
 }

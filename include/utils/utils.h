@@ -170,13 +170,6 @@ namespace Common {
         // For internal and external distinction
         external_qubit_def = 9661442208072337020ULL,
         internal_qubit_def = 10908892387837367554ULL,
-        // external_qubit_defs = 17479888943070858109ULL,
-        // internal_qubit_defs = 4723126571810369283ULL,
-        internal_qubit_def_singular = 6970351297996543450ULL,
-        internal_qubit_def_register = 521869151749140490ULL,
-        external_qubit_def_singular = 15741319533795746468ULL,
-        external_qubit_def_register = 11732219902132900340ULL,
-
         singular_qubit = 358282167276964286ULL,
         register_qubit = 1224902788537856702ULL,
 
@@ -188,8 +181,13 @@ namespace Common {
 
         // Guppy rules
         block_args = 8098915444984821122ULL,
+        indented_body = 11869103690287558935ULL,
         type = 12075340201627130925ULL,
         parameter_name = 12726161396389809054ULL,
+        internal_qubit_def_singular = 6970351297996543450ULL,
+        internal_qubit_def_register = 521869151749140490ULL,
+        external_qubit_def_singular = 15741319533795746468ULL,
+        external_qubit_def_register = 11732219902132900340ULL,
         // assignment = 7458258374037456624ULL,
         // integer_assignment = 15799624338714905563ULL,
         // float_assignment = 15010901291599723643ULL,

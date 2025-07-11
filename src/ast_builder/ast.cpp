@@ -12,10 +12,10 @@
 #include <gate_op_kind.h>
 #include <subroutines.h>
 
-std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
+std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth){
 
 	if(term.is_syntax()){
-		return std::make_shared<Node>(term.get_syntax());
+		return std::make_shared<Node>(term.get_syntax(), 0ULL, indent_depth);
 
 	} else {
 	
@@ -29,7 +29,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::body: {
 				context.set_can_apply_subroutines();
-				return std::make_shared<Node>(str, hash);
+				return std::make_shared<Node>(str, hash, indent_depth);
+			}
+
+			case Common::indented_body: {
+				context.set_can_apply_subroutines();
+				return std::make_shared<Node>(str, hash, indent_depth+1);
 			}
 
 			case Common::statements: {
@@ -38,7 +43,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 				int num_statements = WILDCARD_MAX;
 
-				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, num_statements);
+				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, num_statements, indent_depth);
 
 				return node;
 			}
@@ -50,7 +55,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 				
 			case Common::subroutines: {
-				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
+				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash, indent_depth);
 				
 				context.set_subroutines_node(node);
 
@@ -58,11 +63,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			}
 
 			case Common::gate_op_kind :
-				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
+				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), indent_depth);
 
 			case Common::qubit_op:
 				context.reset(Context::QUBIT_OP);
-				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
+				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), indent_depth);
 
 			case Common::subroutine: {				
 				std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -85,17 +90,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::external_qubit_definitions: {
 				size_t num_qubit_definitions = context.make_qubit_definitions();
-				return std::make_shared<External_qubit_defs>(str, hash, num_qubit_definitions);
+				return std::make_shared<External_qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
 			}
 
 			case Common::internal_qubit_definitions: {
 				size_t num_qubit_definitions = context.make_qubit_definitions(false);
-				return std::make_shared<Internal_qubit_defs>(str, hash, num_qubit_definitions);
+				return std::make_shared<Internal_qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
 			}
 
 			case Common::qubit_list: {
 				size_t num_qubits = context.get_current_gate_num_qubits();
-				return std::make_shared<Qubit_list>(str, hash, num_qubits);
+				return std::make_shared<Qubit_list>(str, hash, num_qubits, indent_depth);
 			}
 
 			case Common::qubit_index:
@@ -140,7 +145,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			}
 
 			default:
-				return std::make_shared<Node>(str, hash);
+				return std::make_shared<Node>(str, hash, indent_depth);
 		}
 	}
 }
@@ -155,7 +160,7 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			
 			Term child_term = branch.at(i);
 			
-			std::shared_ptr<Node> child_node = get_node_from_term(child_term);
+			std::shared_ptr<Node> child_node = get_node_from_term(child_term, parent->get_indent_depth());
 
 			parent->add_child(child_node);
 
@@ -181,7 +186,7 @@ Result<Node, std::string> Ast::build(){
 		Term entry_as_term;
 		entry_as_term.set(entry);
 
-		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term);
+		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term, 0);
 
 		write_branch(root_ptr, entry_as_term);
 
