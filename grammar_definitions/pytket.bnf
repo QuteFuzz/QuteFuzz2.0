@@ -15,21 +15,20 @@ program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
-block     = block_def NEWLINE external_qubit_definitions NEWLINE body NEWLINE;
+block     = block_def NEWLINE qubit_defs_external NEWLINE body NEWLINE;
 
 block_def = circuit_name " = Circuit()";
 
-external_qubit_definitions = (qubit_def NEWLINE)+;
+qubit_defs_external = (qubit_def_external NEWLINE)+;
 
-body = internal_qubit_definitions statements;
+body = statements;
 
 statements = (statement NEWLINE)+;
 
-qubit_def = singular_qubit_def | register_qubit_def;
+qubit_def_external  = singular_qubit_def_external 
+                    | register_qubit_def_external;
 
-register_qubit_def =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
-
-# TODO: add support for singular_qubit_def (fuzzer always picks register_qubit_def branch)
+register_qubit_def_external =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
 statement = qubit_op;
 

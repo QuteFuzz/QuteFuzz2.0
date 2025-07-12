@@ -14,10 +14,10 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits) : 
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external) : 
             Node(str, hash),
             owner(owner_name), 
-            target_num_qubits(_target_num_qubits) {}
+            target_num_qubits_external(_target_num_qubits_external) {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -29,10 +29,6 @@ class Block : public Node {
 
         bool get_can_apply_subroutines() const {
             return can_apply_subroutines;
-        }
-
-        void set_target_num_qubits_int(){
-            target_num_qubits_int = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
         }
 
         inline size_t num_external_qubits() const {
@@ -48,15 +44,18 @@ class Block : public Node {
         (for branching purposes)
          */
         inline size_t num_qubit_definitions(bool external) const {
+
             if (external) {
                 return std::count_if(qubit_defs.begin(), qubit_defs.end(),
                 [](const Qubit_definition::Qubit_definition& def) {
-                    return def.get_ext_in();
+                    
+                    return def.is_external();
                 });
+
             } else {
                 return std::count_if(qubit_defs.begin(), qubit_defs.end(),
                 [](const Qubit_definition::Qubit_definition& def) {
-                    return !def.get_ext_in();
+                    return !def.is_external();
                 });
             }
         }
@@ -87,8 +86,8 @@ class Block : public Node {
 
     private:
         std::string owner;
-        int target_num_qubits = Common::MIN_QUBITS;
-        int target_num_qubits_int = Common::MIN_QUBITS;
+        int target_num_qubits_external = Common::MIN_QUBITS;
+        int target_num_qubits_internal = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
         
         bool can_apply_subroutines = false;
 

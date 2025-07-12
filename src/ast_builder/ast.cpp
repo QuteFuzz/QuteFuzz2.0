@@ -6,8 +6,7 @@
 #include <float.h>
 #include <float_list.h>
 #include <qubit_list.h>
-#include <external_qubit_defs.h>
-#include <internal_qubit_defs.h>
+#include <qubit_defs.h>
 #include <qubit_op.h>
 #include <gate_op_kind.h>
 #include <subroutines.h>
@@ -41,9 +40,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 				// qig set after all definitions have been made
 				context.set_qig();
 
-				int num_statements = WILDCARD_MAX;
-
-				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, num_statements, indent_depth);
+				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, WILDCARD_MAX, indent_depth);
 
 				return node;
 			}
@@ -85,17 +82,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 			case Common::qreg_name:
 				return context.get_current_qubit_definition_name();
 
-			case Common::qubit_def: case Common::internal_qubit_def:
+			case Common::qubit_def_external: case Common::qubit_def_internal:
 				return context.get_current_qubit_definition();
 
-			case Common::external_qubit_definitions: {
+			case Common::qubit_defs_external: {
 				size_t num_qubit_definitions = context.make_qubit_definitions();
-				return std::make_shared<External_qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
+				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
 			}
 
-			case Common::internal_qubit_definitions: {
+			case Common::qubit_defs_internal: {
 				size_t num_qubit_definitions = context.make_qubit_definitions(false);
-				return std::make_shared<Internal_qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
+				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, indent_depth, false);
 			}
 
 			case Common::qubit_list: {
@@ -118,7 +115,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 			}
 
 			case Common::float_literal:
-				return std::make_shared<Float>("6.9");
+				return std::make_shared<Float>();
 	
 			case Common::h: case Common::x: case Common::y: case Common::z: {
 				return context.get_current_gate(str, 1, 0);
@@ -167,7 +164,6 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			write_branch(child_node, child_term);
         }
 
-		parent->transition_to_done();
 	}
 
 	// done
