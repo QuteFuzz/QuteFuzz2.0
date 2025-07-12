@@ -8,6 +8,10 @@ class Float : public Node {
     public:
         using Node::Node;
 
+        Float() :
+            Node("6.9")         
+        {}
+
     private:
 
 };

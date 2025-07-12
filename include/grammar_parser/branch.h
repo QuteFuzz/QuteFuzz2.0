@@ -3,7 +3,7 @@
 
 #include <term.h>
 
-typedef struct {
+struct Branch_multiply {
     std::vector<Term> remainders;
     std::vector<Term> mults;
 
@@ -16,7 +16,7 @@ typedef struct {
         mults.clear();
     }
 
-} Branch_multiply;
+};
 
 class Branch {
 

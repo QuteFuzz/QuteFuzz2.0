@@ -19,15 +19,19 @@
 #include <array>
 #include <iomanip>
 
-#include "assert.h"
-
 #define WILDCARD_MAX 20
 
 #define UNUSED(x) (void)(x)
-#define NOT_IMPLEMENTED(x) ("# [" x "] NOT IMPLEMENTED! \n")
-#define PLACEHOLDER(x) ("<" x ">")
-#define ERROR(x) std::cerr << "[ERROR] " << x << std::endl
-#define INFO(x) std::cout << "[INFO] " << x << std::endl
+
+// location annotation
+#define ANNOT(x) (std::string("at ") + __FILE__ + "," + std::to_string(__LINE__) + ": " + (x))
+
+// logging
+#define ERROR(x) std::cerr << (std::string("[ERROR] ") + ANNOT(x)) << std::endl
+#define WARNING(x) std::cout << (std::string("[WARNING] ") + ANNOT(x)) << std::endl
+#define INFO(x) std::cout << (std::string("[INFO] ") + x) << std::endl
+
+
 #define TOKENS_GRAMMAR_NAME "tokens"
 
 using U64 = uint64_t;
@@ -223,14 +227,14 @@ struct Result{
         A get_ok() const {
             if(is_ok()){return std::get<A>(as);}
             else {
-                throw std::runtime_error("get_ok called on error!");
+                throw std::runtime_error(ANNOT("get_ok called on error!"));
             }
         }
 
         B get_error() const {
             if(is_error()){return std::get<B>(as);}
             else {
-                throw std::runtime_error("get_ok called on OK!");
+                throw std::runtime_error(ANNOT("get_error called on OK!"));
             }
         }
 

@@ -180,7 +180,6 @@ void Run::loop(){
 
             results_file.close();
 
-            std::cout << std::endl;
             INFO("Test results written to results.txt");
 
         } else if (tokens.size() == 2){

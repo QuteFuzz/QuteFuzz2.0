@@ -17,7 +17,10 @@ class Graph {
         num_pairs((vertices * (vertices - 1)) / 2),
         graph(vertices, std::vector<int>(vertices, 0)), 
         shortest_distances(vertices, std::vector<int>(vertices, 0)){
-            assert(vertices >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT);
+//             if(vertices < Common::MIN_N_QUBITS_IN_ENTANGLEMENT){
+//                 
+            //     // throw std::runtime_error(ANNOT("Num vertices in graph < " + std::to_string(Common::MIN_N_QUBITS_IN_ENTANGLEMENT)));
+            // }
         }
 
         inline std::string get_owner(){return owner;}
@@ -62,7 +65,7 @@ class Graph {
 
         int score();
 
-        std::vector<int> get_best_entanglement(int n_qubits_in_entanglement);
+        std::optional<std::vector<int>> get_best_entanglement(int n_qubits_in_entanglement);
 
         void reset(){
             for(int i = 0; i < vertices; i++){

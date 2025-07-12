@@ -12,8 +12,8 @@ class Gate : public Node {
             num_qubits(_qubits),
             num_params(_params),
             best_entanglement(
-                ((num_qubits >= 2) && (qig != nullptr)) ?
-                std::make_optional<std::vector<int>>(qig->get_best_entanglement(num_qubits)) :
+                (qig != nullptr) ?
+                qig->get_best_entanglement(num_qubits) :
                 std::nullopt
             )
         {}

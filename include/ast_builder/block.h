@@ -9,6 +9,11 @@ class Block : public Node {
 
     public:
 
+        Block() : 
+            Node("block", hash_rule_name("block")),
+            owner("dummy")
+        {}
+
         Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits) : 
             Node(str, hash),
             owner(owner_name), 
@@ -63,7 +68,11 @@ class Block : public Node {
         }
 
         inline std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def(){
-            return std::make_shared<Qubit_definition::Qubit_definition>(qubit_defs[qubit_def_pointer++]);
+            if((size_t)qubit_def_pointer < qubit_defs.size()){
+                return std::make_shared<Qubit_definition::Qubit_definition>(qubit_defs[qubit_def_pointer++]);
+            } else {
+                return std::make_shared<Qubit_definition::Qubit_definition>(dummy_def);
+            }
         }
 
         std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
@@ -86,6 +95,9 @@ class Block : public Node {
         std::vector<Qubit::Qubit> external_qubits;
         std::vector<Qubit::Qubit> internal_qubits;
         std::vector<Qubit_definition::Qubit_definition> qubit_defs;
+
+        Qubit::Qubit dummy_qubit;
+        Qubit_definition::Qubit_definition dummy_def;
 
         int qubit_def_pointer = 0;
 

@@ -14,6 +14,14 @@ namespace Qubit {
     class Qubit : public Node {
         public:
 
+            Qubit() :
+                Node("qubit", hash_rule_name("qubit")),
+                value(Singular_qubit()),
+                type(SINGULAR)
+            {
+
+            }
+
             Qubit(Register_qubit qubit) :
                 Node("qubit", hash_rule_name("qubit")),
                 value(qubit),
@@ -65,7 +73,7 @@ namespace Qubit {
 
                 ERROR("Singular qubits do not have indices!");
 
-                return std::make_shared<Integer>("ERROR");
+                return std::make_shared<Integer>();
             }
 
             inline std::string resolved_name(){

@@ -214,7 +214,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			std::ofstream stream(program_path.string());
 			write(stream, ast_root);
 
-			INFO("Program written to " << program_path.string());
+			INFO("Program written to " + program_path.string());
 			
 			// render AST
 			// render_ast(ast_root, current_circuit_dir);

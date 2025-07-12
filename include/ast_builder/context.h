@@ -77,6 +77,10 @@ namespace Context {
         private:
 			std::string current_block_owner;
             std::vector<std::shared_ptr<Block>> blocks;
+			
+			Block dummy_block;
+			Integer dummy_int;
+			Variable dummy_var;
 
             int subroutine_counter = 0;
             

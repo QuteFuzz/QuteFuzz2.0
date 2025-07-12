@@ -65,7 +65,7 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
     } else if (token.kind == Token::RULE){
         term.set(get_rule_pointer(token.value));
     } else {
-        throw std::runtime_error("Build branch should only be called on syntax or rule tokens!");
+        throw std::runtime_error(ANNOT("Build branch should only be called on syntax or rule tokens!"));
     }
 
     branch.add(term);
@@ -217,7 +217,7 @@ void Grammar::build_grammar(){
             case Token::LBRACE: case Token::RBRACE: break;
 
             default:
-                throw std::runtime_error("[ERROR] Unknown token!"); 
+                throw std::runtime_error(ANNOT("Unknown token!")); 
             
         }
 

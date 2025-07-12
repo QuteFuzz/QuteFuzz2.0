@@ -10,6 +10,11 @@ class Register_qubit_definition : public Node {
 
     public:
 
+        /// dummy qubit def
+        Register_qubit_definition() : 
+            Node("register_qubit_def", hash_rule_name("register_qubit_def"))
+        {}
+
         Register_qubit_definition(Variable _name, Integer _size): 
             Node("register_qubit_def", hash_rule_name("register_qubit_def")),
             name(_name),

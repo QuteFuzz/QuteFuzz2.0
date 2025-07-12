@@ -10,7 +10,7 @@
 #include <utils.h>
 
 namespace Token {
-    typedef enum {
+    enum Token_kind {
         _EOF = 0,
         RULE,
         SEPARATOR,
@@ -28,7 +28,7 @@ namespace Token {
         ZERO_OR_MORE,
         ONE_OR_MORE,
         OPTIONAL
-    } Token_kind;
+    };
 
     struct Token{
         Token_kind kind;

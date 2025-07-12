@@ -15,14 +15,14 @@ void Term::set(std::string syntax){
 std::shared_ptr<Rule> Term::get_rule() const {
     if(is_pointer()){return std::get<std::shared_ptr<Rule>>(value);}
     else {
-        throw std::runtime_error("get_term called on syntax!");
+        throw std::runtime_error(ANNOT("get_term called on syntax!"));
     }
 }
 
 std::string Term::get_syntax() const {
     if(is_syntax()){return std::get<std::string>(value);}
     else {
-        throw std::runtime_error("get_syntax called on pointer!");
+        throw std::runtime_error(ANNOT("get_syntax called on pointer!"));
     }
 }
 
