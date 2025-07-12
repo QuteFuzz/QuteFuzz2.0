@@ -123,7 +123,10 @@ namespace Common {
         ry = 638467743661393988ULL,
         u1 = 631765120777144307ULL,
         s = 12638206991764949794ULL,
+        sdg = 9383135583349391919ULL,
         t = 12638201494206808739ULL,
+        tdg = 6262443406867765286ULL,
+        phasedxpowgate = 11832025932794728373ULL,
 
         // TWO QUBIT GATES
         cx = 622136697450792830ULL,
@@ -132,10 +135,13 @@ namespace Common {
         ccx = 17716034042247149281ULL,
         u2 = 631766220288772518ULL,
         cnot = 352634892887392207ULL,
+        ch = 622154289636844206ULL,
+        crz = 17699985570524998350ULL,
     
         // THREE QUBIT GATES    
         u3 = 631767319800400729ULL,
         cswap = 9091793091986225957ULL,
+        toffoli = 15991066036535617246ULL,
 
         // OTHER GATES
         u = 12638200394695180528ULL,
@@ -164,6 +170,10 @@ namespace Common {
         qubit_def = 11301569403047543754ULL,
         singular_qubit_def = 3663840257195318050ULL,
         register_qubit_def = 16393191790828246050ULL,
+
+        // For internal and external distinction
+        external_qubit_def = 9661442208072337020ULL,
+        internal_qubit_def = 10908892387837367554ULL,
         singular_qubit = 358282167276964286ULL,
         register_qubit = 1224902788537856702ULL,
 
@@ -172,6 +182,29 @@ namespace Common {
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
+
+        // Guppy rules
+        block_args = 8098915444984821122ULL,
+        indented_body = 11869103690287558935ULL,
+        type = 12075340201627130925ULL,
+        parameter_name = 12726161396389809054ULL,
+        internal_qubit_def_singular = 6970351297996543450ULL,
+        internal_qubit_def_register = 521869151749140490ULL,
+        external_qubit_def_singular = 15741319533795746468ULL,
+        external_qubit_def_register = 11732219902132900340ULL,
+        // assignment = 7458258374037456624ULL,
+        // integer_assignment = 15799624338714905563ULL,
+        // float_assignment = 15010901291599723643ULL,
+        // variable_names = 13035807904021403226ULL,
+        // variable_name = 11584133888163274573ULL,
+        // function_call = 1406863417753387974ULL,
+        angle = 4619207558531745336ULL,
+        measure = 13586824709325088415ULL,
+        measure_array = 5009991113106631741ULL,
+        reset = 1086335023529244512ULL,
+        project_z = 2608459580584910443ULL,
+        
+        // indent = 8881161079555216635ULL,
     };
 }
 

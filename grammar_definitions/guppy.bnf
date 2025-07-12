@@ -1,0 +1,73 @@
+# guppy
+
+program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+
+subroutines = (block NEWLINE)*;
+
+block       = block_def NEWLINE indented_body NEWLINE;
+
+indented_body   = internal_qubit_definitions (statement NEWLINE)+ return_statement;
+
+block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
+            | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
+            ;
+
+block_args  = external_qubit_definitions; # TODO: Add additional traditional parameters in future
+
+external_qubit_definitions =   qubit_def (COMMA qubit_def)*;
+
+internal_qubit_definitions =   (internal_qubit_def NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
+
+qubit_def  =   singular_qubit_def 
+                | register_qubit_def;
+
+singular_qubit_def= qubit_name COLON "qubit";
+register_qubit_def = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+
+internal_qubit_def = internal_qubit_def_singular
+                    | internal_qubit_def_register;
+
+internal_qubit_def_singular = qubit_name EQUALS "qubit" LPAREN RPAREN;
+internal_qubit_def_register = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
+
+statement = qubit_op;
+
+qubit_op = gate_op;
+
+return_statement = "return";
+
+gate_op = gate_name gate_op_kind;
+
+gate_op_kind =  LPAREN qubit_list RPAREN 
+                | LPAREN float_list COMMA qubit_list RPAREN
+                ;
+
+float_list = float_literal (COMMA float_literal)*;
+
+gate_name = 
+    x | y | z | h | cx | toffoli | rz | rx | ry
+    # | t | tdg | s | sdg | ch | crz | measure | measure_array
+    # | reset | project_z
+    ;
+
+qubit_list  = qubit (COMMA SPACE qubit)*;
+
+qubit       = singular_qubit | register_qubit;
+
+singular_qubit_apply = qubit_name;
+
+register_qubit_apply = qubit_name "[" qubit_index "]"; 
+
+imports = "from guppylang.decorator import guppy " NEWLINE
+        "from guppylang.std.angles import angle, pi " NEWLINE
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned " NEWLINE
+        "from guppylang.std.quantum import * " NEWLINE
+        "from selene_sim import build, Stim " NEWLINE
+        "from diff_testing.lib import guppyTesting " NEWLINE
+        "from pathlib import Path " NEWLINE;
+
+compiler_call = "runner = build(guppy.compile(main))" NEWLINE
+                    "print(list(runner.run(Stim(), n_qubits=" n_qubits ")))" NEWLINE
+                    main_circuit_name" .measure_all()" NEWLINE
+                    "gt = guppyTesting() " NEWLINE
+                    "gt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;

@@ -45,7 +45,7 @@ class Rule {
     private:
         std::string name;
         U64 hash = 0ULL;
-        bool recursive = false;
+        bool recursive = false; //Toggles recursion
         bool common = false;
     
         std::vector<Branch> branches;

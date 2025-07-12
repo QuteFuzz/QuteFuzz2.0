@@ -98,9 +98,14 @@ namespace Context {
     size_t Context::make_qubit_definitions(bool external){
         std::shared_ptr<Block> current_block = get_current_block();
 
+        //If setting up internal qubits, set target separately
+        if (!external) {
+            current_block->set_target_num_qubits_int();
+        }
+
         current_block->make_qubit_definitions(external);
 
-        return current_block->num_qubit_definitions();
+        return current_block->num_qubit_definitions(external);
     }
 
     std::shared_ptr<Block> Context::get_block(std::string owner){

@@ -8,7 +8,7 @@ class Rule;
 class Term {
     public:
         Term(){}
-        Term(const std::string& name, unsigned int nd): _name(name), nesting_depth(nd) {}
+        Term(const std::string& name, unsigned int nd, unsigned int id = 0): _name(name), nesting_depth(nd), indent_depth(id) {}
         ~Term() = default;
 
         void set(std::shared_ptr<Rule> term);
@@ -43,6 +43,7 @@ class Term {
         std::string _name;
         U64 hashed_name = 0ULL;
         unsigned int nesting_depth = 0;
+        unsigned int indent_depth = 0;
 };
 
 #endif

@@ -5,7 +5,7 @@
 
 int main(){
     
-    Run run("../examples");
+    Run run("../grammar_definitions");
     run.loop();
 
     return 0;

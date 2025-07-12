@@ -15,6 +15,7 @@ DOUBLE_QUOTE: '"';
 DOUBLE_AMPERSAND: "&&";
 EQUALS: " = ";
 NEWLINE: "\n";
+INDENT: "    ";
 SEMICOLON : ";";
 COLON: ":";
 ARROW: '->';

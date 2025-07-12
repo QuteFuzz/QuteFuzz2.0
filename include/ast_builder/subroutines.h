@@ -8,8 +8,8 @@ class Subroutines : public Node {
     public:
         using Node::Node;
 
-        Subroutines(std::string str, U64 hash):
-            Node(str, hash)
+        Subroutines(std::string str, U64 hash, int indent_depth):
+            Node(str, hash, indent_depth)
         {
             constraint = std::make_optional<Size_constraint>(Common::block, random_int(Common::MAX_SUBROUTINES));            
         }

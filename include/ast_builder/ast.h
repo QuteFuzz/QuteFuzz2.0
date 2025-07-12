@@ -23,7 +23,7 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> parent, const Term& term);
 
-        std::shared_ptr<Node> get_node_from_term(const Term& term);
+        std::shared_ptr<Node> get_node_from_term(const Term& term, int indent_depth);
 
         Result<Node, std::string> build();
 
@@ -42,9 +42,20 @@ class Ast{
             std::vector<std::shared_ptr<Node>> children = node.get_children();
 
             if(node.get_node_kind() == TERMINAL){
-                stream << str;            
+                stream << str;
+                if (str == "\n") {
+                    for(int i = 0; i < node.get_indent_depth(); i++){
+                        stream << "\t";
+                    }
+                }            
 
             } else {
+                //Indent first before first child
+                if (str == "indented_body") {
+                    for(int i = 0; i < node.get_indent_depth(); i++){
+                        stream << "\t";
+                    } 
+                }   
                 write_children(stream, children);
             }
         
@@ -59,7 +70,6 @@ class Ast{
             const std::vector<std::shared_ptr<Node>>& children, 
             std::string suffix = "")
         {
-
             for(auto child : children){
                 write(stream, *child);
                 stream << suffix;

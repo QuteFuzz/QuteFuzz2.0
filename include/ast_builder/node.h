@@ -41,10 +41,11 @@ class Node {
     public:
         Node(){}
 
-        Node(const std::string _string, const U64 _hash = 0ULL):
+        Node(const std::string _string, const U64 _hash = 0ULL, const int _indent_depth = 0):
             string(_string),
             hash(_hash),
-            kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL)
+            kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
+            indent_depth(_indent_depth)
         {}
 
         void add_child(const std::shared_ptr<Node> child){
@@ -68,6 +69,7 @@ class Node {
             str += end;
         }
 
+        /// @brief Indent for ast printing only
         std::string indent() const {
             std::string str = "\n";
 
@@ -120,6 +122,10 @@ class Node {
             depth = _depth;
         }
 
+        int get_indent_depth() const {
+            return indent_depth;
+        }
+
         bool operator==(const U64& other){
             return hash == other;
         }
@@ -145,6 +151,7 @@ class Node {
         Node_kind kind;
 
         int depth = 0;
+        int indent_depth = 0;
 
         std::vector<std::shared_ptr<Node>> children;
 
