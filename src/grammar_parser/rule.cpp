@@ -34,7 +34,7 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
         Branch branch = branches[random_int(size - 1)];
 
         #ifdef DEBUG
-        INFO("Picking branch for " + name + " while satisfying constraints");
+        INFO("Picking branch for " + name + " while satisfying constraint");
         #endif
 
         while(!parent->branch_satisfies_constraint(branch)){

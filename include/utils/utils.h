@@ -165,15 +165,17 @@ namespace Common {
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,        
         statement = 7142774524121430294ULL,
-        internal_qubit_definitions = 8469462887226571463ULL,
-        external_qubit_definitions = 17341771489529375961ULL,
-        qubit_def = 11301569403047543754ULL,
-        singular_qubit_def = 3663840257195318050ULL,
-        register_qubit_def = 16393191790828246050ULL,
-
-        // For internal and external distinction
-        external_qubit_def = 9661442208072337020ULL,
-        internal_qubit_def = 10908892387837367554ULL,
+    
+        qubit_defs_internal = 15763474746718250229ULL,
+        qubit_def_internal = 8367506410210901254ULL,
+        register_qubit_def_internal = 7889892016210498366ULL,
+        singular_qubit_def_internal = 14695716164594440254ULL,
+    
+        qubit_defs_external = 12875408231208951867ULL,
+        qubit_def_external = 9066873179617854836ULL,
+        register_qubit_def_external = 17118825122301876444ULL,
+        singular_qubit_def_external = 5477905196976266716ULL,
+        
         singular_qubit = 358282167276964286ULL,
         register_qubit = 1224902788537856702ULL,
 
@@ -188,23 +190,22 @@ namespace Common {
         indented_body = 11869103690287558935ULL,
         type = 12075340201627130925ULL,
         parameter_name = 12726161396389809054ULL,
-        internal_qubit_def_singular = 6970351297996543450ULL,
-        internal_qubit_def_register = 521869151749140490ULL,
-        external_qubit_def_singular = 15741319533795746468ULL,
-        external_qubit_def_register = 11732219902132900340ULL,
+ 
         // assignment = 7458258374037456624ULL,
         // integer_assignment = 15799624338714905563ULL,
         // float_assignment = 15010901291599723643ULL,
         // variable_names = 13035807904021403226ULL,
         // variable_name = 11584133888163274573ULL,
         // function_call = 1406863417753387974ULL,
+ 
         angle = 4619207558531745336ULL,
         measure = 13586824709325088415ULL,
         measure_array = 5009991113106631741ULL,
         reset = 1086335023529244512ULL,
         project_z = 2608459580584910443ULL,
         
-        // indent = 8881161079555216635ULL,
+        indent = 8881161079555216635ULL,
+        dedent = 2224769550356995471ULL,
     };
 }
 
