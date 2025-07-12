@@ -118,7 +118,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 			}
 
 			case Common::float_literal:
-				return std::make_shared<Float>("6.9");
+				return std::make_shared<Float>();
 	
 			case Common::h: case Common::x: case Common::y: case Common::z: {
 				return context.get_current_gate(str, 1, 0);
@@ -167,7 +167,6 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			write_branch(child_node, child_term);
         }
 
-		parent->transition_to_done();
 	}
 
 	// done
