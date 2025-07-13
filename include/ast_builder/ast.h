@@ -33,35 +33,6 @@ class Ast{
 
     protected:
 
-        // /// @brief Simplest writer simply prints all terminals, or loops through all children until it eaches a terminal
-        // /// @param stream 
-        // /// @param node 
-        // /// @return 
-        // virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
-        //     std::string str = node.get_string();
-        //     std::vector<std::shared_ptr<Node>> children = node.get_children();
-
-        //     if(node.get_node_kind() == TERMINAL){
-        //         stream << str;
-        //         if (str == "\n") {
-        //             for(int i = 0; i < node.get_indent_depth(); i++){
-        //                 stream << "\t";
-        //             }
-        //         }            
-
-        //     } else {
-        //         //Indent first before first child
-        //         if (str == "indented_body") {
-        //             for(int i = 0; i < node.get_indent_depth(); i++){
-        //                 stream << "\t";
-        //             } 
-        //         }   
-        //         write_children(stream, children);
-        //     }
-        
-        //     return stream;
-        // };
-        
         std::shared_ptr<Rule> entry = nullptr;
         std::shared_ptr<Node> dummy = std::make_shared<Node>("");
 
