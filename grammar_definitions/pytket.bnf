@@ -21,16 +21,16 @@ block_def = circuit_name " = Circuit()";
 
 qubit_defs_external = (qubit_def_external NEWLINE)+;
 
-body = statements;
+body = compound_stmts;
 
-statements = (statement NEWLINE)+;
+compound_stmts = (compound_stmt NEWLINE)+;
 
 qubit_def_external  = singular_qubit_def_external 
                     | register_qubit_def_external;
 
 register_qubit_def_external =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
-statement = qubit_op;
+compound_stmt = qubit_op;
 
 qubit_op =
     gate_op

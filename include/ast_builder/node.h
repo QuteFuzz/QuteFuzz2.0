@@ -39,17 +39,18 @@ struct Size_constraint {
 class Node {
 
     public:
+
         Node(){}
 
-        Node(const std::string _string, const U64 _hash = 0ULL, const int _indent_depth = 0):
+        /// no hash provided => node is non-terminal
+        Node(const std::string _string, const U64 _hash = 0ULL, const std::string _indentation_str = ""):
             string(_string),
             hash(_hash),
             kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
-            indent_depth(_indent_depth)
+            indentation_str(_indentation_str)
         {}
 
         void add_child(const std::shared_ptr<Node> child){
-            child->set_depth(depth+1);
             children.push_back(child);
         }
 
@@ -61,27 +62,6 @@ class Node {
             return state;
         }
 
-        void extend_str(std::string& str, std::string repeat, std::string end = "") const {
-            for(int i = 0; i < depth; ++i){
-                str += repeat;
-            }
-
-            str += end;
-        }
-
-        /// @brief Indent for ast printing only
-        std::string indent() const {
-            std::string str = "\n";
-
-            extend_str(str, "\t", "|\n");
-
-            extend_str(str, "\t", "|");
-
-            extend_str(str, "---", ">");
-
-            return str;
-        }
-
         std::string get_string() const {
             return string;
         }
@@ -89,10 +69,15 @@ class Node {
         Node_kind get_node_kind() const {return kind;}
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
-            stream << "[" << n.string << "]" << " children: " << n.get_num_children();
-            
-            for(auto child : n.children){
-                stream << child->indent() << *child;
+
+            if(n.kind == TERMINAL){
+                stream << n.string;
+
+            } else {
+
+                for(const std::shared_ptr<Node>& child : n.children){
+                    stream << n.indentation_str << *child;
+                }
             }
 
             return stream;
@@ -114,18 +99,6 @@ class Node {
             return children.size();
         }
 
-        int get_depth() const {
-            return depth;
-        }
-
-        void set_depth(int _depth){
-            depth = _depth;
-        }
-
-        int get_indent_depth() const {
-            return indent_depth;
-        }
-
         bool operator==(const U64& other){
             return hash == other;
         }
@@ -145,13 +118,14 @@ class Node {
             }
         }
 
+        static std::string indentation_tracker;
+
     protected:
         std::string string;
         U64 hash;
         Node_kind kind;
 
-        int depth = 0;
-        int indent_depth = 0;
+        std::string indentation_str;
 
         std::vector<std::shared_ptr<Node>> children;
 
