@@ -5,6 +5,7 @@
 #include <qubit_definition.h>
 #include <graph.h>
 #include <variable.h>
+#include <qubit_defs.h>
 
 class Gate;
 
@@ -40,7 +41,7 @@ namespace Context {
 
             std::shared_ptr<Block> setup_block(std::string str, U64 hash);
             
-			size_t make_qubit_definitions(bool external = true);
+			std::shared_ptr<Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
 
 			std::shared_ptr<Block> get_block(std::string owner);
 

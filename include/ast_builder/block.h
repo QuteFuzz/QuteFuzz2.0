@@ -2,8 +2,9 @@
 #define BLOCK_H
 
 #include <node.h>
-#include <qubit.h>
 #include <qubit_definition.h>
+#include <qubit.h>
+#include <collection.h>
 
 class Block : public Node {
 
@@ -31,58 +32,39 @@ class Block : public Node {
             return can_apply_subroutines;
         }
 
+        inline size_t total_num_qubits() const {
+            return qubits.get_total();
+        }
+
         inline size_t num_external_qubits() const {
-            return external_qubits.size();
+            return qubits.get_num_external();
         }
 
-        inline size_t num__internal_qubits() const {
-            return internal_qubits.size();
-        }
-
-        /* 
-        Counts the number of qubit defiitions, depending on if counting internal or external definitions
-        (for branching purposes)
-         */
-        inline size_t num_qubit_definitions(bool external) const {
-
-            if (external) {
-                return std::count_if(qubit_defs.begin(), qubit_defs.end(),
-                [](const Qubit_definition::Qubit_definition& def) {
-                    
-                    return def.is_external();
-                });
-
-            } else {
-                return std::count_if(qubit_defs.begin(), qubit_defs.end(),
-                [](const Qubit_definition::Qubit_definition& def) {
-                    return !def.is_external();
-                });
-            }
+        inline size_t num_internal_qubits() const {
+            return qubits.get_num_internal();
         }
 
         void qubit_flag_reset(){
-            for(Qubit::Qubit& qb : external_qubits){
-                qb.reset();
+            qubits.reset();
+        }
+
+        inline Qubit::Qubit* qubit_at(size_t index){
+            if(index < qubits.get_total()){
+                return qubits.at(index);
+            } else {
+                return &dummy_qubit;
             }
         }
 
-        inline std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def(){
-            if((size_t)qubit_def_pointer < qubit_defs.size()){
-                return std::make_shared<Qubit_definition::Qubit_definition>(qubit_defs[qubit_def_pointer++]);
-            } else {
-                return std::make_shared<Qubit_definition::Qubit_definition>(dummy_def);
-            }
-        }
+        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
 
         std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
         
-        size_t make_register_qubit_definition(int max_size, bool external = true);
+        size_t make_register_qubit_definition(int max_size, bool external);
 
-        size_t make_singular_qubit_definition(bool external = true);
+        size_t make_singular_qubit_definition(bool external);
 
-        void make_qubit_definitions(bool external = true);
-
-        Qubit::Qubit* get_qubit_at(size_t index);
+        size_t make_qubit_definitions(bool external);
 
     private:
         std::string owner;
@@ -91,17 +73,13 @@ class Block : public Node {
         
         bool can_apply_subroutines = false;
 
-        std::vector<Qubit::Qubit> external_qubits;
-        std::vector<Qubit::Qubit> internal_qubits;
-        std::vector<Qubit_definition::Qubit_definition> qubit_defs;
+        Collection<Qubit::Qubit> qubits;
+        Collection<Qubit_definition::Qubit_definition> qubit_defs;
 
+        size_t qubit_def_pointer = 0;
         Qubit::Qubit dummy_qubit;
         Qubit_definition::Qubit_definition dummy_def;
 
-        int qubit_def_pointer = 0;
-
-        int register_qubit_def_count = 0;
-        int singular_qubit_def_count = 0;
 };
 
 

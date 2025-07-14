@@ -16,7 +16,7 @@ block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " ->
 
 block_args  = qubit_defs_external; # TODO: Add additional traditional parameters in future
 
-qubit_defs_external =   qubit_def_external (COMMA qubit_def_external)*;
+qubit_defs_external = EMPTY | qubit_def_external (COMMA qubit_def_external)*;
 
 qubit_defs_internal =   (qubit_def_internal NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
 

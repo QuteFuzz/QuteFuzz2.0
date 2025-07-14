@@ -1,5 +1,8 @@
 #include <run.h>
 #include <ast.h>
+#include <qubit_combinations.h>
+
+Qubit_combinations QUBIT_COMBINATIONS;
 
 void Program_Spec::setup_builder(const std::string entry_name){
     if(grammar->is_rule(entry_name)){
@@ -67,7 +70,8 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             }
 
         }
-        set_possible_qubit_combinations();
+
+        QUBIT_COMBINATIONS.set_possible_qubit_combinations();
 
     } catch (const fs::filesystem_error& error) {
         std::cout << error.what() << std::endl;

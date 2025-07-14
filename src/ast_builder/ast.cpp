@@ -1,5 +1,6 @@
 #include <ast.h>
 
+#include <result.h>
 #include <block.h>
 #include <gate.h>
 #include <compound_stmts.h>
@@ -93,15 +94,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qubit_def_external: case Common::qubit_def_internal:
 				return context.get_current_qubit_definition();
 
-			case Common::qubit_defs_external: {
-				size_t num_qubit_definitions = context.make_qubit_definitions();
-				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions);
-			}
-
-			case Common::qubit_defs_internal: {
-				size_t num_qubit_definitions = context.make_qubit_definitions(false);
-				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, false);
-			}
+			case Common::qubit_defs_external: case Common::qubit_defs_internal:
+				return context.make_qubit_definitions(str, hash);
 
 			case Common::qubit_list: {
 				size_t num_qubits = context.get_current_gate_num_qubits();
@@ -178,8 +172,8 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node, std::string> Ast::build(){
-	Result<Node, std::string> res;
+Result<Node> Ast::build(){
+	Result<Node> res;
 
 	if(entry == nullptr){
 		res.set_error("Entry point not set");
@@ -208,7 +202,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 
 		context.set_circuits_dir(current_circuit_dir);
 		
-	    Result<Node, std::string> maybe_ast_root = build();
+	    Result<Node> maybe_ast_root = build();
 
 		if(maybe_ast_root.is_ok()){
 			Node ast_root = maybe_ast_root.get_ok();
@@ -222,7 +216,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			INFO("Program written to " + program_path.string());
 			
 			// render AST
-			render_ast(ast_root, current_circuit_dir);
+			// render_ast(ast_root, current_circuit_dir);
 
 			// render QIG for main
 			context.render_qig();

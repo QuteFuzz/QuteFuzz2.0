@@ -7,7 +7,7 @@ class Qubit_defs : public Node {
 
     public:
 
-        Qubit_defs(std::string str, U64 hash, int num_defs, bool external = true):
+        Qubit_defs(std::string str, U64 hash, size_t num_defs, bool external):
             Node(str, hash, indentation_tracker)
         {
             if(external){

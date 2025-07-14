@@ -76,31 +76,33 @@ namespace Context {
 
     std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
 
-        int target_num_qubits;
+        int target_num_qubits_external;
 
         if(current_block_is_subroutine()){
             current_block_owner = "sub"+std::to_string(subroutine_counter++);
-            target_num_qubits = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
+            target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            target_num_qubits = get_max_defined_qubits();
+            target_num_qubits_external = get_max_defined_qubits();
 
             subroutine_counter = 0;
         }
 
-        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits);
+        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits_external);
         blocks.push_back(current_block);
 
         return current_block;
     }
 
-    size_t Context::make_qubit_definitions(bool external){
+    std::shared_ptr<Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        current_block->make_qubit_definitions(external);
+        bool external = (hash == Common::qubit_defs_external);
 
-        return current_block->num_qubit_definitions(external);
+        size_t num_defs = current_block->make_qubit_definitions(external);
+
+        return std::make_shared<Qubit_defs>(str, hash, num_defs, external);
     }
 
     std::shared_ptr<Block> Context::get_block(std::string owner){
@@ -201,6 +203,6 @@ namespace Context {
 
     void Context::set_qig(){
         render_qig();
-        qig = std::make_shared<Graph>(current_block_owner, get_current_block()->num_external_qubits());
+        qig = std::make_shared<Graph>(current_block_owner, get_current_block()->total_num_qubits());
     }
 }

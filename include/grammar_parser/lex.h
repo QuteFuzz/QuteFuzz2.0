@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <fstream>
 
-#include <utils.h>
+#include <result.h>
 
 namespace Token {
     enum Token_kind {
@@ -145,7 +145,7 @@ namespace Lexer {
             }
 
         private:
-            Result<std::vector<Token::Token>, std::string> result;
+            Result<std::vector<Token::Token>> result;
             std::string _filename = "bnf.bnf"; 
             bool ignore = false;
             

@@ -21,9 +21,9 @@ class Singular_qubit_definition : public Node {
             return std::make_shared<Variable>(name);
         }
 
-        void make_qubits(std::vector<Qubit::Qubit>& block_qubits) const {
+        void make_qubits(Collection<Qubit::Qubit>& output, bool external) const {
             Singular_qubit singular_qubit(name);
-            block_qubits.push_back(Qubit::Qubit(singular_qubit));
+            output.add(Qubit::Qubit(singular_qubit, external));
         }
 
     private:

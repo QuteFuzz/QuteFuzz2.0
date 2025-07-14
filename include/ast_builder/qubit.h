@@ -7,33 +7,34 @@
 namespace Qubit {
 
     enum Type {
-        REGISTER,
-        SINGULAR
+        REGISTER_EXTERNAL,
+        REGISTER_INTERNAL,
+        SINGULAR_EXTERNAL,
+        SINGULAR_INTERNAL
     };
 
     class Qubit : public Node {
         public:
 
+            /// @brief Dummy qubit
             Qubit() :
                 Node("qubit", hash_rule_name("qubit")),
                 value(Singular_qubit()),
-                type(SINGULAR)
-            {
+                type(SINGULAR_EXTERNAL)
+            {}
 
-            }
-
-            Qubit(Register_qubit qubit) :
+            Qubit(Register_qubit qubit, bool external) :
                 Node("qubit", hash_rule_name("qubit")),
                 value(qubit),
-                type(REGISTER)
+                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
             {
                 constraint = std::make_optional<Size_constraint>(Common::register_qubit, 1);
             }
 
-            Qubit(Singular_qubit qubit) :
+            Qubit(Singular_qubit qubit, bool external) :
                 Node("qubit", hash_rule_name("qubit")),
                 value(qubit),
-                type(SINGULAR)
+                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
             {
                 constraint = std::make_optional<Size_constraint>(Common::singular_qubit, 1);
             }
@@ -66,8 +67,16 @@ namespace Qubit {
                 }, value);
             }
 
+            inline bool is_external() const {
+                return ((type == REGISTER_EXTERNAL) || (type == SINGULAR_EXTERNAL));
+            }
+
+            inline bool is_register_def() const {
+                return ((type == REGISTER_EXTERNAL) || (type == REGISTER_INTERNAL));
+            }
+
             inline std::shared_ptr<Integer> get_index(){
-                if(type == REGISTER){
+                if(is_register_def()){
                     return std::get<Register_qubit>(value).get_index();
                 }
 
@@ -78,7 +87,7 @@ namespace Qubit {
 
             inline std::string resolved_name(){
 
-                if(type == REGISTER){
+                if(is_register_def()){
                     return get_name()->get_string() + "_" + get_index()->get_string();
                 } else {
                     return get_name()->get_string();
@@ -90,8 +99,6 @@ namespace Qubit {
             std::variant<Register_qubit, Singular_qubit> value;
             Type type;
     };
-
-
 
 }
 

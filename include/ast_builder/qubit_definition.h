@@ -17,6 +17,7 @@ namespace Qubit_definition {
 
         public:
 
+            /// @brief Dummy definition
             Qubit_definition() : 
                 Node("qubit_def", hash_rule_name("qubit_def")),
                 value(Register_qubit_definition()), 

@@ -107,8 +107,8 @@ class Grammar{
         std::vector<Token::Token> tokens;
         size_t num_tokens = 0;
         size_t token_pointer = 0;
-        Result<Token::Token, std::string> curr_token;
-        Result<Token::Token, std::string> next_token;
+        Result<Token::Token> curr_token;
+        Result<Token::Token> next_token;
         Token::Token prev_token;
 
         std::string range_start = "", range_end = "";

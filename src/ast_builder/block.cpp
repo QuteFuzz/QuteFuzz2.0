@@ -8,18 +8,13 @@ size_t Block::make_register_qubit_definition(int max_size, bool external){
     else size = max_size;
 
     Register_qubit_definition def(
-        Variable("qreg" + std::to_string(register_qubit_def_count++)),
+        Variable("qreg" + std::to_string(qubit_defs.get_total())),
         Integer(std::to_string(size))    
     );
 
-    if(external) {
-        def.make_qubits(external_qubits);
+    def.make_qubits(qubits, external);
     
-    } else {
-        def.make_qubits(internal_qubits);
-    }
-    
-    qubit_defs.push_back(Qubit_definition::Qubit_definition(def, external));
+    qubit_defs.add(Qubit_definition::Qubit_definition(def, external));
     
     return size;
 }
@@ -27,23 +22,18 @@ size_t Block::make_register_qubit_definition(int max_size, bool external){
 
 size_t Block::make_singular_qubit_definition(bool external){
     Singular_qubit_definition def (
-        Variable("qubit" + std::to_string(singular_qubit_def_count++))
+        Variable("qubit" + std::to_string(qubit_defs.get_total()))
     );
 
-    if(external) {
-        def.make_qubits(external_qubits);
-    
-    } else {
-        def.make_qubits(internal_qubits);
-    }
+    def.make_qubits(qubits, external);
 
-    qubit_defs.push_back(Qubit_definition::Qubit_definition(def, external));
+    qubit_defs.add(Qubit_definition::Qubit_definition(def, external));
 
     return 1;
 }
 
 
-void Block::make_qubit_definitions(bool external){
+size_t Block::make_qubit_definitions(bool external){
     int type_choice = 0; // random_int(1);
 
     #ifdef DEBUG
@@ -65,21 +55,19 @@ void Block::make_qubit_definitions(bool external){
 
         // type_choice = random_int(1);
     }
-}
 
-Qubit::Qubit* Block::get_qubit_at(size_t index){
-    if(index < num_external_qubits()) return &external_qubits.at(index);
-    else return &dummy_qubit;
+    return (external ? qubit_defs.get_num_external() : qubit_defs.get_num_internal());
 }
 
 /// @brief Pick random qubit from combination of external and internal qubits
 /// @param best_entanglement 
 /// @return 
 std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
+    size_t total_qubits = qubits.get_total();
 
-    if(num_external_qubits()){
+    if(total_qubits){
 
-        Qubit::Qubit* qubit = get_qubit_at(0);
+        Qubit::Qubit* qubit = qubits.at(0);
 
         #ifdef DEBUG
         INFO("Getting random qubit");
@@ -88,22 +76,21 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<
         if(best_entanglement.has_value()){
             std::vector<int> e = best_entanglement.value();
 
-            qubit = get_qubit_at(e[0]);
+            qubit = qubits.at(e[0]);
             int pointer = 0;
 
             while(qubit->is_used()){
-                qubit = get_qubit_at(e[++pointer]);
+                qubit = qubits.at(e[++pointer]);
             }
 
             qubit->set_used();
 
         } else {
-            size_t total_qubits = num_external_qubits();
 
-            qubit = get_qubit_at(random_int(total_qubits - 1));
+            qubit = qubits.at(random_int(total_qubits - 1));
             
             while(qubit->is_used()){
-                qubit = get_qubit_at(random_int(total_qubits - 1));
+                qubit = qubits.at(random_int(total_qubits - 1));
             }
 
             qubit->set_used();
@@ -113,5 +100,17 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<
     
     } else {
         return std::make_shared<Qubit::Qubit>(dummy_qubit);
+    }
+}
+
+std::shared_ptr<Qubit_definition::Qubit_definition> Block::get_next_qubit_def(){
+    auto maybe_def = qubit_defs.at(qubit_def_pointer++);
+
+    if(maybe_def == nullptr){
+        return std::make_shared<Qubit_definition::Qubit_definition>(dummy_def);
+            
+    } else {
+        return std::make_shared<Qubit_definition::Qubit_definition>(*maybe_def); 
+
     }
 }
