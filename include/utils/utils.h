@@ -154,7 +154,6 @@ namespace Common {
         main_circuit_name = 15359974437464362266ULL,
 
         body = 14793735007222968981ULL,
-        statements = 7457579184642066079ULL,
         qreg_name = 10722739978486866664ULL,
         qreg_size = 11502232252882731618ULL,
         qubit = 9613145697666387222ULL,
@@ -164,7 +163,6 @@ namespace Common {
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,        
-        statement = 7142774524121430294ULL,
     
         qubit_defs_internal = 15763474746718250229ULL,
         qubit_def_internal = 8367506410210901254ULL,
@@ -191,12 +189,10 @@ namespace Common {
         type = 12075340201627130925ULL,
         parameter_name = 12726161396389809054ULL,
  
-        // assignment = 7458258374037456624ULL,
-        // integer_assignment = 15799624338714905563ULL,
-        // float_assignment = 15010901291599723643ULL,
-        // variable_names = 13035807904021403226ULL,
-        // variable_name = 11584133888163274573ULL,
-        // function_call = 1406863417753387974ULL,
+        simple_stmt = 15680233693926857886ULL,
+        simple_stmts = 7071648921283339959ULL,
+        compound_stmt = 4421131487532525991ULL,
+        compound_stmts = 17100464358870324028ULL,
  
         angle = 4619207558531745336ULL,
         measure = 13586824709325088415ULL,

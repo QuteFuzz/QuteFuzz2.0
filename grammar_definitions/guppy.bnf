@@ -4,9 +4,11 @@ program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
 
-block       = block_def NEWLINE indented_body NEWLINE;
+block       = block_def NEWLINE INDENT body simple_stmt DEDENT NEWLINE;
 
-indented_body   = qubit_defs_internal (statement NEWLINE)+ return_statement;
+body   = qubit_defs_internal compound_stmts;
+
+compound_stmts = (compound_stmt NEWLINE)*;
 
 block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
             | "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON
@@ -30,11 +32,13 @@ qubit_def_internal = singular_qubit_def_internal
 singular_qubit_def_internal = qubit_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit" COMMA qreg_size RPAREN;
 
-statement = qubit_op;
+compound_stmt = qubit_op;
 
 qubit_op = gate_op;
 
-return_statement = "return";
+simple_stmt = 
+    | "return"
+    | "pass"
 
 gate_op = gate_name gate_op_kind;
 

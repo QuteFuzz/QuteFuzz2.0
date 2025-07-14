@@ -7,8 +7,8 @@ class Gate_op_kind : public Node {
 
     public:
 
-        Gate_op_kind(std::string str, U64 hash, int num_gate_params, int indent_depth):
-            Node(str, hash, indent_depth)
+        Gate_op_kind(std::string str, U64 hash, int num_gate_params):
+            Node(str, hash)
         {
             if(num_gate_params >= 1){
                 constraint = std::make_optional<Size_constraint>(Common::float_list, 1);

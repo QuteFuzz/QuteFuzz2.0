@@ -2,7 +2,8 @@
 
 #include <block.h>
 #include <gate.h>
-#include <statements.h>
+#include <compound_stmts.h>
+#include <simple_stmt.h>
 #include <float.h>
 #include <float_list.h>
 #include <qubit_list.h>
@@ -11,10 +12,12 @@
 #include <gate_op_kind.h>
 #include <subroutines.h>
 
-std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth){
+std::string Node::indentation_tracker = "";
+
+std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 	if(term.is_syntax()){
-		return std::make_shared<Node>(term.get_syntax(), 0ULL, indent_depth);
+		return std::make_shared<Node>(term.get_syntax());
 
 	} else {
 	
@@ -23,27 +26,32 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 
 		switch(hash){
 
+			case Common::indent:
+				Node::indentation_tracker += "\t";
+				return dummy;
+
+			case Common::dedent:
+				if(Node::indentation_tracker.size()){
+					Node::indentation_tracker.pop_back();
+				}
+
+				return dummy;
+
 			case Common::block:
 				return context.setup_block(str, hash);
 
 			case Common::body: {
 				context.set_can_apply_subroutines();
-				return std::make_shared<Node>(str, hash, indent_depth);
+				return std::make_shared<Node>(str, hash);
 			}
 
-			case Common::indented_body: {
-				context.set_can_apply_subroutines();
-				return std::make_shared<Node>(str, hash, indent_depth+1);
-			}
-
-			case Common::statements: {
+			case Common::compound_stmts:
 				// qig set after all definitions have been made
 				context.set_qig();
-
-				std::shared_ptr<Statements> node = std::make_shared<Statements>(str, hash, WILDCARD_MAX, indent_depth);
-
-				return node;
-			}
+				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+			
+			case Common::simple_stmt:
+				return std::make_shared<Simple_stmt>(str, hash);
 
 			case Common::circuit_id:
 				return std::make_shared<Integer>(std::to_string(build_counter));
@@ -52,7 +60,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 				return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 				
 			case Common::subroutines: {
-				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash, indent_depth);
+				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
 				
 				context.set_subroutines_node(node);
 
@@ -60,11 +68,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 			}
 
 			case Common::gate_op_kind :
-				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), indent_depth);
+				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
 			case Common::qubit_op:
 				context.reset(Context::QUBIT_OP);
-				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), indent_depth);
+				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
 
 			case Common::subroutine: {				
 				std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -87,17 +95,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 
 			case Common::qubit_defs_external: {
 				size_t num_qubit_definitions = context.make_qubit_definitions();
-				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, indent_depth);
+				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions);
 			}
 
 			case Common::qubit_defs_internal: {
 				size_t num_qubit_definitions = context.make_qubit_definitions(false);
-				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, indent_depth, false);
+				return std::make_shared<Qubit_defs>(str, hash, num_qubit_definitions, false);
 			}
 
 			case Common::qubit_list: {
 				size_t num_qubits = context.get_current_gate_num_qubits();
-				return std::make_shared<Qubit_list>(str, hash, num_qubits, indent_depth);
+				return std::make_shared<Qubit_list>(str, hash, num_qubits);
 			}
 
 			case Common::qubit_index:
@@ -142,7 +150,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term, int indent_depth
 			}
 
 			default:
-				return std::make_shared<Node>(str, hash, indent_depth);
+				return std::make_shared<Node>(str, hash);
 		}
 	}
 }
@@ -157,7 +165,7 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			
 			Term child_term = branch.at(i);
 			
-			std::shared_ptr<Node> child_node = get_node_from_term(child_term, parent->get_indent_depth());
+			std::shared_ptr<Node> child_node = get_node_from_term(child_term);
 
 			parent->add_child(child_node);
 
@@ -182,7 +190,7 @@ Result<Node, std::string> Ast::build(){
 		Term entry_as_term;
 		entry_as_term.set(entry);
 
-		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term, 0);
+		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term);
 
 		write_branch(root_ptr, entry_as_term);
 
@@ -208,12 +216,13 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			// write program
 			fs::path program_path = current_circuit_dir / ("circuit" + extension);
 			std::ofstream stream(program_path.string());
-			write(stream, ast_root);
+			
+			stream << ast_root << std::endl;
 
 			INFO("Program written to " + program_path.string());
 			
 			// render AST
-			// render_ast(ast_root, current_circuit_dir);
+			render_ast(ast_root, current_circuit_dir);
 
 			// render QIG for main
 			context.render_qig();

@@ -14,7 +14,6 @@ add_executable(fuzzer ${SRCS})
 
 target_include_directories(fuzzer PRIVATE
     ${CMAKE_SOURCE_DIR}/include/ast_builder
-    ${CMAKE_SOURCE_DIR}/include/frontend_parsers
     ${CMAKE_SOURCE_DIR}/include/grammar_parser
     ${CMAKE_SOURCE_DIR}/include/qig
     ${CMAKE_SOURCE_DIR}/include/utils

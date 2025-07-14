@@ -23,7 +23,7 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> parent, const Term& term);
 
-        std::shared_ptr<Node> get_node_from_term(const Term& term, int indent_depth);
+        std::shared_ptr<Node> get_node_from_term(const Term& term);
 
         Result<Node, std::string> build();
 
@@ -33,52 +33,8 @@ class Ast{
 
     protected:
 
-        /// @brief Simplest writer simply prints all terminals, or loops through all children until it eaches a terminal
-        /// @param stream 
-        /// @param node 
-        /// @return 
-        virtual std::ofstream& write(std::ofstream& stream, const Node& node) {
-            std::string str = node.get_string();
-            std::vector<std::shared_ptr<Node>> children = node.get_children();
-
-            if(node.get_node_kind() == TERMINAL){
-                stream << str;
-                if (str == "\n") {
-                    for(int i = 0; i < node.get_indent_depth(); i++){
-                        stream << "\t";
-                    }
-                }            
-
-            } else {
-                //Indent first before first child
-                if (str == "indented_body") {
-                    for(int i = 0; i < node.get_indent_depth(); i++){
-                        stream << "\t";
-                    } 
-                }   
-                write_children(stream, children);
-            }
-        
-            return stream;
-        };
-
-        /// @brief Loop through and call `write` on each child of the given node
-        /// @param stream 
-        /// @param node
-        /// @return 
-        std::ofstream& write_children(std::ofstream& stream, 
-            const std::vector<std::shared_ptr<Node>>& children, 
-            std::string suffix = "")
-        {
-            for(auto child : children){
-                write(stream, *child);
-                stream << suffix;
-            }
-
-            return stream;
-        }
-        
         std::shared_ptr<Rule> entry = nullptr;
+        std::shared_ptr<Node> dummy = std::make_shared<Node>("");
 
         std::random_device rd;
         std::mt19937 gen;
