@@ -43,7 +43,7 @@ simple_stmt =
 gate_op = gate_name gate_op_kind;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
-                | LPAREN float_list COMMA qubit_list RPAREN
+                | LPAREN qubit_list COMMA float_list RPAREN
                 ;
 
 float_list = float_literal (COMMA float_literal)*;
@@ -58,9 +58,9 @@ qubit_list  = qubit (COMMA SPACE qubit)*;
 
 qubit       = singular_qubit | register_qubit;
 
-singular_qubit_apply = qubit_name;
+singular_qubit = qubit_name;
 
-register_qubit_apply = qubit_name "[" qubit_index "]"; 
+register_qubit = qubit_name "[" qubit_index "]"; 
 
 imports = "from guppylang.decorator import guppy " NEWLINE
         "from guppylang.std.angles import angle, pi " NEWLINE
