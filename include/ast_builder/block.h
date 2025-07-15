@@ -15,12 +15,11 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external) : 
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal) : 
             Node(str, hash),
             owner(owner_name), 
             target_num_qubits_external(_target_num_qubits_external),
-            target_num_qubits_internal(random_int(Common::MAX_QUBITS, target_num_qubits_external) - target_num_qubits_external)
-        {}
+            target_num_qubits_internal(_target_num_qubits_internal) {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -71,7 +70,7 @@ class Block : public Node {
     private:
         std::string owner;
         int target_num_qubits_external = Common::MIN_QUBITS;
-        int target_num_qubits_internal = Common::MAX_QUBITS - Common::MIN_QUBITS;
+        int target_num_qubits_internal = 0;
         
         bool can_apply_subroutines = false;
 

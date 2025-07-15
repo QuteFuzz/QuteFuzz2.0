@@ -6,7 +6,7 @@
 #include <compound_stmts.h>
 #include <simple_stmt.h>
 #include <float.h>
-#include <float_list.h>
+#include <number_list.h>
 #include <qubit_list.h>
 #include <qubit_defs.h>
 #include <qubit_op.h>
@@ -68,7 +68,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return node;
 			}
 
-			case Common::gate_op_kind :
+			case Common::gate_op_kind:
 				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
 			case Common::qubit_op:
@@ -111,13 +111,23 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qubit: 
 				return context.get_current_qubit();
 		
-			case Common::float_list : {
+			case Common::number_list: {
+				bool is_angle = false;
+				for (Branch branch : term.get_rule()->get_branches()) {
+					if (branch.get_name() == "angle_list") {
+						is_angle = true;
+					}
+				}
+				
 				size_t num_floats = context.get_current_gate_num_params();
-				return std::make_shared<Float_list>(str, hash, num_floats);
+				return std::make_shared<Number_list>(str, hash, num_floats, is_angle);
 			}
 
 			case Common::float_literal:
 				return std::make_shared<Float>();
+
+			case Common::angle:
+				return std::make_shared<Float>(std::to_string(random_int(3,-3)/2));
 	
 			case Common::h: case Common::x: case Common::y: case Common::z: {
 				return context.get_current_gate(str, 1, 0);
@@ -141,6 +151,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::u3: case Common::u:{
 				return context.get_current_gate(str, 1, 3);
+			}
+
+			case Common::n_qubits: {
+				return std::make_shared<Integer>(std::to_string(context.get_max_defined_qubits()));
 			}
 
 			default:
