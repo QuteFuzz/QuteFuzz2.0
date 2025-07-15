@@ -203,6 +203,11 @@ namespace Context {
 
     void Context::set_qig(){
         render_qig();
-        qig = std::make_shared<Graph>(current_block_owner, get_current_block()->total_num_qubits());
+
+        size_t total_num_qubits = get_current_block()->total_num_qubits();
+
+        INFO("Setting QIG for " + current_block_owner + " with " + std::to_string(total_num_qubits) + " qubits");
+        
+        qig = std::make_shared<Graph>(current_block_owner, total_num_qubits);
     }
 }

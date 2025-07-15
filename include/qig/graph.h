@@ -6,9 +6,13 @@
 #include <fstream>
 #include <limits>
 
+struct Qubit_combinations;
+
 class Graph {
 
     public:
+        static const Qubit_combinations qubit_combinations;
+
         Graph(){}
 
         Graph(std::string _owner, int _vertices) :
@@ -16,12 +20,7 @@ class Graph {
         vertices(_vertices), 
         num_pairs((vertices * (vertices - 1)) / 2),
         graph(vertices, std::vector<int>(vertices, 0)), 
-        shortest_distances(vertices, std::vector<int>(vertices, 0)){
-//             if(vertices < Common::MIN_N_QUBITS_IN_ENTANGLEMENT){
-//                 
-            //     // throw std::runtime_error(ANNOT("Num vertices in graph < " + std::to_string(Common::MIN_N_QUBITS_IN_ENTANGLEMENT)));
-            // }
-        }
+        shortest_distances(vertices, std::vector<int>(vertices, 0)){}
 
         inline std::string get_owner(){return owner;}
 

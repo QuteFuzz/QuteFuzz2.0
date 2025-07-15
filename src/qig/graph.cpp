@@ -1,6 +1,8 @@
 #include <graph.h>
 #include <qubit_combinations.h>
 
+const Qubit_combinations Graph::qubit_combinations;
+
 std::vector<int> Graph::djikstras(int source_node){
 
     std::vector<int> distances(vertices, __INT_MAX__);
@@ -36,14 +38,6 @@ std::vector<int> Graph::djikstras(int source_node){
             }
         }
     }
-
-    // // print distances
-
-    // for(size_t i = 0; i < vertices; ++i){
-    //     std::cout << distances[i] << " ";
-    // }
-
-    // std::cout << std::endl;
 
     return distances;
 }
@@ -84,14 +78,18 @@ int Graph::score(){
 }
 
 std::optional<std::vector<int>> Graph::get_best_entanglement(int n_qubits_in_entanglement){
-    if((n_qubits_in_entanglement >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT) && (vertices >= Common::MIN_QUBITS)){
+    if ((n_qubits_in_entanglement >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT) && 
+        (n_qubits_in_entanglement <= Common::MAX_QUBITS) && 
+        (vertices >= Common::MIN_QUBITS) && 
+        (vertices <= Common::MAX_QUBITS))
+    {
 
         int best_score = -INT32_MAX;
 
-        std::vector<std::vector<int>> possible_entanglements = QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
-        std::vector<std::vector<int>> edges = QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
+        std::vector<std::vector<int>> possible_entanglements = qubit_combinations.at(vertices, n_qubits_in_entanglement);
+        std::vector<std::vector<int>> edges = qubit_combinations.at(n_qubits_in_entanglement, 2); 
 
-        std::vector<int> res = possible_entanglements[0];
+        std::vector<int> res;
 
         for(const std::vector<int>& entanglement : possible_entanglements){
             add_entanglement(entanglement, edges);
