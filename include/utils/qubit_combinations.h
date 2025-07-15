@@ -15,7 +15,7 @@ struct Qubit_combinations{
 
         void set_possible_qubit_combinations(){
 
-            for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS; n_qubits++){
+            for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS*2; n_qubits++){
                 for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
                     std::vector<std::vector<int>> combs = n_choose_r(n_qubits, n_qubits_in_entanglement);
                     set(n_qubits, n_qubits_in_entanglement, combs);
@@ -50,7 +50,7 @@ struct Qubit_combinations{
         }
 
     private:
-        std::vector<std::vector<int>> data[Common::MAX_QUBITS][Common::MAX_QUBITS];
+        std::vector<std::vector<int>> data[Common::MAX_QUBITS*2][Common::MAX_QUBITS*2];
 };
 
 extern Qubit_combinations QUBIT_COMBINATIONS;

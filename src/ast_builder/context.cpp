@@ -37,7 +37,7 @@ namespace Context {
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
-            res = std::max(res, block->num_external_qubits());
+            res = std::max(res, block->total_num_qubits());
         }
 
         return res;
@@ -62,7 +62,7 @@ namespace Context {
         #ifdef DEBUG
         INFO("Getting random block");
         #endif
-
+        
         while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
             block->owned_by(current_block_owner) ||
             (block->num_external_qubits() > current_block->num_external_qubits())
@@ -77,19 +77,33 @@ namespace Context {
     std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
 
         int target_num_qubits_external;
+        int target_num_qubits_internal;
 
         if(current_block_is_subroutine()){
             current_block_owner = "sub"+std::to_string(subroutine_counter++);
             target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
+            target_num_qubits_internal = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            target_num_qubits_external = get_max_defined_qubits();
+            // If grammar chosen has internal/external qubits, main circuit only creates internal qubits and have no external qubits (entry point)
+            bool is_guppy = false;
+            for (auto block : blocks) {
+                if (block->num_internal_qubits()) is_guppy = true;
+            }
+
+            if (is_guppy) {
+                target_num_qubits_external = 0;
+                target_num_qubits_internal = get_max_defined_qubits();
+            } else {
+                target_num_qubits_external = get_max_defined_qubits();
+                target_num_qubits_internal = 0;
+            }
 
             subroutine_counter = 0;
         }
 
-        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits_external);
+        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits_external, target_num_qubits_internal);
         blocks.push_back(current_block);
 
         return current_block;

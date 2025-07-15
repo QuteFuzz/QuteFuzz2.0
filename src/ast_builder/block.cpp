@@ -73,6 +73,7 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<
         INFO("Getting random qubit");
         #endif
 
+        // When getting entanglement, index can go above num_external_qubits, representing access into internal qubits
         if(best_entanglement.has_value()){
             std::vector<int> e = best_entanglement.value();
 

@@ -148,13 +148,16 @@ namespace Common {
         indented_body = 11869103690287558935ULL,
         type = 12075340201627130925ULL,
         parameter_name = 12726161396389809054ULL,
- 
+        n_qubits = 8533580948046969212ULL,
+        number_list = 6997267367147680201ULL,
+        angle_list = 3540892778356490017ULL,
+        angle = 4619207558531745336ULL,
+        
         simple_stmt = 15680233693926857886ULL,
         simple_stmts = 7071648921283339959ULL,
         compound_stmt = 4421131487532525991ULL,
         compound_stmts = 17100464358870324028ULL,
  
-        angle = 4619207558531745336ULL,
         measure = 13586824709325088415ULL,
         measure_array = 5009991113106631741ULL,
         reset = 1086335023529244512ULL,
