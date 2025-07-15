@@ -5,6 +5,7 @@
 #include <register_qubit.h>
 #include <variable.h>
 #include <integer.h>
+#include <collection.h>
 
 class Register_qubit_definition : public Node {
 
@@ -31,13 +32,13 @@ class Register_qubit_definition : public Node {
 
         /// @brief Add qubits to the given vector from the qreg
         /// @param qubits 
-        void make_qubits(std::vector<Qubit::Qubit>& block_qubits) const {
+        void make_qubits(Collection<Qubit::Qubit>& output, bool external) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){
                 Register_qubit reg_qubit(name, Integer(std::to_string(i)));
 
-                block_qubits.push_back(Qubit::Qubit(reg_qubit));
+                output.add(Qubit::Qubit(reg_qubit, external));
             }
         }
 

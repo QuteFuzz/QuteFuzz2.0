@@ -52,8 +52,6 @@ std::optional<int> safe_stoi(const std::string& str);
 
 std::vector<std::vector<int>> n_choose_r(const int n, const int r);
 
-void set_possible_qubit_combinations();
-
 int vector_sum(std::vector<int> in);
 
 int vector_max(std::vector<int> in);
@@ -65,53 +63,15 @@ std::string pipe_from_command(std::string command);
 std::string escape(const std::string& str);
 
 namespace Common {
-    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main";
+    constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circuit";
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
-    constexpr int MIN_QUBITS = 3; 
-    constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.4 * WILDCARD_MAX));
-    constexpr int MAX_SUBROUTINES = (0.2 * WILDCARD_MAX);
+    constexpr int MIN_QUBITS = 3;
+    constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
+    constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
 
     extern bool plot;
     extern bool verbose; 
-
-    struct Qubit_combinations{
-        public:
-            void set(int num_qubits, int num_qubits_in_entanglement, std::vector<std::vector<int>>& entanglements){
-                data[num_qubits-1][num_qubits_in_entanglement-1] = entanglements;
-            }
-
-            std::vector<std::vector<int>> at(int num_qubits, int num_qubits_in_entanglement) const {
-                return data[num_qubits-1][num_qubits_in_entanglement-1];
-            }
-
-            friend std::ostream& operator<<(std::ostream& stream, Qubit_combinations& combs){
-
-                for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS; n_qubits++){
-
-                    stream << "N qubits: " << n_qubits << std::endl;
-                    stream << "==================================" << std::endl;
-
-                    for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
-                        
-                        stream << "n_qubits_in_entanglement: " << n_qubits_in_entanglement << std::endl;
-
-                        for(const std::vector<int>& entanglement : combs.at(n_qubits, n_qubits_in_entanglement)){
-                            for(const int& i : entanglement) std::cout << i << " ";
-                            stream << " ";
-                        }
-                        stream << std::endl;
-                    }
-                }
-
-                return stream;
-            }
-
-        private:
-            std::vector<std::vector<int>> data[MAX_QUBITS][MAX_QUBITS];
-    };
-
-    extern Qubit_combinations QUBIT_COMBINATIONS;
-
+    
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
@@ -203,70 +163,6 @@ namespace Common {
         indent = 8881161079555216635ULL,
         dedent = 2224769550356995471ULL,
     };
-}
-
-template<typename A, typename B>
-struct Result{
-
-    public:
-        Result(){}
-
-        ~Result(){}
-
-        void set_ok(A a){
-            as = a;
-        }
-
-        void set_error(B b){
-            as = b;
-        }
-
-        A get_ok() const {
-            if(is_ok()){return std::get<A>(as);}
-            else {
-                throw std::runtime_error(ANNOT("get_ok called on error!"));
-            }
-        }
-
-        B get_error() const {
-            if(is_error()){return std::get<B>(as);}
-            else {
-                throw std::runtime_error(ANNOT("get_error called on OK!"));
-            }
-        }
-
-        bool is_ok() const {
-            return as.index() == 0;
-        }
-
-        bool is_error() const {
-            return as.index() == 1;
-        }
-
-    private:
-        std::variant<A, B> as;
-};
-
-template<typename T>
-std::vector<T> multiply_vector(std::vector<T> vec, int mult){
-    std::vector<T> multiplied_vec;
-    
-    multiplied_vec.reserve(vec.size() * mult);
-
-    for(int i = 0; i < mult; ++i){
-        multiplied_vec.insert(multiplied_vec.end(), vec.begin(), vec.end());
-    }
-
-    return multiplied_vec;
-}
-
-template<typename T>
-std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
-    std::vector<T> result = vec1;
-
-    result.insert(result.end(), vec2.begin(), vec2.end());
-
-    return result;
 }
 
 #endif

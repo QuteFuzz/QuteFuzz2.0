@@ -1,4 +1,5 @@
 #include <graph.h>
+#include <qubit_combinations.h>
 
 std::vector<int> Graph::djikstras(int source_node){
 
@@ -87,8 +88,8 @@ std::optional<std::vector<int>> Graph::get_best_entanglement(int n_qubits_in_ent
 
         int best_score = -INT32_MAX;
 
-        std::vector<std::vector<int>> possible_entanglements = Common::QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
-        std::vector<std::vector<int>> edges = Common::QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
+        std::vector<std::vector<int>> possible_entanglements = QUBIT_COMBINATIONS.at(vertices, n_qubits_in_entanglement);
+        std::vector<std::vector<int>> edges = QUBIT_COMBINATIONS.at(n_qubits_in_entanglement, 2); 
 
         std::vector<int> res = possible_entanglements[0];
 
@@ -124,8 +125,8 @@ void Graph::render_graph(fs::path& img_path, std::shared_ptr<Block> block){
     for (int i = 0; i < n; ++i){
         for (int j = i+1; j < n; ++j){
             if (graph[i][j]) {
-                std::string qubit_i = block->get_qubit_at(i)->resolved_name();
-                std::string qubit_j = block->get_qubit_at(j)->resolved_name();
+                std::string qubit_i = block->qubit_at(i)->resolved_name();
+                std::string qubit_j = block->qubit_at(j)->resolved_name();
 
                 dot_string += ("  " + qubit_i + " -- " + qubit_j + " [label=" + std::to_string(graph[i][j]) + ", color=\"red\", penwidth=3];\n");
             }

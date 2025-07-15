@@ -25,7 +25,7 @@ class Ast{
 
         std::shared_ptr<Node> get_node_from_term(const Term& term);
 
-        Result<Node, std::string> build();
+        Result<Node> build();
 
         virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 

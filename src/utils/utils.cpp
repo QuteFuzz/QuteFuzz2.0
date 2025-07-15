@@ -1,7 +1,6 @@
 #include <utils.h>
 
 namespace Common {
-    Qubit_combinations QUBIT_COMBINATIONS;
     bool plot = false;
     bool verbose = false; 
 }
@@ -131,19 +130,6 @@ int vector_max(std::vector<int> in){
     return max;
 }
 
-void set_possible_qubit_combinations(){
-
-    for(int n_qubits = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits <= Common::MAX_QUBITS; n_qubits++){
-        for(int n_qubits_in_entanglement = Common::MIN_N_QUBITS_IN_ENTANGLEMENT; n_qubits_in_entanglement <= n_qubits; n_qubits_in_entanglement++){
-            std::vector<std::vector<int>> combs = n_choose_r(n_qubits, n_qubits_in_entanglement);
-            Common::QUBIT_COMBINATIONS.set(n_qubits, n_qubits_in_entanglement, combs);
-        }
-    }
-
-    #if 0
-    std::cout << Common::QUBIT_COMBINATIONS << std::endl;
-    #endif
-}
 
 void pipe_to_command(std::string command, std::string write){
     FILE* pipe = popen(command.c_str(), "w");
