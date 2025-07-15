@@ -44,7 +44,7 @@ gate_name   = X | Y | Z | CX | CY | CZ | Rx;
 
 gate_op_kind =
     LPAREN qubit_list RPAREN 
-    | LPAREN float_list COMMA number_list RPAREN
+    | LPAREN number_list COMMA qubit_list RPAREN
     ;
 
 number_list = float_list;

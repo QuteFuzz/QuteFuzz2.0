@@ -22,7 +22,7 @@ namespace Context {
         for(std::shared_ptr<Block> block : blocks){
             if(!block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) &&
                !block->owned_by(current_block_owner) &&
-                (block->num_external_qubits() <= current_block->num_external_qubits())
+                (block->num_external_qubits() <= current_block->total_num_qubits())
             )
             {
                 #ifdef DEBUG
@@ -65,10 +65,12 @@ namespace Context {
         
         while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
             block->owned_by(current_block_owner) ||
-            (block->num_external_qubits() > current_block->num_external_qubits())
+            (block->num_external_qubits() > current_block->total_num_qubits())
         )
         {
             block = blocks.at(random_int(blocks.size()-1));
+            std::cout << block->num_external_qubits() << " " << current_block->total_num_qubits() << std::endl;
+            std::cout << block->get_owner() << std::endl;
         }
 
         return block;
@@ -82,23 +84,14 @@ namespace Context {
         if(current_block_is_subroutine()){
             current_block_owner = "sub"+std::to_string(subroutine_counter++);
             target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
-            target_num_qubits_internal = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
+            //Internal qubits will never be created if never encountered, but always provisioned
+            target_num_qubits_internal = random_int(Common::MAX_QUBITS-target_num_qubits_external); 
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            // If grammar chosen has internal/external qubits, main circuit only creates internal qubits and have no external qubits (entry point)
-            bool is_guppy = false;
-            for (auto block : blocks) {
-                if (block->num_internal_qubits()) is_guppy = true;
-            }
 
-            if (is_guppy) {
-                target_num_qubits_external = 0;
-                target_num_qubits_internal = get_max_defined_qubits();
-            } else {
-                target_num_qubits_external = get_max_defined_qubits();
-                target_num_qubits_internal = 0;
-            }
+            target_num_qubits_external = if_blocks_contain_internal_qubits() ? 0 : get_max_defined_qubits();
+            target_num_qubits_internal = if_blocks_contain_internal_qubits() ? get_max_defined_qubits() : 0;
 
             subroutine_counter = 0;
         }
@@ -116,7 +109,7 @@ namespace Context {
 
         size_t num_defs = current_block->make_qubit_definitions(external);
 
-        return std::make_shared<Qubit_defs>(str, hash, num_defs, external);
+        return std::make_shared<Qubit_defs>(str, hash, num_defs, external);  
     }
 
     std::shared_ptr<Block> Context::get_block(std::string owner){
@@ -128,7 +121,6 @@ namespace Context {
 
         return nullptr;
     }
-
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
         if(current_gate == nullptr) {
@@ -161,6 +153,11 @@ namespace Context {
     std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
         current_qubit_definition = get_current_block()->get_next_qubit_def();
         return current_qubit_definition;
+    }
+
+    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(std::string str, U64 hash){
+        current_qubit_definition = get_current_block()->get_next_owned_qubit_def();
+        return std::make_shared<Discard_qubit_def>(str, hash, current_qubit_definition);
     }
 
     std::shared_ptr<Integer> Context::get_current_qubit_definition_size(){
@@ -202,6 +199,10 @@ namespace Context {
             WARNING("Current gate not set but trying to get num params! Assumed 1 qubit");
             return 1;
         }
+    }
+
+    std::shared_ptr<Discard_qubit_defs> Context::discard_qubit_defs(std::string str, U64 hash, int num_owned_qubit_defs) {
+        return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
     }
 
     void Context::render_qig(){
