@@ -45,8 +45,16 @@ class Block : public Node {
             return qubits.get_num_internal();
         }
 
+        inline size_t num_internal_qubit_defs() const {
+            return qubit_defs.get_num_internal();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
+        }
+
+        void qubit_def_pointer_reset(){
+            qubit_def_pointer = 0;
         }
 
         inline Qubit::Qubit* qubit_at(size_t index){
@@ -58,6 +66,8 @@ class Block : public Node {
         }
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
+
+        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
 
         std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
         

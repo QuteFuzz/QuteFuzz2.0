@@ -6,7 +6,7 @@
 #include <compound_stmts.h>
 #include <simple_stmt.h>
 #include <float.h>
-#include <number_list.h>
+#include <float_list.h>
 #include <qubit_list.h>
 #include <qubit_defs.h>
 #include <qubit_op.h>
@@ -97,6 +97,18 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qubit_defs_external: case Common::qubit_defs_internal:
 				return context.make_qubit_definitions(str, hash);
 
+			// TODO: Rename any mentionds of internal to owned
+			case Common::discard_internal_qubits: {
+				//Reset count so that we can discard owned qubits one by one
+				context.get_current_block()->qubit_def_pointer_reset();
+				//Need to know how many internal qubits there are in current block
+				size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
+				return context.discard_qubit_defs(str, hash, num_internal_qubit_defs);
+			}
+			
+			case Common::discard_internal_qubit:
+				return context.get_current_qubit_definition_discard(str, hash);
+			
 			case Common::qubit_list: {
 				size_t num_qubits = context.get_current_gate_num_qubits();
 				return std::make_shared<Qubit_list>(str, hash, num_qubits);
@@ -110,24 +122,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::qubit: 
 				return context.get_current_qubit();
-		
-			case Common::number_list: {
-				bool is_angle = false;
-				for (Branch branch : term.get_rule()->get_branches()) {
-					if (branch.get_name() == "angle_list") {
-						is_angle = true;
-					}
-				}
-				
+
+			case Common::float_list: {
 				size_t num_floats = context.get_current_gate_num_params();
-				return std::make_shared<Number_list>(str, hash, num_floats, is_angle);
+				return std::make_shared<Float_list>(str, hash, num_floats);
 			}
 
 			case Common::float_literal:
-				return std::make_shared<Float>();
-
-			case Common::angle:
-				return std::make_shared<Float>(std::to_string(random_int(3,-3)/2));
+				return std::make_shared<Float>(std::to_string(random_float(10)));
 	
 			case Common::h: case Common::x: case Common::y: case Common::z: {
 				return context.get_current_gate(str, 1, 0);

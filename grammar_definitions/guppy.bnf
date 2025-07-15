@@ -4,9 +4,9 @@ program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
 
-block       = block_def NEWLINE INDENT body simple_stmt DEDENT NEWLINE;
+block       = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
 
-body   = qubit_defs_internal compound_stmts;
+body   = qubit_defs_internal compound_stmts ;
 
 compound_stmts = (compound_stmt NEWLINE)*;
 
@@ -34,26 +34,35 @@ register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit() for _ in 
 
 compound_stmt = qubit_op;
 
-qubit_op = gate_op;
-
-simple_stmt = 
-    | "return"
-    | "pass"
+qubit_op  = gate_op
+            | subroutine_op;
 
 gate_op = gate_name gate_op_kind;
+subroutine_op = subroutine LPAREN qubit_list RPAREN;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
                 | LPAREN qubit_list COMMA number_list RPAREN
                 ;
 
-number_list = angle_list | float_list;
+number_list =   float_list;
 
-angle_list = angle (COMMA angle)*;
+float_list = "angle" LPAREN float_literal RPAREN (COMMA "angle" LPAREN float_literal RPAREN)*;
+
+simple_stmt = "return"
+            | "pass";
+
+discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
+
+discard_internal_qubit = discard_single_qubit
+                        | discard_qreg;
+
+discard_qreg = "discard_array" LPAREN qreg_name RPAREN;
+discard_single_qubit = "discard" LPAREN qubit_name RPAREN;
 
 gate_name = 
     x | y | z | h | cx | toffoli | rz | rx | ry
-    # | t | tdg | s | sdg | ch | crz | measure | measure_array
-    # | reset | project_z
+    # | t | tdg | s | sdg | ch | crz 
+    # | measure | measure_array | reset | project_z
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;

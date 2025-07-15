@@ -40,7 +40,7 @@ size_t Block::make_qubit_definitions(bool external){
     INFO("Creating qubit definitions");
     #endif
 
-    int target_num_qubits = (external ? target_num_qubits_external : target_num_qubits_internal);
+    int target_num_qubits = external ? target_num_qubits_external : target_num_qubits_internal;
 
     while(target_num_qubits > 0){
         /*
@@ -111,6 +111,24 @@ std::shared_ptr<Qubit_definition::Qubit_definition> Block::get_next_qubit_def(){
         return std::make_shared<Qubit_definition::Qubit_definition>(dummy_def);
             
     } else {
+        return std::make_shared<Qubit_definition::Qubit_definition>(*maybe_def); 
+
+    }
+}
+std::shared_ptr<Qubit_definition::Qubit_definition> Block::get_next_owned_qubit_def(){
+    // Keep iterating maybe_def until we reach the end or find an owned/internal qubit def
+    auto maybe_def = qubit_defs.at(qubit_def_pointer);
+    while(maybe_def != nullptr && maybe_def->is_external()){
+        maybe_def = qubit_defs.at(++qubit_def_pointer);
+    }
+
+    qubit_def_pointer++;
+
+    if(maybe_def == nullptr){
+        return std::make_shared<Qubit_definition::Qubit_definition>(dummy_def);
+            
+    } else {
+        
         return std::make_shared<Qubit_definition::Qubit_definition>(*maybe_def); 
 
     }

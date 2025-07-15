@@ -211,7 +211,16 @@ class cirqTesting(Base):
         '''
         Runs circuit on cirq simulator and returns counts
         '''
-        
+
+
+class guppyTesting(Base):
+    def __init__(self):
+        super().__init__()
+
+    def run_hugr(self, hugr) -> Counter[int, int]:
+        '''
+        Runs guppy program on simulator and returns counts
+        '''       
 
 if __name__ == "__main__":
     b = Base()

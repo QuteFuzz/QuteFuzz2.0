@@ -150,8 +150,10 @@ namespace Common {
         parameter_name = 12726161396389809054ULL,
         n_qubits = 8533580948046969212ULL,
         number_list = 6997267367147680201ULL,
-        angle_list = 3540892778356490017ULL,
-        angle = 4619207558531745336ULL,
+        discard_internal_qubits = 2953622336913522322ULL,
+        discard_internal_qubit = 1018654204566407765ULL,
+        discard_single_qubit = 11775807085076373088ULL,
+        discard_qreg = 13047647025597388553ULL,
         
         simple_stmt = 15680233693926857886ULL,
         simple_stmts = 7071648921283339959ULL,
