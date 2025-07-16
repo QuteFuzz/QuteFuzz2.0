@@ -165,9 +165,9 @@ std::string pipe_from_command(std::string command){
         result += buffer.data();
     }
 
-    if(pclose(pipe)){
-        throw std::runtime_error(ANNOT("Command " + command + " failed"));
-    }
+    // if(pclose(pipe)){
+    //     throw std::runtime_error(ANNOT("Command " + command + " failed"));
+    // }
 
     if(Common::verbose){
         INFO("Run command " + command);

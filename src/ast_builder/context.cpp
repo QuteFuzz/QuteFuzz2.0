@@ -69,8 +69,6 @@ namespace Context {
         )
         {
             block = blocks.at(random_int(blocks.size()-1));
-            std::cout << block->num_external_qubits() << " " << current_block->total_num_qubits() << std::endl;
-            std::cout << block->get_owner() << std::endl;
         }
 
         return block;
