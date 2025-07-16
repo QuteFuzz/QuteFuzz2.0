@@ -39,7 +39,7 @@ struct Collection {
         }
 
         size_t get_total() const {
-            return coll.size();
+            return num_internal + num_external;
         }
 
         void reset(){

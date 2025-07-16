@@ -104,6 +104,7 @@ std::vector<std::vector<int>> n_choose_r(const int n, const int r){
         } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
 
         return res;
+
     } else {
         throw std::runtime_error(ANNOT("n must be less than r, and r must be >= " + std::to_string(Common::MIN_N_QUBITS_IN_ENTANGLEMENT)));
     }
