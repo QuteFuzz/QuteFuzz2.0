@@ -42,13 +42,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return context.setup_block(str, hash);
 
 			case Common::body: {
-				context.set_can_apply_subroutines();
 				return std::make_shared<Node>(str, hash);
 			}
 
 			case Common::compound_stmts:
 				// qig set after all definitions have been made
 				context.set_qig();
+				// internal qubit defs is set after body: this is better catch-all point for checking
+				context.set_can_apply_subroutines();
 				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
 			
 			case Common::simple_stmt:
@@ -150,10 +151,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::u3: case Common::u:{
 				return context.get_current_gate(str, 1, 3);
-			}
-
-			case Common::n_qubits: {
-				return std::make_shared<Integer>(std::to_string(context.get_max_defined_qubits()));
 			}
 
 			default:
