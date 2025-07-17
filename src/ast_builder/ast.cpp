@@ -126,7 +126,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			}
 
 			case Common::float_literal:
-				return std::make_shared<Float>(std::to_string(random_float(10)));
+				return std::make_shared<Float>();
 	
 			case Common::h: case Common::x: case Common::y: case Common::z: {
 				return context.get_current_gate(str, 1, 0);

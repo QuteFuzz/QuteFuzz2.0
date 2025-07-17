@@ -49,6 +49,10 @@ class Block : public Node {
             return qubit_defs.get_num_internal();
         }
 
+        inline size_t num_external_qubit_defs() const {
+            return qubit_defs.get_num_external();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
         }
