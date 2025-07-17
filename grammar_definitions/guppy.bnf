@@ -41,10 +41,8 @@ gate_op = gate_name gate_op_kind;
 subroutine_op = subroutine LPAREN qubit_list RPAREN;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
-                | LPAREN qubit_list COMMA number_list RPAREN
+                | LPAREN qubit_list COMMA float_list RPAREN
                 ;
-
-number_list =   float_list;
 
 float_list = "angle" LPAREN float_literal RPAREN (COMMA "angle" LPAREN float_literal RPAREN)*;
 

@@ -97,11 +97,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qubit_defs_external: case Common::qubit_defs_internal:
 				return context.make_qubit_definitions(str, hash);
 
-			// TODO: Rename any mentionds of internal to owned
 			case Common::discard_internal_qubits: {
-				//Reset count so that we can discard owned qubits one by one
 				context.get_current_block()->qubit_def_pointer_reset();
-				//Need to know how many internal qubits there are in current block
 				size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
 				return context.discard_qubit_defs(str, hash, num_internal_qubit_defs);
 			}

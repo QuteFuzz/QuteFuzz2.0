@@ -37,7 +37,7 @@ namespace Context {
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
-            res = std::max(res, block->total_num_qubits());
+            res = std::max(res, block->num_external_qubits());
         }
 
         return res;
