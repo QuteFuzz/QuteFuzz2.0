@@ -155,7 +155,7 @@ void Run::loop(){
             Common::verbose = !Common::verbose;
             std::cout << "Verbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
 
-        } else if ((current_command == "run_tests") && (current_spec != nullptr)){
+        } else if ((current_command == "run_tests") && (current_spec != nullptr) && (n.has_value())){
             // Initialize progress bar variables and results file
             int current = 0;
             int total = n.value();
