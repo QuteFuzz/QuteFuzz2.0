@@ -6,6 +6,8 @@
 #include <graph.h>
 #include <variable.h>
 #include <qubit_defs.h>
+#include <discard_qubit_defs.h>
+#include <discard_qubit_def.h>
 
 class Gate;
 
@@ -53,11 +55,15 @@ namespace Context {
 
 			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
 
+			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(std::string str, U64 hash);
+
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
 			std::shared_ptr<Gate> get_current_gate(std::string str, int num_qubits, int num_params);
+
+			std::shared_ptr<Discard_qubit_defs> discard_qubit_defs(std::string str, U64 hash, int num_owned_qubit_defs);
 
 			int get_current_gate_num_params();
 

@@ -15,12 +15,11 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external) : 
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal) : 
             Node(str, hash),
             owner(owner_name), 
             target_num_qubits_external(_target_num_qubits_external),
-            target_num_qubits_internal(random_int(Common::MAX_QUBITS, target_num_qubits_external) - target_num_qubits_external)
-        {}
+            target_num_qubits_internal(_target_num_qubits_internal) {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -46,8 +45,20 @@ class Block : public Node {
             return qubits.get_num_internal();
         }
 
+        inline size_t num_internal_qubit_defs() const {
+            return qubit_defs.get_num_internal();
+        }
+
+        inline size_t num_external_qubit_defs() const {
+            return qubit_defs.get_num_external();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
+        }
+
+        void qubit_def_pointer_reset(){
+            qubit_def_pointer = 0;
         }
 
         inline Qubit::Qubit* qubit_at(size_t index){
@@ -60,6 +71,8 @@ class Block : public Node {
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
 
+        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
+
         std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement);
         
         size_t make_register_qubit_definition(int max_size, bool external);
@@ -71,7 +84,7 @@ class Block : public Node {
     private:
         std::string owner;
         int target_num_qubits_external = Common::MIN_QUBITS;
-        int target_num_qubits_internal = Common::MAX_QUBITS - Common::MIN_QUBITS;
+        int target_num_qubits_internal = 0;
         
         bool can_apply_subroutines = false;
 

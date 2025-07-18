@@ -9,7 +9,7 @@ class Float : public Node {
         using Node::Node;
 
         Float() :
-            Node("6.9")         
+            Node(std::to_string(random_float(10)))         
         {}
 
     private:

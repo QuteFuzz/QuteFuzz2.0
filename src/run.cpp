@@ -153,7 +153,7 @@ void Run::loop(){
         
         } else if ((current_command == "verbose") && (current_spec != nullptr)){
             Common::verbose = !Common::verbose;
-            std::cout << "Vetbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
+            std::cout << "Verbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
 
         } else if ((current_command == "run_tests") && (current_spec != nullptr)){
             // Initialize progress bar variables and results file
@@ -171,9 +171,9 @@ void Run::loop(){
                     results_file << "Running test: " << entry.path().filename() << std::endl;
                     
                     fs::path program_path = entry.path() / ("circuit.py");
-                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "");
+                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
                     
-                    results_file << pipe_from_command(command);
+                    results_file << pipe_from_command(command) << std::endl;
 
                     print_progress_bar(current, total);                       
                 }              

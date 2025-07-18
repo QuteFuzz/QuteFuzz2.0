@@ -77,6 +77,8 @@ int Graph::score(){
     // return 0;
 }
 
+///@brief Traverse the edges and nodes representing the different qubits, returning a vector of int ranking
+/// the best entanglements (best is at index 0)
 std::optional<std::vector<int>> Graph::get_best_entanglement(int n_qubits_in_entanglement){
     if ((n_qubits_in_entanglement >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT) && 
         (n_qubits_in_entanglement <= Common::MAX_QUBITS) && 

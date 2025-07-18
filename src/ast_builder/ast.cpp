@@ -38,17 +38,18 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 				return dummy;
 
-			case Common::block:
+			case Common::block: case Common::main_block:
 				return context.setup_block(str, hash);
 
 			case Common::body: {
-				context.set_can_apply_subroutines();
 				return std::make_shared<Node>(str, hash);
 			}
 
 			case Common::compound_stmts:
 				// qig set after all definitions have been made
 				context.set_qig();
+				// internal qubit defs is set after body: this is better catch-all point for checking
+				context.set_can_apply_subroutines();
 				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
 			
 			case Common::simple_stmt:
@@ -68,7 +69,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return node;
 			}
 
-			case Common::gate_op_kind :
+			case Common::gate_op_kind:
 				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
 			case Common::qubit_op:
@@ -97,6 +98,15 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 			case Common::qubit_defs_external: case Common::qubit_defs_internal:
 				return context.make_qubit_definitions(str, hash);
 
+			case Common::discard_internal_qubits: {
+				context.get_current_block()->qubit_def_pointer_reset();
+				size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
+				return context.discard_qubit_defs(str, hash, num_internal_qubit_defs);
+			}
+			
+			case Common::discard_internal_qubit:
+				return context.get_current_qubit_definition_discard(str, hash);
+			
 			case Common::qubit_list: {
 				size_t num_qubits = context.get_current_gate_num_qubits();
 				return std::make_shared<Qubit_list>(str, hash, num_qubits);
@@ -110,8 +120,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 			case Common::qubit: 
 				return context.get_current_qubit();
-		
-			case Common::float_list : {
+
+			case Common::float_list: {
 				size_t num_floats = context.get_current_gate_num_params();
 				return std::make_shared<Float_list>(str, hash, num_floats);
 			}
