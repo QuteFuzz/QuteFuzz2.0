@@ -1,8 +1,12 @@
 # guppy
 
-program     = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+program     = imports NEWLINE subroutines NEWLINE main_block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE)*;
+
+# A main block in guppy is a special case, where it cannot contain external qubit defs or any qubits, but could contain regular inputs?
+main_block = main_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
+main_block_def = decorators NEWLINE "def " circuit_name LPAREN RPAREN " -> None" COLON;
 
 block       = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
 
@@ -10,7 +14,6 @@ body   = qubit_defs_internal compound_stmts ;
 
 compound_stmts = (compound_stmt NEWLINE)*;
 
-# Comptime introduces many factors that determine what statements can/cannot be used
 block_def   = decorators NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON;
 
 decorators = "@guppy"
@@ -79,9 +82,7 @@ imports = "from guppylang.decorator import guppy " NEWLINE
         "from guppylang.std.angles import angle, pi " NEWLINE
         "from guppylang.std.builtins import array, owned, py, comptime, result, owned " NEWLINE
         "from guppylang.std.quantum import * " NEWLINE
-        "from guppylang import enable_experimental_features" NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
-        "from pathlib import Path " NEWLINE
-        "enable_experimental_features()" NEWLINE;
+        "from pathlib import Path " NEWLINE;
 
-compiler_call = "hugr = guppy.compile(main_circuit)" NEWLINE;
+compiler_call = "guppyTesting.run_circ(main_circuit)" NEWLINE;

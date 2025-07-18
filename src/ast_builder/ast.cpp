@@ -38,7 +38,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 
 				return dummy;
 
-			case Common::block:
+			case Common::block: case Common::main_block:
 				return context.setup_block(str, hash);
 
 			case Common::body: {

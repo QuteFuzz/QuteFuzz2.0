@@ -87,9 +87,10 @@ namespace Context {
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-
-            target_num_qubits_external = if_blocks_contain_internal_qubits() ? 0 : get_max_defined_qubits();
-            target_num_qubits_internal = if_blocks_contain_internal_qubits() ? get_max_defined_qubits() : 0;
+            //This is assuming that the main circuit either has all its qubits defined internally or externally, not both
+            int max_qubits = get_max_defined_qubits();
+            target_num_qubits_external = max_qubits;
+            target_num_qubits_internal = max_qubits;
 
             subroutine_counter = 0;
         }

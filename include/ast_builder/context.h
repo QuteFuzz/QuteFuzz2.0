@@ -73,13 +73,6 @@ namespace Context {
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
             }
 
-			bool if_blocks_contain_internal_qubits(){
-				for (auto block: blocks) {
-					if (block->num_internal_qubits()) return true;
-				}
-				return false;
-			}
-
 			void set_subroutines_node(std::shared_ptr<Node> _node){
 				subroutines_node = _node;
 			}

@@ -171,7 +171,7 @@ void Run::loop(){
                     results_file << "Running test: " << entry.path().filename() << std::endl;
                     
                     fs::path program_path = entry.path() / ("circuit.py");
-                    std::string command = "timeout 10s python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
+                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
                     
                     results_file << pipe_from_command(command) << std::endl;
 

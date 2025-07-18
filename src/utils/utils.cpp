@@ -155,7 +155,7 @@ std::string pipe_from_command(std::string command){
     FILE* pipe = popen(command.c_str(), "r");
 
     if(!pipe){
-        throw std::runtime_error(ANNOT("Failed to open pipe to command " + command));
+        ERROR("Failed to open pipe to command " + command);
     }
 
     std::array<char, 1024> buffer;
@@ -166,7 +166,7 @@ std::string pipe_from_command(std::string command){
     }
 
     if(pclose(pipe)){
-        throw std::runtime_error(ANNOT("Command " + command + " failed"));
+        ERROR("Command " + command + " failed");
     }
 
     if(Common::verbose){

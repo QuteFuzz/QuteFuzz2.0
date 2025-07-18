@@ -144,6 +144,8 @@ namespace Common {
         circuit_id = 12523072865437646660ULL,
 
         // Guppy rules
+        main_block = 9115425723233342258ULL,
+        main_block_def = 6816634947724795910ULL,
         block_args = 8098915444984821122ULL,
         indented_body = 11869103690287558935ULL,
         type = 12075340201627130925ULL,
@@ -153,6 +155,7 @@ namespace Common {
         discard_single_qubit = 11775807085076373088ULL,
         discard_qreg = 13047647025597388553ULL,
         decorators = 741076755586776343ULL,
+        
         
         simple_stmt = 15680233693926857886ULL,
         simple_stmts = 7071648921283339959ULL,

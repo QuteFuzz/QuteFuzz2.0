@@ -14,7 +14,7 @@
     - ks value printed in logs
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Any
 from collections import Counter
 from itertools import zip_longest
 from scipy.stats import ks_2samp
@@ -37,6 +37,11 @@ from pytket.extensions.quantinuum import QuantinuumBackend
 
 # Qiskit imports
 from qiskit import QuantumCircuit, transpile
+
+# Guppylang imports
+from guppylang import guppy
+from guppylang import enable_experimental_features
+enable_experimental_features()
 
 
 class Base():
@@ -116,7 +121,7 @@ class pytketTesting(Base):
     def __init__(self):
         super().__init__()
     
-    def run_circ(self, circuit : Circuit, circuit_number : int) -> Counter[int, int]:
+    def run_circ(self, circuit : Circuit, circuit_number : int) -> float:
         '''
         Runs circuit on pytket simulator and returns counts
         '''
@@ -174,7 +179,7 @@ class qiskitTesting(Base):
     def __init__(self):
         super().__init__()
     
-    def run_circ(self, circuit : Circuit, circuit_number : int) -> Counter[int, int]:
+    def run_circ(self, circuit : Circuit, circuit_number : int) -> float:
         '''
         Runs circuit on qiskit simulator and returns counts
         '''
@@ -217,10 +222,11 @@ class guppyTesting(Base):
     def __init__(self):
         super().__init__()
 
-    def run_hugr(self, hugr) -> Counter[int, int]:
+    def run_circ(self, circuit : Any, circuit_number : int) -> float:
         '''
-        Runs guppy program on simulator and returns counts
-        '''       
+        Compiles and runs guppy program on simulator and returns counts
+        '''
+        guppy.compile(circuit)
 
 if __name__ == "__main__":
     b = Base()
