@@ -3,3 +3,6 @@
 # factor = integer | "(" expr ")" ;
 # ret = "q" "there";
 # integer = 1-4;
+
+mt = 
+    | "test";

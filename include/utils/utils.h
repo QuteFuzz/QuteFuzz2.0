@@ -19,7 +19,7 @@
 #include <array>
 #include <iomanip>
 
-#define WILDCARD_MAX 20
+#define WILDCARD_MAX 5
 
 #define UNUSED(x) (void)(x)
 
@@ -68,6 +68,7 @@ namespace Common {
     constexpr int MIN_QUBITS = 3;
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
+    constexpr int COMPOUND_STMT_DEPTH = 5;
 
     extern bool plot;
     extern bool verbose; 
@@ -169,6 +170,8 @@ namespace Common {
         
         indent = 8881161079555216635ULL,
         dedent = 2224769550356995471ULL,
+
+        if_stmt = 5300980200188049869ULL,
     };
 }
 

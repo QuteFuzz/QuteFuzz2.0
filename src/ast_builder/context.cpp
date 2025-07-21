@@ -1,5 +1,4 @@
 #include <context.h>
-#include <gate.h>
 
 namespace Context {
 
@@ -10,7 +9,10 @@ namespace Context {
             subroutines_node = nullptr;
             subroutine_counter = 0;
             blocks.clear();
-        
+
+        } else if (l == BLOCK){
+            compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
+
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
         }
@@ -82,7 +84,6 @@ namespace Context {
         if(current_block_is_subroutine()){
             current_block_owner = "sub"+std::to_string(subroutine_counter++);
             target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
-            //Internal qubits will never be created if never encountered, but always provisioned
             target_num_qubits_internal = random_int(Common::MAX_QUBITS-target_num_qubits_external); 
 
         } else {
@@ -154,7 +155,7 @@ namespace Context {
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(std::string str, U64 hash){
+    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
         current_qubit_definition = get_current_block()->get_next_owned_qubit_def();
         return std::make_shared<Discard_qubit_def>(str, hash, current_qubit_definition);
     }
@@ -177,9 +178,22 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Gate> Context::get_current_gate(std::string str, int num_qubits, int num_params){
+    std::shared_ptr<Gate> Context::get_current_gate(const std::string& str, int num_qubits, int num_params){
         current_gate = std::make_shared<Gate>(str, num_qubits, num_params, qig);
         return current_gate;
+    }
+
+    std::shared_ptr<Discard_qubit_defs> Context::discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
+        return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
+    }
+
+    std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){
+        compound_stmt_depth -= 1;
+        return std::make_shared<Node>(str, hash);
+    }
+
+    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(const std::string& str, const U64& hash){
+        return std::make_shared<Compound_stmt>(str, hash, compound_stmt_depth);
     }
 
     int Context::get_current_gate_num_params(){
@@ -198,10 +212,6 @@ namespace Context {
             WARNING("Current gate not set but trying to get num params! Assumed 1 qubit");
             return 1;
         }
-    }
-
-    std::shared_ptr<Discard_qubit_defs> Context::discard_qubit_defs(std::string str, U64 hash, int num_owned_qubit_defs) {
-        return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
     }
 
     void Context::render_qig(){
