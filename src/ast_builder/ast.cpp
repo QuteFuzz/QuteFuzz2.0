@@ -13,6 +13,7 @@
 #include <gate_op_kind.h>
 #include <subroutines.h>
 #include <compound_stmt.h>
+#include <control_flow_branch.h>
 
 std::string Node::indentation_tracker = "";
 
@@ -59,6 +60,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 			case Common::if_stmt:
 				return context.get_control_flow_stmt(str, hash);
+
+			case Common::elif_stmt: case Common::else_stmt:
+				return std::make_shared<Control_flow_branch>(str, hash);
 			
 			case Common::simple_stmt:
 				return std::make_shared<Simple_stmt>(str, hash);
