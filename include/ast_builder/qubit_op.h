@@ -11,7 +11,7 @@ class Qubit_op : public Node {
             Node(str, hash)
         {
             if(can_use_subroutine == false){
-                constraint = std::make_optional<Size_constraint>(Common::subroutine_op, 0);
+                constraint = std::make_optional<Node_constraint>(Common::subroutine_op, 0);
             }
         }
 

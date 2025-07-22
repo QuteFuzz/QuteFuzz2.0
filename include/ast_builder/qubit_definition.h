@@ -30,9 +30,9 @@ namespace Qubit_definition {
                 type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
             {
                 if (external) {
-                    constraint = std::make_optional<Size_constraint>(Common::register_qubit_def_external, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_external, 1);
                 } else {
-                    constraint = std::make_optional<Size_constraint>(Common::register_qubit_def_internal, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
                 }
             }
 
@@ -42,9 +42,9 @@ namespace Qubit_definition {
                 type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
             {
                 if (external) {
-                    constraint = std::make_optional<Size_constraint>(Common::singular_qubit_def_external, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
                 } else {
-                    constraint = std::make_optional<Size_constraint>(Common::singular_qubit_def_internal, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
                 }
             }
 

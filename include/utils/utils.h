@@ -174,6 +174,13 @@ namespace Common {
         if_stmt = 5300980200188049869ULL,
         else_stmt = 2582766405432659795ULL,
         elif_stmt = 9453565397799917274ULL,
+        disjunction = 13554539731759707019ULL,
+        conjunction = 15291463859833294983ULL,
+        inversion = 6572250267686125186ULL,
+        expression = 17035010316065342411ULL,
+        compare_op_bitwise_or_pair = 11179282617234990551ULL,
+        name = 14176396743819860870ULL,
+        number = 9237349086447201248ULL,
     };
 }
 

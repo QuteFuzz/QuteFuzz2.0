@@ -11,9 +11,9 @@ class Qubit_defs : public Node {
             Node(str, hash, indentation_tracker)
         {
             if(external){
-                constraint = std::make_optional<Size_constraint>(Common::qubit_def_external, num_defs);
+                constraint = std::make_optional<Node_constraint>(Common::qubit_def_external, num_defs);
             } else {
-                constraint = std::make_optional<Size_constraint>(Common::qubit_def_internal, num_defs);
+                constraint = std::make_optional<Node_constraint>(Common::qubit_def_internal, num_defs);
 
             }
         }

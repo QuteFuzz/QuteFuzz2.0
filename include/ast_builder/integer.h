@@ -9,7 +9,7 @@ class Integer : public Node {
         using Node::Node;
 
         Integer() : 
-            Node("42")
+            Node(std::to_string(random_int(42)))
         {}
 
     private:

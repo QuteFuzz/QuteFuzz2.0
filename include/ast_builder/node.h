@@ -16,10 +16,10 @@ enum Node_kind {
 };
 
 
-struct Size_constraint {
+struct Node_constraint {
 
     public:
-        Size_constraint(Common::Rule_hash _rule, size_t _occurances): 
+        Node_constraint(Common::Rule_hash _rule, size_t _occurances): 
             rule(_rule),
             occurances(_occurances)
         {}
@@ -135,7 +135,7 @@ class Node {
 
         Node_build_state state = NB_BUILD;
 
-        std::optional<Size_constraint> constraint;
+        std::optional<Node_constraint> constraint;
 };
 
 #endif
