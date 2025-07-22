@@ -34,7 +34,7 @@ size_t Block::make_singular_qubit_definition(bool external){
 
 
 size_t Block::make_qubit_definitions(bool external){
-    int type_choice = 0; // random_int(1);
+    int type_choice = random_int(1);
 
     #ifdef DEBUG
     INFO("Creating qubit definitions");
@@ -53,7 +53,7 @@ size_t Block::make_qubit_definitions(bool external){
             target_num_qubits -= make_register_qubit_definition(target_num_qubits, external);
         }
 
-        // type_choice = random_int(1);
+        type_choice = random_int(1);
     }
 
     return (external ? qubit_defs.get_num_external() : qubit_defs.get_num_internal());
