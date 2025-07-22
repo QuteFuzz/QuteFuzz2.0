@@ -46,8 +46,6 @@ int random_int(int max, int min = 0);
 
 float random_float(float max, float min = 0.0);
 
-int get_amount(int from, int resmin, int resmax);
-
 std::optional<int> safe_stoi(const std::string& str);
 
 std::vector<std::vector<int>> n_choose_r(const int n, const int r);
@@ -72,6 +70,7 @@ namespace Common {
 
     extern bool plot;
     extern bool verbose; 
+    extern std::optional<unsigned int> seed;
     
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
