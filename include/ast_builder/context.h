@@ -8,13 +8,15 @@
 #include <qubit_defs.h>
 #include <discard_qubit_defs.h>
 #include <discard_qubit_def.h>
+#include <compound_stmt.h>
+#include <gate.h>
 
-class Gate;
 
 namespace Context {
 
     enum Level {
         PROGRAM,
+		BLOCK,
         QUBIT_OP,
     };
 
@@ -55,15 +57,19 @@ namespace Context {
 
 			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
 
-			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(std::string str, U64 hash);
+			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
 
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
-			std::shared_ptr<Gate> get_current_gate(std::string str, int num_qubits, int num_params);
+			std::shared_ptr<Gate> get_current_gate(const std::string& str, int num_qubits, int num_params);
 
-			std::shared_ptr<Discard_qubit_defs> discard_qubit_defs(std::string str, U64 hash, int num_owned_qubit_defs);
+			std::shared_ptr<Discard_qubit_defs> discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
+
+			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
+
+			std::shared_ptr<Compound_stmt> get_compound_stmt(const std::string& str, const U64& hash);
 
 			int get_current_gate_num_params();
 
@@ -98,6 +104,8 @@ namespace Context {
 			std::shared_ptr<Qubit::Qubit> current_qubit;
 			std::shared_ptr<Gate> current_gate;
 			std::shared_ptr<Node> subroutines_node = nullptr;
+
+	        size_t compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
     };
 
 }

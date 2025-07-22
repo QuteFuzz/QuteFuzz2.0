@@ -12,10 +12,11 @@
 #include <qubit_op.h>
 #include <gate_op_kind.h>
 #include <subroutines.h>
+#include <compound_stmt.h>
 
 std::string Node::indentation_tracker = "";
 
-std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
+std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent, const Term& term){
 
 	if(term.is_syntax()){
 		return std::make_shared<Node>(term.get_syntax());
@@ -39,18 +40,25 @@ std::shared_ptr<Node> Ast::get_node_from_term(const Term& term){
 				return dummy;
 
 			case Common::block: case Common::main_block:
+				context.reset(Context::BLOCK);
 				return context.setup_block(str, hash);
 
-			case Common::body: {
+			case Common::body:
 				return std::make_shared<Node>(str, hash);
-			}
 
 			case Common::compound_stmts:
-				// qig set after all definitions have been made
-				context.set_qig();
-				// internal qubit defs is set after body: this is better catch-all point for checking
-				context.set_can_apply_subroutines();
+				if((parent != nullptr) && (*parent == Common::body)){
+					context.set_qig();
+					context.set_can_apply_subroutines();
+				}
+
 				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+
+			case Common::compound_stmt:
+				return context.get_compound_stmt(str, hash);
+
+			case Common::if_stmt:
+				return context.get_control_flow_stmt(str, hash);
 			
 			case Common::simple_stmt:
 				return std::make_shared<Simple_stmt>(str, hash);
@@ -169,7 +177,7 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			
 			Term child_term = branch.at(i);
 			
-			std::shared_ptr<Node> child_node = get_node_from_term(child_term);
+			std::shared_ptr<Node> child_node = get_node_from_term(parent, child_term);
 
 			parent->add_child(child_node);
 
@@ -194,7 +202,7 @@ Result<Node> Ast::build(){
 		Term entry_as_term;
 		entry_as_term.set(entry);
 
-		std::shared_ptr<Node> root_ptr = get_node_from_term(entry_as_term);
+		std::shared_ptr<Node> root_ptr = get_node_from_term(nullptr, entry_as_term);
 
 		write_branch(root_ptr, entry_as_term);
 

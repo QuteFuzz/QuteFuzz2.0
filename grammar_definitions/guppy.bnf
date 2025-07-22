@@ -10,7 +10,7 @@ main_block_def = decorators NEWLINE "def " circuit_name LPAREN RPAREN " -> None"
 
 block       = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
 
-body   = qubit_defs_internal compound_stmts ;
+body   = qubit_defs_internal compound_stmts;
 
 compound_stmts = (compound_stmt NEWLINE)*;
 
@@ -22,7 +22,7 @@ decorators = "@guppy"
 
 block_args  = qubit_defs_external; # TODO: Add additional traditional parameters in future
 
-qubit_defs_external = EMPTY | qubit_def_external (COMMA qubit_def_external)*;
+qubit_defs_external = | qubit_def_external (COMMA qubit_def_external)*;
 
 qubit_defs_internal =   (qubit_def_internal NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
 
@@ -39,7 +39,40 @@ singular_qubit_def_internal = qubit_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 # register_qubit_def_internal = qreg_name EQUALS LBRACK "qubit() for _ in range" LPAREN qreg_size RPAREN RBRACK;    # For comptime only
 
-compound_stmt = qubit_op;
+compound_stmt = qubit_op | if_stmt;
+
+if_stmt =
+    # | 'if' expression ':' NEWLINE INDENT compound_stmts elif_block DEDENT;
+    | 'if' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_block)?;
+elif_block =
+    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_block
+    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_block)?;
+else_block =
+    | 'else' ':' NEWLINE INDENT compound_stmts DEDENT;
+
+expressions =
+    expression (',' expression )+
+    | expression ','
+    | expression;
+
+expression =
+    disjunction;
+
+disjunction =
+    conjunction ('or' conjunction )+
+    | conjunction;
+
+conjunction =
+    inversion ('and' inversion )+ 
+    | inversion;
+
+inversion =
+    # 'not' inversion
+    comparison;
+
+comparison = " True "
+    | " False "
+    ;
 
 qubit_op  = gate_op
             | subroutine_op;

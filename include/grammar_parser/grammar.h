@@ -29,15 +29,21 @@ class Grammar{
         inline void reset_current_branches(){current_branches.clear();}
         
         inline void add_current_branches_to_rule(){
-            // add all current branches to current rule, reset current branches
-            for(Branch& current_branch : current_branches){
-                #if 0
-                std::cout << "Lazily adding ";
-                current_branch.print(std::cout);
-                std::cout << std::endl;
-                #endif
 
-                current_rule->add(current_branch);
+            if(current_branches.size() == 0){
+                current_rule->add(Branch());
+                
+            } else {
+
+                for(Branch& current_branch : current_branches){
+                    #if 0
+                    std::cout << "Lazily adding ";
+                    current_branch.print(std::cout);
+                    std::cout << std::endl;
+                    #endif
+
+                    current_rule->add(current_branch);
+                }
             }
         }
 

@@ -23,7 +23,7 @@ class Ast{
 
         void write_branch(std::shared_ptr<Node> parent, const Term& term);
 
-        std::shared_ptr<Node> get_node_from_term(const Term& term);
+        std::shared_ptr<Node> get_node_from_term(const std::shared_ptr<Node> parent, const Term& term);
 
         Result<Node> build();
 
