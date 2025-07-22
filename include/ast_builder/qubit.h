@@ -28,7 +28,7 @@ namespace Qubit {
                 value(qubit),
                 type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
             {
-                constraint = std::make_optional<Size_constraint>(Common::register_qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
             }
 
             Qubit(Singular_qubit qubit, bool external) :
@@ -36,7 +36,7 @@ namespace Qubit {
                 value(qubit),
                 type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
             {
-                constraint = std::make_optional<Size_constraint>(Common::singular_qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
             }
 
             Type get_type(){
