@@ -110,86 +110,72 @@ void Run::remove_all_in_dir(const fs::path& dir){
 }
 
 // Prints a progress bar to the terminal
-void Run::print_progress_bar(int current, int n) {
+void Run::print_progress_bar(unsigned int current) {
     const int bar_width = 40;
+    unsigned int n = n_programs.value_or(0);
+
     float progress = (n > 0) ? float(current) / n : 0.0f;
     int pos = static_cast<int>(bar_width * progress);
+
     std::cout << "[";
+
     for (int i = 0; i < bar_width; ++i) {
         if (i < pos) std::cout << "#";
         else std::cout << "-";
     }
+
     std::cout << "] " << std::setw(3) << int(progress * 100.0) << "%  (" << current << "/" << n << ")\r";
     std::cout.flush();
+
     if (current == n) std::cout << std::endl;
 }
 
 void Run::loop(){
 
     std::string current_command;
-    std::optional<int> n;
 
-    while(run){
+    while(true){
         std::cout << "> ";
 
         std::getline(std::cin, current_command);
         tokenise(current_command);
 
-        if(current_command == "quit"){
-            run = false;
-
-        } else if (current_command == "h"){
-            help();
-            
-        } else if ((current_command == "print") && (current_spec != nullptr)){
-            current_spec->print_grammar();
-        
-        } else if ((current_command == "print_tokens") && (current_spec != nullptr)){
-            current_spec->print_tokens();
-
-        } else if ((current_command == "plot") && (current_spec != nullptr)) {
-            Common::plot = !Common::plot;
-            std::cout << "Plot mode is now " << (Common::plot ? "enabled" : "disabled") << std::endl;
-        
-        } else if ((current_command == "verbose") && (current_spec != nullptr)){
-            Common::verbose = !Common::verbose;
-            std::cout << "Verbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
-
-        } else if ((current_command == "run_tests") && (current_spec != nullptr) && (n.has_value())){
-            // Initialize progress bar variables and results file
-            int current = 0;
-            int total = n.value();
-            std::ofstream results_file((output_dir / "results.txt").string());
-
-            for(auto& entry : fs::directory_iterator(output_dir)){
-
-                // check for directories to avoid running the results.txt file
-                if(entry.is_directory()){
-
-                    current++;
-
-                    results_file << "Running test: " << entry.path().filename() << std::endl;
-                    
-                    fs::path program_path = entry.path() / ("circuit.py");
-                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
-                    
-                    results_file << pipe_from_command(command) << std::endl;
-
-                    print_progress_bar(current, total);                       
-                }              
-            }
-
-            results_file.close();
-
-            INFO("Test results written to results.txt");
-
-        } else if (tokens.size() == 2){
+        if(tokens.size() == 2){
             set_grammar();
 
-        } else if ((current_spec != nullptr) && (n = safe_stoi(current_command)) && (n.has_value())){ 
-            // Clear the outputs and plots directory first before generating new outputs
-            remove_all_in_dir(output_dir);
-            current_spec->ast_to_program(output_dir, n.value());
+        } else if(current_command == "h"){
+            help();
+
+        } else if (current_command == "quit"){
+            break;
+
+        } else if(current_spec != nullptr){
+
+            if(current_command == "print"){
+                current_spec->print_grammar();
+            
+            } else if (current_command == "print_tokens"){
+                current_spec->print_tokens();
+            
+            } else if (current_command == "plot"){
+                Common::plot = !Common::plot;
+                INFO("Plot mode is now " + (Common::plot ? "enabled" : "disabled"));
+            
+            } else if (current_command == "verbose"){
+                Common::verbose = !Common::verbose;
+                INFO("Verbose mode is now " + (Common::verbose ? "enabled" : "disabled"));
+
+            } else if (current_command == "render_qigs"){
+                Common::render_qigs = !Common::render_qigs;
+                INFO("QIG render " + (Common::plot ? "enabled" : "disabled"));
+
+            } else if (current_command == "run_tests"){
+                run_tests();
+
+            } else if ((n_programs = safe_stoi(current_command))){
+                remove_all_in_dir(output_dir);
+                current_spec->ast_to_program(output_dir, n_programs.value_or(0));
+            }
 
         } else {
             std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;

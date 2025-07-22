@@ -69,8 +69,8 @@ namespace Common {
     constexpr int COMPOUND_STMT_DEPTH = 2;
 
     extern bool plot;
-    extern bool verbose; 
-    extern std::optional<unsigned int> seed;
+    extern bool verbose;
+    extern bool render_qigs;
     
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
