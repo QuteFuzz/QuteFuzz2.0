@@ -28,6 +28,7 @@ compound_stmts = (compound_stmt NEWLINE)+;
 qubit_def_external  = singular_qubit_def_external 
                     | register_qubit_def_external;
 
+singular_qubit_def_external = qreg_name EQUALS circuit_name ".add_qubit" LPAREN "Qubit" LPAREN DOUBLE_QUOTE qreg_name DOUBLE_QUOTE RPAREN RPAREN;
 register_qubit_def_external =  qreg_name EQUALS circuit_name ".add_q_register" LPAREN '"' qreg_name '",' qreg_size RPAREN;
 
 compound_stmt = qubit_op;
