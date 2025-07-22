@@ -2,8 +2,8 @@
 
 namespace Common {
     bool plot = false;
-    bool verbose = false; 
-    std::optional<unsigned int> seed = std::nullopt;
+    bool verbose = false;
+    bool render_qigs = false;
 }
 
 void lower(std::string& str){
@@ -31,7 +31,7 @@ U64 hash_rule_name(std::string rule_name) {
 
 std::mt19937& seed(){
     static std::mt19937 random_gen{
-        Common::seed.value_or(std::random_device{}())
+        std::random_device{}()
     };
     return random_gen;
 }

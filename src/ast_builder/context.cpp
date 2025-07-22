@@ -215,7 +215,7 @@ namespace Context {
     }
 
     void Context::render_qig(){
-        if(qig != nullptr){
+        if((qig != nullptr) && Common::render_qigs){
             // render old qig
             std::string qig_owner = qig->get_owner();
             std::shared_ptr<Block> assosiated_block = get_block(qig_owner);

@@ -66,13 +66,40 @@ class Run{
             }
         }
 
+        void run_tests(){
+            int current = 0;
+            std::ofstream results_file((output_dir / "results.txt").string());
+
+            for(auto& entry : fs::directory_iterator(output_dir)){
+
+                // check for directories to avoid running the results.txt file
+                if(entry.is_directory()){
+
+                    current++;
+
+                    results_file << "Running test: " << entry.path().filename() << std::endl;
+                    
+                    fs::path program_path = entry.path() / ("circuit.py");
+                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
+                    
+                    results_file << pipe_from_command(command) << std::endl;
+
+                    print_progress_bar(current);                       
+                }              
+            }
+
+            results_file.close();
+
+            INFO("Test results written to results.txt");
+        }
+
         void set_grammar();
 
         void tokenise(const std::string& command);
 
         void remove_all_in_dir(const fs::path& dir);
 
-        void print_progress_bar(int current, int n);
+        void print_progress_bar(unsigned int current);
 
         void loop();
 
@@ -83,7 +110,7 @@ class Run{
 
         std::vector<std::string> tokens;
 
-        bool run = true;
+        std::optional<unsigned int> n_programs;
 
         fs::path output_dir;
 };
