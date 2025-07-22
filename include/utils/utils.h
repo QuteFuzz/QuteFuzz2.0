@@ -68,7 +68,7 @@ namespace Common {
     constexpr int MIN_QUBITS = 3;
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
-    constexpr int COMPOUND_STMT_DEPTH = 5;
+    constexpr int COMPOUND_STMT_DEPTH = 2;
 
     extern bool plot;
     extern bool verbose; 
@@ -172,6 +172,8 @@ namespace Common {
         dedent = 2224769550356995471ULL,
 
         if_stmt = 5300980200188049869ULL,
+        else_stmt = 2582766405432659795ULL,
+        elif_stmt = 9453565397799917274ULL,
     };
 }
 
