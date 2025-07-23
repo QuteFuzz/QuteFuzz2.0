@@ -8,6 +8,7 @@
 #include <float.h>
 #include <float_list.h>
 #include <qubit_list.h>
+#include <arguments.h>
 #include <qubit_defs.h>
 #include <qubit_op.h>
 #include <gate_op_kind.h>
@@ -65,10 +66,28 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 				context.set_can_apply_subroutines();
 			}
 
-			return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+			
+			case Common::arguments: {
+				context.set_current_applied_block();
+				size_t num_args = context.get_current_gate_num_params();
+				return std::make_shared<Arguments>(str, hash, num_args);
+			}
 
-		case Common::compound_stmt:
-			return context.get_compound_stmt(str, hash);
+			case Common::arg: {
+				return context.get_current_arg(str, hash);
+			}
+
+			case Common::arg_singular_qubit: {
+				return std::make_shared<Qubit_list>(str, hash, 1);
+			}
+
+			case Common::arg_register_qubits: {
+				return std::make_shared<Qubit_list>(str, hash, context.get_current_applied_block_qubit_def_size());
+			}
+			
+			case Common::compound_stmt:
+				return context.get_compound_stmt(str, hash);
 
 		case Common::if_stmt:
 			return context.get_control_flow_stmt(str, hash);
@@ -109,15 +128,15 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.reset(Context::QUBIT_OP);
 			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
 
-		case Common::subroutine: {				
-			std::shared_ptr<Block> subroutine = context.get_random_block();
-			int num_sub_qubits = subroutine->num_external_qubits();
-
-			return context.get_current_gate(subroutine->get_owner(), num_sub_qubits, 0);				
-		}
-
-		case Common::circuit_name:
-			return std::make_shared<Variable>(context.get_current_block_owner());
+			case Common::subroutine: {				
+				std::shared_ptr<Block> subroutine = context.get_random_block();
+				int num_sub_qubits = subroutine->num_external_qubits();
+				subroutine->qubit_def_pointer_reset();
+				return context.make_current_gate(subroutine->get_owner(), num_sub_qubits, subroutine->num_external_qubit_defs());				
+			}
+	
+			case Common::circuit_name:
+				return std::make_shared<Variable>(context.get_current_block_owner());
 
 		case Common::qreg_size:
 			return context.get_current_qubit_definition_size();
@@ -167,33 +186,33 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 			case Common::tdg: case Common::s: case Common::sdg:{
-			return context.get_current_gate(str, 1, 0);
-		}
+				return context.make_current_gate(str, 1, 0);
+			}
 
 			case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
 			case Common::ch: {
-				return context.get_current_gate(str, 2, 0);
+				return context.make_current_gate(str, 2, 0);
 			}
 
 			case Common::crz: {
-				return context.get_current_gate(str, 2, 1);
+				return context.make_current_gate(str, 2, 1);
 			}
 
-		case Common::ccx: case Common::cswap: case Common::toffoli:{
-			return context.get_current_gate(str, 3, 0);
-		}
+			case Common::ccx: case Common::cswap: case Common::toffoli:{
+				return context.make_current_gate(str, 3, 0);
+			}
 
-		case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
-			return context.get_current_gate(str, 1, 1);
-		}
+			case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
+				return context.make_current_gate(str, 1, 1);
+			}
 
-		case Common::u2:{
-			return context.get_current_gate(str, 1, 2);
-		}
+			case Common::u2:{
+				return context.make_current_gate(str, 1, 2);
+			}
 
-		case Common::u3: case Common::u:{
-			return context.get_current_gate(str, 1, 3);
-		}
+			case Common::u3: case Common::u:{
+				return context.make_current_gate(str, 1, 3);
+			}
 
 		default:
 			return std::make_shared<Node>(str, hash);
