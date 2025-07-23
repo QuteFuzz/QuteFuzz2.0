@@ -13,6 +13,11 @@
 #include <gate_op_kind.h>
 #include <subroutines.h>
 #include <compound_stmt.h>
+#include <control_flow_branch.h>
+#include <disjunction.h>
+#include <conjunction.h>
+#include <compare_op_bitwise_or_pair_child.h>
+#include <expression.h>
 
 std::string Node::indentation_tracker = "";
 
@@ -20,150 +25,167 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 	if(term.is_syntax()){
 		return std::make_shared<Node>(term.get_syntax());
+	}
 
-	} else {
+	U64 hash = term.get_hash();
+	std::string str = term.get_string();
+
+	if((parent != nullptr) && (*parent == Common::compare_op_bitwise_or_pair)){
+		return std::make_shared<Compare_op_bitwise_or_pair_child>(str, hash);
+	}
 	
-		U64 hash = term.get_hash();
-		std::string str = term.get_string();
+	switch(hash){
 
-		switch(hash){
+		case Common::indent:
+			Node::indentation_tracker += "\t";
+			return dummy;
 
-			case Common::indent:
-				Node::indentation_tracker += "\t";
-				return dummy;
+		case Common::dedent:
+			if(Node::indentation_tracker.size()){
+				Node::indentation_tracker.pop_back();
+			}
 
-			case Common::dedent:
-				if(Node::indentation_tracker.size()){
-					Node::indentation_tracker.pop_back();
-				}
+			return dummy;
 
-				return dummy;
+		case Common::block: case Common::main_block:
+			context.reset(Context::BLOCK);
+			return context.setup_block(str, hash);
 
-			case Common::block: case Common::main_block:
-				context.reset(Context::BLOCK);
-				return context.setup_block(str, hash);
+		case Common::body:
+			return std::make_shared<Node>(str, hash);
 
-			case Common::body:
-				return std::make_shared<Node>(str, hash);
+		case Common::compound_stmts:
+			if((parent != nullptr) && (*parent == Common::body)){
+				context.set_qig();
+				context.set_can_apply_subroutines();
+			}
 
-			case Common::compound_stmts:
-				if((parent != nullptr) && (*parent == Common::body)){
-					context.set_qig();
-					context.set_can_apply_subroutines();
-				}
+			return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
 
-				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+		case Common::compound_stmt:
+			return context.get_compound_stmt(str, hash);
 
-			case Common::compound_stmt:
-				return context.get_compound_stmt(str, hash);
+		case Common::if_stmt:
+			return context.get_control_flow_stmt(str, hash);
 
-			case Common::if_stmt:
-				return context.get_control_flow_stmt(str, hash);
+		case Common::elif_stmt: case Common::else_stmt:
+			return std::make_shared<Control_flow_branch>(str, hash);
+
+		case Common::disjunction:
+			return std::make_shared<Disjunction>(str, hash);
+
+		case Common::conjunction:
+			return std::make_shared<Conjunction>(str, hash);
+
+		case Common::expression:
+			return std::make_shared<Expression>(str, hash);
+		
+		case Common::simple_stmt:
+			return std::make_shared<Simple_stmt>(str, hash);
+
+		case Common::circuit_id:
+			return std::make_shared<Integer>(std::to_string(build_counter));
+
+		case Common::main_circuit_name:				
+			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 			
-			case Common::simple_stmt:
-				return std::make_shared<Simple_stmt>(str, hash);
-
-			case Common::circuit_id:
-				return std::make_shared<Integer>(std::to_string(build_counter));
-
-			case Common::main_circuit_name:				
-				return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
-				
-			case Common::subroutines: {
-				std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
-				
-				context.set_subroutines_node(node);
-
-				return node;
-			}
-
-			case Common::gate_op_kind:
-				return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
-
-			case Common::qubit_op:
-				context.reset(Context::QUBIT_OP);
-				return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
-
-			case Common::subroutine: {				
-				std::shared_ptr<Block> subroutine = context.get_random_block();
-				int num_sub_qubits = subroutine->num_external_qubits();
-
-				return context.get_current_gate(subroutine->get_owner(), num_sub_qubits, 0);				
-			}
-	
-			case Common::circuit_name:
-				return std::make_shared<Variable>(context.get_current_block_owner());
-
-			case Common::qreg_size:
-				return context.get_current_qubit_definition_size();
-
-			case Common::qreg_name:
-				return context.get_current_qubit_definition_name();
-
-			case Common::qubit_def_external: case Common::qubit_def_internal:
-				return context.get_current_qubit_definition();
-
-			case Common::qubit_defs_external: case Common::qubit_defs_internal:
-				return context.make_qubit_definitions(str, hash);
-
-			case Common::discard_internal_qubits: {
-				context.get_current_block()->qubit_def_pointer_reset();
-				size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
-				return context.discard_qubit_defs(str, hash, num_internal_qubit_defs);
-			}
+		case Common::subroutines: {
+			std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
 			
-			case Common::discard_internal_qubit:
-				return context.get_current_qubit_definition_discard(str, hash);
-			
-			case Common::qubit_list: {
-				size_t num_qubits = context.get_current_gate_num_qubits();
-				return std::make_shared<Qubit_list>(str, hash, num_qubits);
-			}
+			context.set_subroutines_node(node);
 
-			case Common::qubit_index:
-				return context.get_current_qubit_index();
-
-			case Common::qubit_name:
-				return context.get_current_qubit_name();
-
-			case Common::qubit: 
-				return context.get_current_qubit();
-
-			case Common::float_list: {
-				size_t num_floats = context.get_current_gate_num_params();
-				return std::make_shared<Float_list>(str, hash, num_floats);
-			}
-
-			case Common::float_literal:
-				return std::make_shared<Float>();
-	
-			case Common::h: case Common::x: case Common::y: case Common::z: {
-				return context.get_current_gate(str, 1, 0);
-			}
-
-			case Common::cx : case Common::cy: case Common::cz: case Common::cnot: {
-				return context.get_current_gate(str, 2, 0);
-			}
-
-			case Common::ccx: case Common::cswap: case Common::toffoli:{
-				return context.get_current_gate(str, 3, 0);
-			}
-
-			case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
-				return context.get_current_gate(str, 1, 1);
-			}
-
-			case Common::u2:{
-				return context.get_current_gate(str, 1, 2);
-			}
-
-			case Common::u3: case Common::u:{
-				return context.get_current_gate(str, 1, 3);
-			}
-
-			default:
-				return std::make_shared<Node>(str, hash);
+			return node;
 		}
+
+		case Common::gate_op_kind:
+			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
+
+		case Common::qubit_op:
+			context.reset(Context::QUBIT_OP);
+			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
+
+		case Common::subroutine: {				
+			std::shared_ptr<Block> subroutine = context.get_random_block();
+			int num_sub_qubits = subroutine->num_external_qubits();
+
+			return context.get_current_gate(subroutine->get_owner(), num_sub_qubits, 0);				
+		}
+
+		case Common::circuit_name:
+			return std::make_shared<Variable>(context.get_current_block_owner());
+
+		case Common::qreg_size:
+			return context.get_current_qubit_definition_size();
+
+		case Common::qreg_name:
+			return context.get_current_qubit_definition_name();
+
+		case Common::qubit_def_external: case Common::qubit_def_internal:
+			return context.get_current_qubit_definition();
+
+		case Common::qubit_defs_external: case Common::qubit_defs_internal:
+			return context.make_qubit_definitions(str, hash);
+
+		case Common::discard_internal_qubits: {
+			context.get_current_block()->qubit_def_pointer_reset();
+			size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
+			return context.discard_qubit_defs(str, hash, num_internal_qubit_defs);
+		}
+		
+		case Common::discard_internal_qubit:
+			return context.get_current_qubit_definition_discard(str, hash);
+		
+		case Common::qubit_list: {
+			size_t num_qubits = context.get_current_gate_num_qubits();
+			return std::make_shared<Qubit_list>(str, hash, num_qubits);
+		}
+
+		case Common::qubit_index:
+			return context.get_current_qubit_index();
+
+		case Common::qubit_name:
+			return context.get_current_qubit_name();
+
+		case Common::qubit: 
+			return context.get_current_qubit();
+
+		case Common::float_list: {
+			size_t num_floats = context.get_current_gate_num_params();
+			return std::make_shared<Float_list>(str, hash, num_floats);
+		}
+
+		case Common::float_literal:
+			return std::make_shared<Float>();
+
+		case Common::number:
+			return std::make_shared<Integer>();
+
+		case Common::h: case Common::x: case Common::y: case Common::z: {
+			return context.get_current_gate(str, 1, 0);
+		}
+
+		case Common::cx : case Common::cy: case Common::cz: case Common::cnot: {
+			return context.get_current_gate(str, 2, 0);
+		}
+
+		case Common::ccx: case Common::cswap: case Common::toffoli:{
+			return context.get_current_gate(str, 3, 0);
+		}
+
+		case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
+			return context.get_current_gate(str, 1, 1);
+		}
+
+		case Common::u2:{
+			return context.get_current_gate(str, 1, 2);
+		}
+
+		case Common::u3: case Common::u:{
+			return context.get_current_gate(str, 1, 3);
+		}
+
+		default:
+			return std::make_shared<Node>(str, hash);
 	}
 }
 

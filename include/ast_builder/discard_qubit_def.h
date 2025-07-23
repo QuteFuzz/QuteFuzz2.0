@@ -12,9 +12,9 @@ class Discard_qubit_def : public Node {
             Node(str, hash)
         {
             if (def->is_register_def()) {
-                constraint = std::make_optional<Size_constraint>(Common::discard_single_qubit, 0);
+                constraint = std::make_optional<Node_constraint>(Common::discard_single_qubit, 0);
             } else {
-                constraint = std::make_optional<Size_constraint>(Common::discard_qreg, 0);
+                constraint = std::make_optional<Node_constraint>(Common::discard_qreg, 0);
             }
                 
         }

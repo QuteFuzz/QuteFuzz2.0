@@ -16,10 +16,10 @@ enum Node_kind {
 };
 
 
-struct Size_constraint {
+struct Node_constraint {
 
     public:
-        Size_constraint(Common::Rule_hash _rule, size_t _occurances): 
+        Node_constraint(Common::Rule_hash _rule, size_t _occurances): 
             rule(_rule),
             occurances(_occurances)
         {}
@@ -50,6 +50,8 @@ class Node {
             indentation_str(_indentation_str)
         {}
 
+        virtual ~Node() = default;
+
         void add_child(const std::shared_ptr<Node> child){
             children.push_back(child);
         }
@@ -68,18 +70,20 @@ class Node {
 
         Node_kind get_node_kind() const {return kind;}
 
-        friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
-
-            if(n.kind == TERMINAL){
-                stream << n.string;
+        virtual void print(std::ostream& stream) const {
+            if(kind == TERMINAL){
+                stream << string;
 
             } else {
 
-                for(const std::shared_ptr<Node>& child : n.children){
-                    stream << n.indentation_str << *child;
-                }
+                for(const std::shared_ptr<Node>& child : children){
+                    stream << indentation_str << *child;
+                } 
             }
+        }
 
+        friend std::ostream& operator<<(std::ostream& stream, const Node& n) {
+            n.print(stream);
             return stream;
         }
 
@@ -131,7 +135,7 @@ class Node {
 
         Node_build_state state = NB_BUILD;
 
-        std::optional<Size_constraint> constraint;
+        std::optional<Node_constraint> constraint;
 };
 
 #endif

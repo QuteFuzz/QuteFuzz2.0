@@ -10,7 +10,7 @@ class Discard_qubit_defs : public Node {
         Discard_qubit_defs(std::string str, U64 hash, int num_owned_qubit_defs):
             Node(str, hash, indentation_tracker)
         {
-            constraint = std::make_optional<Size_constraint>(Common::discard_internal_qubit, num_owned_qubit_defs);
+            constraint = std::make_optional<Node_constraint>(Common::discard_internal_qubit, num_owned_qubit_defs);
         }
 
     private:

@@ -2,7 +2,8 @@
 
 namespace Common {
     bool plot = false;
-    bool verbose = false; 
+    bool verbose = false;
+    bool render_qigs = false;
 }
 
 void lower(std::string& str){
@@ -28,17 +29,21 @@ U64 hash_rule_name(std::string rule_name) {
     return hash;
 }
 
+std::mt19937& seed(){
+    static std::mt19937 random_gen{
+        std::random_device{}()
+    };
+    return random_gen;
+}
+
 /// @brief Random integer within some range
 /// @param max value inclusive
 /// @param min value inclusive
-/// @return 
+/// @return
 int random_int(int max, int min){
-    std::random_device random_device;
-    std::mt19937 random_gen(random_device());
-
     if(min < max){
         std::uniform_int_distribution<int> int_dist(min, max);
-        return int_dist(random_gen);
+        return int_dist(seed());
 
     } else {
         return min;
@@ -50,23 +55,15 @@ int random_int(int max, int min){
 /// @param min value inclusive
 /// @return 
 float random_float(float max, float min){
-    std::random_device random_device;
-    std::mt19937 random_gen(random_device());
-
     if(min < max){
         std::uniform_real_distribution<float> float_dist(min, max);
-        return float_dist(random_gen);
+        return float_dist(seed());
 
     } else {
         return min;
     }
 }
 
-int get_amount(int from, int resmin, int resmax){
-    float frac = (float)from / (float)WILDCARD_MAX;
-    int res = resmin + (frac * (resmax - resmin));
-    return std::min(res, resmax);
-}
 
 std::optional<int> safe_stoi(const std::string& str) {
     try {

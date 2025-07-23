@@ -11,7 +11,7 @@
 
 class Ast{
     public:
-        Ast() : gen(rd()) {}
+        Ast(){}
 
         ~Ast() = default;
 
@@ -35,9 +35,6 @@ class Ast{
 
         std::shared_ptr<Rule> entry = nullptr;
         std::shared_ptr<Node> dummy = std::make_shared<Node>("");
-
-        std::random_device rd;
-        std::mt19937 gen;
         
         Context::Context context;
 };

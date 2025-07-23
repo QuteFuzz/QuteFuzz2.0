@@ -11,10 +11,10 @@ class Gate_op_kind : public Node {
             Node(str, hash)
         {
             if(num_gate_params >= 1){
-                constraint = std::make_optional<Size_constraint>(Common::float_list, 1);
+                constraint = std::make_optional<Node_constraint>(Common::float_list, 1);
 
             } else {
-                constraint = std::make_optional<Size_constraint>(Common::float_list, 0);
+                constraint = std::make_optional<Node_constraint>(Common::float_list, 0);
             }
         }
 

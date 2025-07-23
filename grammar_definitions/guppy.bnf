@@ -24,7 +24,7 @@ block_args  = qubit_defs_external; # TODO: Add additional traditional parameters
 
 qubit_defs_external = | qubit_def_external (COMMA qubit_def_external)*;
 
-qubit_defs_internal =   (qubit_def_internal NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
+qubit_defs_internal = (qubit_def_internal NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
 
 qubit_def_external  = singular_qubit_def_external 
                     | register_qubit_def_external;
@@ -42,18 +42,21 @@ register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit() for _ in 
 compound_stmt = qubit_op | if_stmt;
 
 if_stmt =
-    # | 'if' expression ':' NEWLINE INDENT compound_stmts elif_block DEDENT;
-    | 'if' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_block)?;
-elif_block =
-    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_block
-    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_block)?;
-else_block =
-    | 'else' ':' NEWLINE INDENT compound_stmts DEDENT;
+    'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
+    | 'if' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_stmt)?;
+elif_stmt =
+    'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
+    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_stmt)?;
+else_stmt =
+    'else' ':' NEWLINE INDENT compound_stmts DEDENT;
 
-expressions =
-    expression (',' expression )+
-    | expression ','
-    | expression;
+(*
+    The expressions below are from https://docs.python.org/3/reference/grammar.html
+    Bits have been commented out / removed / modified to remove unnecessary complexity
+*)
+
+# EXPRESSIONS
+# -----------
 
 expression =
     disjunction;
@@ -67,12 +70,61 @@ conjunction =
     | inversion;
 
 inversion =
-    # 'not' inversion
     comparison;
 
-comparison = " True "
-    | " False "
-    ;
+# Comparison operators
+# --------------------
+
+comparison = 
+    bitwise_or compare_op_bitwise_or_pair;
+
+compare_op_bitwise_or_pair =
+    eq_bitwise_or
+    | noteq_bitwise_or
+    | lte_bitwise_or
+    | lt_bitwise_or
+    | gte_bitwise_or
+    | gt_bitwise_or;
+
+eq_bitwise_or: '==' bitwise_or;
+noteq_bitwise_or: '!=' bitwise_or; 
+lte_bitwise_or: '<=' bitwise_or;
+lt_bitwise_or: '<' bitwise_or ;
+gte_bitwise_or: '>=' bitwise_or; 
+gt_bitwise_or: '>' bitwise_or ;
+
+
+# Bitwise operators
+# -----------------
+
+bitwise_or:
+    # | bitwise_or '|' bitwise_xor 
+    bitwise_xor;
+
+bitwise_xor:
+    # | bitwise_xor '^' bitwise_and 
+    bitwise_and;
+
+bitwise_and:
+    # | bitwise_and '&' shift_expr 
+    shift_expr;
+
+shift_expr:
+    # | shift_expr '<<' primary 
+    # | shift_expr '>>' primary
+    primary;
+
+
+# Primary elements
+# ----------------
+
+primary:
+    atom;
+
+atom:
+    NUMBER
+    | 'True' 
+    | 'False';
 
 qubit_op  = gate_op
             | subroutine_op;
@@ -86,8 +138,7 @@ gate_op_kind =  LPAREN qubit_list RPAREN
 
 float_list = "angle" LPAREN float_literal RPAREN (COMMA "angle" LPAREN float_literal RPAREN)*;
 
-simple_stmt = "return"
-            | "pass";
+simple_stmt = "return";
 
 discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 

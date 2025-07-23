@@ -46,8 +46,6 @@ int random_int(int max, int min = 0);
 
 float random_float(float max, float min = 0.0);
 
-int get_amount(int from, int resmin, int resmax);
-
 std::optional<int> safe_stoi(const std::string& str);
 
 std::vector<std::vector<int>> n_choose_r(const int n, const int r);
@@ -68,10 +66,11 @@ namespace Common {
     constexpr int MIN_QUBITS = 3;
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
-    constexpr int COMPOUND_STMT_DEPTH = 5;
+    constexpr int COMPOUND_STMT_DEPTH = 2;
 
     extern bool plot;
-    extern bool verbose; 
+    extern bool verbose;
+    extern bool render_qigs;
     
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
@@ -172,6 +171,15 @@ namespace Common {
         dedent = 2224769550356995471ULL,
 
         if_stmt = 5300980200188049869ULL,
+        else_stmt = 2582766405432659795ULL,
+        elif_stmt = 9453565397799917274ULL,
+        disjunction = 13554539731759707019ULL,
+        conjunction = 15291463859833294983ULL,
+        inversion = 6572250267686125186ULL,
+        expression = 17035010316065342411ULL,
+        compare_op_bitwise_or_pair = 11179282617234990551ULL,
+        name = 14176396743819860870ULL,
+        number = 9237349086447201248ULL,
     };
 }
 
