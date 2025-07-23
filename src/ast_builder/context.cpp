@@ -18,21 +18,28 @@ namespace Context {
         }
     }
 
-    void Context::set_can_apply_subroutines(){
+    void Context::set_can_apply_subroutines(bool override_flag){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        for(std::shared_ptr<Block> block : blocks){
-            if(!block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) &&
-               !block->owned_by(current_block_owner) &&
-                (block->num_external_qubits() <= current_block->total_num_qubits())
-            )
-            {
-                #ifdef DEBUG
-                INFO("Block " + current_block_owner + " can apply subroutines");
-                #endif
-                current_block->set_can_apply_subroutines(true);
+        if (current_block->get_can_apply_subroutines() && override_flag) {
+            for(std::shared_ptr<Block> block : blocks){
+                if (!block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) &&
+                    !block->owned_by(current_block_owner) &&
+                    (block->num_external_qubits() <= current_block->total_num_qubits())
+                )
+                {
+                    #ifdef DEBUG
+                    INFO("Block " + current_block_owner + " can apply subroutines");
+                    #endif
+                    return;
+                }
             }
         }
+
+        #ifdef DEBUG
+        INFO("Block " + current_block_owner + " can't apply subroutines");
+        #endif
+        current_block->set_can_apply_subroutines(false);
     }
 
     size_t Context::get_max_defined_qubits(){

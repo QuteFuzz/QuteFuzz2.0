@@ -35,7 +35,7 @@ namespace Context {
 				return current_block_owner;
 			}
 
-            void set_can_apply_subroutines();
+            void set_can_apply_subroutines(bool flag = true);
 
             size_t get_max_defined_qubits();
 
