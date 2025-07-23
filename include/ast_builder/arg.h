@@ -20,7 +20,7 @@ namespace Arg {
                 Node("arg", hash_rule_name("arg")),
                 type(SINGULAR)
             {
-                constraint = std::make_optional<Size_constraint>(Common::qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Common::qubit, 1);
             }
 
             Arg(const std::string& str, const U64& hash, Type _type) :
@@ -28,9 +28,9 @@ namespace Arg {
                 type(_type)
             {
                 if (type == SINGULAR) {
-                    constraint = std::make_optional<Size_constraint>(Common::arg_singular_qubit, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
                 } else if (type == REGISTER) {
-                    constraint = std::make_optional<Size_constraint>(Common::arg_register_qubits, 1);
+                    constraint = std::make_optional<Node_constraint>(Common::arg_register_qubits, 1);
                 }
             }
             
