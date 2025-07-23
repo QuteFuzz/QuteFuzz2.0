@@ -86,7 +86,7 @@ class Block : public Node {
         int target_num_qubits_external = Common::MIN_QUBITS;
         int target_num_qubits_internal = 0;
         
-        bool can_apply_subroutines = false;
+        bool can_apply_subroutines = true;
 
         Collection<Qubit::Qubit> qubits;
         Collection<Qubit_definition::Qubit_definition> qubit_defs;

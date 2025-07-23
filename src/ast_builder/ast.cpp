@@ -39,9 +39,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 				return dummy;
 
-			case Common::block: case Common::main_block:
+			case Common::block: case Common::main_block: {
 				context.reset(Context::BLOCK);
 				return context.setup_block(str, hash);
+			}
+
+			case Common::non_comptime_block:
+				context.set_can_apply_subroutines(false);
+				return std::make_shared<Node>(str, hash);
 
 			case Common::body:
 				return std::make_shared<Node>(str, hash);
@@ -137,12 +142,18 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			case Common::float_literal:
 				return std::make_shared<Float>();
 	
-			case Common::h: case Common::x: case Common::y: case Common::z: {
+			case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
+			case Common::tdg: case Common::s: case Common::sdg:{
 				return context.get_current_gate(str, 1, 0);
 			}
 
-			case Common::cx : case Common::cy: case Common::cz: case Common::cnot: {
+			case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
+			case Common::ch: {
 				return context.get_current_gate(str, 2, 0);
+			}
+
+			case Common::crz: {
+				return context.get_current_gate(str, 2, 1);
 			}
 
 			case Common::ccx: case Common::cswap: case Common::toffoli:{
