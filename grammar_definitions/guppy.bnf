@@ -80,7 +80,17 @@ qubit_op  = gate_op
             | subroutine_op;
 
 gate_op = gate_name gate_op_kind;
-subroutine_op = subroutine LPAREN qubit_list RPAREN;
+subroutine_op = subroutine LPAREN arguments RPAREN;
+
+# For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
+arguments = arg (COMMA arg)*;
+
+arg = arg_singular_qubit
+    | LBRACK arg_register_qubits RBRACK
+    ;
+
+arg_singular_qubit = qubit;
+arg_register_qubits = qubit (COMMA SPACE qubit)*;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
                 | LPAREN qubit_list COMMA float_list RPAREN

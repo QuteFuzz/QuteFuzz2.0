@@ -158,6 +158,8 @@ namespace Common {
         comptime_block = 13310967149289622197ULL,
         comptime_block_def = 5962160394468879029ULL,
         non_comptime_block = 15717574089437842153ULL,
+        arg_singular_qubit = 18441410415153523ULL,
+        arg_register_qubits = 3829129026513754988ULL,
         
         simple_stmt = 15680233693926857886ULL,
         simple_stmts = 7071648921283339959ULL,
@@ -173,6 +175,8 @@ namespace Common {
         dedent = 2224769550356995471ULL,
 
         if_stmt = 5300980200188049869ULL,
+        arguments = 16442092644301152671ULL,
+        arg = 16669728881526232807ULL,
     };
 }
 
