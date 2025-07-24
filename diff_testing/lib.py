@@ -31,9 +31,9 @@ import shutil
 # Pytket imports
 from pytket.circuit import Circuit
 from pytket.passes import *
-from pytket.extensions.qiskit import AerBackend
-from pytket.extensions.qiskit import AerStateBackend
-from pytket.extensions.quantinuum import QuantinuumBackend
+# from pytket.extensions.qiskit import AerBackend
+# from pytket.extensions.qiskit import AerStateBackend
+from pytket.extensions.quantinuum import QuantinuumBackend, QuantinuumAPIOffline
 
 # Qiskit imports
 from qiskit import QuantumCircuit, transpile
@@ -86,7 +86,7 @@ class Base():
 
         assert (len(sample1) == total_shots) and (len(sample2) == total_shots), "Sample size does not match number of shots"
 
-        ks_stat, p_value = ks_2samp(sorted(sample1), sorted(sample2))
+        ks_stat, p_value = ks_2samp(sorted(sample1), sorted(sample2), method='asymp')
 
         return p_value
     
@@ -125,7 +125,10 @@ class pytketTesting(Base):
         '''
         Runs circuit on pytket simulator and returns counts
         '''
-        backend = AerBackend()
+        # Pytket Quantinuum backend
+        api_offline = QuantinuumAPIOffline()
+        backend = QuantinuumBackend(device_name="H1-1LE", api_handler=api_offline)
+
         # Get original circuit shots
         uncompiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=0)
         handle1 = backend.process_circuit(uncompiled_circ, n_shots=1000)
