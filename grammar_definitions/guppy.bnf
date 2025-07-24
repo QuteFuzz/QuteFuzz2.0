@@ -28,7 +28,7 @@ qubit_defs_external = | qubit_def_external (COMMA qubit_def_external)*;
 
 qubit_defs_internal =   (qubit_def_internal NEWLINE)*;
 
-qubit_def_external  = singular_qubit_def_external;
+qubit_def_external  = singular_qubit_def_external
                     | register_qubit_def_external;
 
 singular_qubit_def_external = qreg_name COLON "qubit";
