@@ -22,10 +22,12 @@ RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solve
 # Install latest guppylang from main branch on GitHub
 RUN python3 -m pip install git+https://github.com/CQCL/guppylang.git@main --break-system-packages
 
-WORKDIR /qutefuzz
+# Allow configurable working directory
+ARG WORKDIR_PATH=/qutefuzz
+WORKDIR ${WORKDIR_PATH}
 
 COPY . .
 
-ENV PYTHONPATH=/qutefuzz
+ENV PYTHONPATH=${WORKDIR_PATH}
 
 CMD ["/bin/bash"]
