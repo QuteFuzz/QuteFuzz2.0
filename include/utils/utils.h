@@ -114,7 +114,7 @@ namespace Common {
         main_circuit_name = 15359974437464362266ULL,
 
         body = 14793735007222968981ULL,
-        qreg_name = 10722739978486866664ULL,
+        qubit_def_name = 9637820166840754028ULL,
         qreg_size = 11502232252882731618ULL,
         qubit = 9613145697666387222ULL,
         qubit_op = 7363837753828900628ULL,

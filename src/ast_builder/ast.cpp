@@ -141,7 +141,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qreg_size:
 			return context.get_current_qubit_definition_size();
 
-		case Common::qreg_name:
+		case Common::qubit_def_name:
 			return context.get_current_qubit_definition_name();
 
 		case Common::qubit_def_external: case Common::qubit_def_internal:

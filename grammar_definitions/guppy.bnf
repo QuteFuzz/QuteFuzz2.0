@@ -31,14 +31,14 @@ qubit_defs_internal =   (qubit_def_internal NEWLINE)*;
 qubit_def_external  = singular_qubit_def_external
                     | register_qubit_def_external;
 
-singular_qubit_def_external = qreg_name COLON "qubit";
-register_qubit_def_external = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+singular_qubit_def_external = qubit_def_name COLON "qubit";
+register_qubit_def_external = qubit_def_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
 
 qubit_def_internal = singular_qubit_def_internal
                     | register_qubit_def_internal;
 
-singular_qubit_def_internal = qreg_name EQUALS "qubit" LPAREN RPAREN;
-register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
+singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
+register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
 compound_stmt = qubit_op ;
                 # | if_stmt;
@@ -157,8 +157,8 @@ discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 discard_internal_qubit = discard_single_qubit
                         | discard_qreg;
 
-discard_qreg = "discard_array" LPAREN qreg_name RPAREN;
-discard_single_qubit = "discard" LPAREN qreg_name RPAREN;
+discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN;
+discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN;
 
 gate_name = 
     x | y | z | h | cx | toffoli | rz | rx | ry
