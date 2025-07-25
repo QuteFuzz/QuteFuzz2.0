@@ -73,7 +73,7 @@ class Run{
             for(auto& entry : fs::directory_iterator(output_dir)){
 
                 // check for directories to avoid running the results.txt file
-                if(entry.is_directory()){
+                if(entry.is_directory() && entry.path().filename() != "interesting_circuits"){
 
                     current++;
 

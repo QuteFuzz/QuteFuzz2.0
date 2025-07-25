@@ -27,13 +27,14 @@ import matplotlib.ticker as ticker
 import traceback
 import pathlib
 import shutil
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 # Pytket imports
 from pytket.circuit import Circuit
 from pytket.passes import *
-from pytket.extensions.qiskit import AerBackend
-from pytket.extensions.qiskit import AerStateBackend
-from pytket.extensions.quantinuum import QuantinuumBackend
+# from pytket.extensions.qiskit import AerBackend
+# from pytket.extensions.qiskit import AerStateBackend
+from pytket.extensions.quantinuum import QuantinuumBackend, QuantinuumAPIOffline
 
 # Qiskit imports
 from qiskit import QuantumCircuit, transpile
@@ -46,7 +47,7 @@ enable_experimental_features()
 
 class Base():
     # Define the plots directory as a class variable
-    OUTPUT_DIR = (pathlib.Path(__file__).parent.parent.parent / "outputs").resolve()
+    OUTPUT_DIR = (pathlib.Path(__file__).parent.parent / "outputs").resolve()
 
     def __init__(self):
         super().__init__()
@@ -86,12 +87,33 @@ class Base():
 
         assert (len(sample1) == total_shots) and (len(sample2) == total_shots), "Sample size does not match number of shots"
 
-        ks_stat, p_value = ks_2samp(sorted(sample1), sorted(sample2))
+        ks_stat, p_value = ks_2samp(sorted(sample1), sorted(sample2), method='asymp')
 
         return p_value
     
     def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128]):
         return np.dot(sv1, sv2)
+
+    def save_interesting_circuit(self, circuit_number: int, interesting_dir: pathlib.Path) -> None:
+        '''
+        Saves an interesting circuit file to the specified directory
+        '''
+        # Ensure the interesting directory exists
+        interesting_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Define source and destination paths
+        circuit_source_path = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit.py"
+        circuit_dest_path = interesting_dir / f"circuit{circuit_number}.py"
+        
+        # Check if source file exists and copy it
+        if circuit_source_path.exists():
+            try:
+                shutil.copy2(circuit_source_path, circuit_dest_path)
+                print(f"Circuit file saved to: {circuit_dest_path}")
+            except Exception as e:
+                print(f"Error copying circuit file: {e}")
+        else:
+            print(f"Warning: Circuit file not found at {circuit_source_path}")
 
     def plot_histogram(self, res : Counter[int, int], title : str, compilation_level : int, circuit_number : int = 0):
         # Check the number of existing plots in plots_path (if exists), then increment the number of the plot
@@ -121,36 +143,56 @@ class pytketTesting(Base):
     def __init__(self):
         super().__init__()
     
-    def run_circ(self, circuit : Circuit, circuit_number : int) -> float:
+    def run_circ(self, circuit : Circuit, circuit_number : int) -> None:
         '''
         Runs circuit on pytket simulator and returns counts
         '''
-        backend = AerBackend()
-        # Get original circuit shots
-        uncompiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=0)
-        handle1 = backend.process_circuit(uncompiled_circ, n_shots=1000)
-        result1 = backend.get_result(handle1)
-        counts1 = self.preprocess_counts(result1.get_counts())
+        # Pytket Quantinuum backend
+        api_offline = QuantinuumAPIOffline()
+        backend = QuantinuumBackend(device_name="H1-1LE", api_handler=api_offline)
 
-        # Compile circuit at 3 different optimisation levels
-        for i in range(3):
-            compiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=i+1)
-        
-            # Process the compiled circuit
-            handle2 = backend.process_circuit(compiled_circ, n_shots=1000)
-            result2 = backend.get_result(handle2)
-            counts2 = self.preprocess_counts(result2.get_counts())
+        try:
+            # Get original circuit shots
+            uncompiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=0)
+            handle1 = backend.process_circuit(uncompiled_circ, n_shots=1000)
+            result1 = backend.get_result(handle1)
+            counts1 = self.preprocess_counts(result1.get_counts())
+            is_testcase_interesting = False
+            consistency_counter = 0
 
-            # Run the kstest on the two results
-            ks_value = self.ks_test(counts1, counts2, 1000)
-            print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
+            # Compile circuit at 3 different optimisation levels
+            for i in range(3):
+                compiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=i+1)
+            
+                # Process the compiled circuit
+                handle2 = backend.process_circuit(compiled_circ, n_shots=1000)
+                result2 = backend.get_result(handle2)
+                counts2 = self.preprocess_counts(result2.get_counts())
 
-            # plot results
-            if self.plot:
-                self.plot_histogram(counts1, "Uncompiled Circuit Results", 0, circuit_number)
-                self.plot_histogram(counts2, "Compiled Circuit Results", i+1, circuit_number)
+                # Run the kstest on the two results
+                ks_value = self.ks_test(counts1, counts2, 1000)
+                print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
 
-        return ks_value
+                # Heuristic to determine if the testcase is interesting
+                if ks_value < 0.2 :
+                    consistency_counter += 1
+                if ks_value < 0.05 or consistency_counter >= 2:
+                    is_testcase_interesting = True
+                
+                # plot results
+                if self.plot:
+                    self.plot_histogram(counts1, "Uncompiled Circuit Results", 0, circuit_number)
+                    self.plot_histogram(counts2, "Compiled Circuit Results", i+1, circuit_number)
+
+        except Exception as e:
+            print("Exception :", traceback.format_exc())
+            is_testcase_interesting = True
+
+        # Dump files to a "interesting circuits" folder if found interesting testcase
+        if is_testcase_interesting:
+            print(f"Interesting circuit found: {circuit_number}")
+            interesting_dir = self.OUTPUT_DIR / "interesting_circuits"
+            self.save_interesting_circuit(circuit_number, interesting_dir)
     
     def run_circ_statevector(self, circuit : Circuit, test_pass : BasePass ) -> NDArray[np.complex128]:
         '''
@@ -222,13 +264,32 @@ class guppyTesting(Base):
     def __init__(self):
         super().__init__()
 
-    def run_circ(self, circuit : Any, circuit_number : int) -> float:
+    def run_circ(self, circuit : Any, circuit_number : int) -> None:
         '''
-        Compiles and runs guppy program on simulator and returns counts
+        Compiles guppy circuit
         '''
-        guppy.compile(circuit)
+        is_testcase_interesting = False
+        timeout_seconds = 60
+        
+        def compile_circuit():
+            return guppy.compile(circuit)
+        
+        # Run the compile with timeout using ThreadPoolExecutor
+        try:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(compile_circuit)
+                result = future.result(timeout=timeout_seconds)
+                
+        except FuturesTimeoutError:
+            print(f"Compilation timed out after {timeout_seconds} seconds")
+            is_testcase_interesting = True
+        except Exception as e:
+            print("Error during compilation:", e)
+            is_testcase_interesting = True
 
-if __name__ == "__main__":
-    b = Base()
-    b.plot_histogram({1 : 10, 2 : 20})
+        # Dump files to a "interesting circuits" folder if found interesting testcase
+        if is_testcase_interesting:
+            print(f"Interesting circuit found: {circuit_number}")
+            interesting_dir = self.OUTPUT_DIR / "interesting_circuits"
+            self.save_interesting_circuit(circuit_number, interesting_dir)
 

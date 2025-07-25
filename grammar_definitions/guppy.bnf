@@ -4,42 +4,44 @@ program     = imports NEWLINE subroutines NEWLINE main_block NEWLINE compiler_ca
 
 subroutines = (block NEWLINE)*;
 
-# A main block in guppy is a special case, where it cannot contain external qubit defs or any qubits, but could contain regular inputs?
-main_block = main_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
-main_block_def = decorators NEWLINE "def " circuit_name LPAREN RPAREN " -> None" COLON;
+block = non_comptime_block
+        | comptime_block;
 
-block       = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
+# A main block in guppy is a special case, where it cannot contain external qubit defs or any qubits, but could contain regular inputs?
+# It also needs to be comptime to apply other subcircuits
+main_block = main_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
+main_block_def = "@guppy.comptime" NEWLINE "def " circuit_name LPAREN RPAREN " -> None" COLON;
+
+non_comptime_block = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
+block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON;
+
+comptime_block = comptime_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
+comptime_block_def =  "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON;
 
 body   = qubit_defs_internal compound_stmts;
 
 compound_stmts = (compound_stmt NEWLINE)*;
 
-block_def   = decorators NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" type COLON;
-
-decorators = "@guppy"
-            # | "@guppy.comptime"
-            ;
-
 block_args  = qubit_defs_external; # TODO: Add additional traditional parameters in future
 
 qubit_defs_external = | qubit_def_external (COMMA qubit_def_external)*;
 
-qubit_defs_internal = (qubit_def_internal NEWLINE)*; # 0 or more since there could be 0 internal qubit definitions
+qubit_defs_internal =   (qubit_def_internal NEWLINE)*;
 
-qubit_def_external  = singular_qubit_def_external 
+qubit_def_external  = singular_qubit_def_external
                     | register_qubit_def_external;
 
-singular_qubit_def_external = qubit_name COLON "qubit";
-register_qubit_def_external = qreg_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
+singular_qubit_def_external = qubit_def_name COLON "qubit";
+register_qubit_def_external = qubit_def_name COLON "array" LBRACK "qubit" COMMA qreg_size RBRACK;
 
 qubit_def_internal = singular_qubit_def_internal
                     | register_qubit_def_internal;
 
-singular_qubit_def_internal = qubit_name EQUALS "qubit" LPAREN RPAREN;
-register_qubit_def_internal = qreg_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
-# register_qubit_def_internal = qreg_name EQUALS LBRACK "qubit() for _ in range" LPAREN qreg_size RPAREN RBRACK;    # For comptime only
+singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
+register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
-compound_stmt = qubit_op | if_stmt;
+compound_stmt = qubit_op ;
+                # | if_stmt;
 
 if_stmt =
     'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
@@ -130,7 +132,17 @@ qubit_op  = gate_op
             | subroutine_op;
 
 gate_op = gate_name gate_op_kind;
-subroutine_op = subroutine LPAREN qubit_list RPAREN;
+subroutine_op = subroutine LPAREN arguments RPAREN;
+
+# For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
+arguments = arg (COMMA arg)*;
+
+arg = arg_singular_qubit
+    | LBRACK arg_register_qubits RBRACK
+    ;
+
+arg_singular_qubit = qubit;
+arg_register_qubits = qubit (COMMA SPACE qubit)*;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
                 | LPAREN qubit_list COMMA float_list RPAREN
@@ -145,12 +157,12 @@ discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 discard_internal_qubit = discard_single_qubit
                         | discard_qreg;
 
-discard_qreg = "discard_array" LPAREN qreg_name RPAREN;
-discard_single_qubit = "discard" LPAREN qubit_name RPAREN;
+discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN;
+discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN;
 
 gate_name = 
     x | y | z | h | cx | toffoli | rz | rx | ry
-    # | t | tdg | s | sdg | ch | crz 
+    | t | tdg | s | sdg | ch | crz 
     # | measure | measure_array | reset | project_z
     ;
 
@@ -169,4 +181,5 @@ imports = "from guppylang.decorator import guppy " NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
         "from pathlib import Path " NEWLINE;
 
-compiler_call = "guppyTesting.run_circ(main_circuit)" NEWLINE;
+compiler_call = "gt = guppyTesting()" NEWLINE
+                "gt.run_circ(main_circuit" COMMA circuit_id RPAREN NEWLINE;

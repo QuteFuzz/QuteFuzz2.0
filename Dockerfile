@@ -17,7 +17,10 @@ RUN apt update && apt install -y \
     gdb \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver pytket-quantinuum cirq guppylang --break-system-packages
+RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum[pecos] --break-system-packages
+
+# Install latest guppylang from main branch on GitHub
+RUN python3 -m pip install git+https://github.com/CQCL/guppylang.git@main --break-system-packages
 
 WORKDIR /qutefuzz
 

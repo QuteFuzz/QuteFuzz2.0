@@ -114,7 +114,7 @@ namespace Common {
         main_circuit_name = 15359974437464362266ULL,
 
         body = 14793735007222968981ULL,
-        qreg_name = 10722739978486866664ULL,
+        qubit_def_name = 9637820166840754028ULL,
         qreg_size = 11502232252882731618ULL,
         qubit = 9613145697666387222ULL,
         qubit_op = 7363837753828900628ULL,
@@ -154,8 +154,11 @@ namespace Common {
         discard_internal_qubit = 1018654204566407765ULL,
         discard_single_qubit = 11775807085076373088ULL,
         discard_qreg = 13047647025597388553ULL,
-        decorators = 741076755586776343ULL,
-        
+        comptime_block = 13310967149289622197ULL,
+        comptime_block_def = 5962160394468879029ULL,
+        non_comptime_block = 15717574089437842153ULL,
+        arg_singular_qubit = 18441410415153523ULL,
+        arg_register_qubits = 3829129026513754988ULL,
         
         simple_stmt = 15680233693926857886ULL,
         simple_stmts = 7071648921283339959ULL,
@@ -171,6 +174,8 @@ namespace Common {
         dedent = 2224769550356995471ULL,
 
         if_stmt = 5300980200188049869ULL,
+        arguments = 16442092644301152671ULL,
+        arg = 16669728881526232807ULL,
         else_stmt = 2582766405432659795ULL,
         elif_stmt = 9453565397799917274ULL,
         disjunction = 13554539731759707019ULL,
