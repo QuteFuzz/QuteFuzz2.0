@@ -32,8 +32,8 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 # Pytket imports
 from pytket.circuit import Circuit
 from pytket.passes import *
-# from pytket.extensions.qiskit import AerBackend
-# from pytket.extensions.qiskit import AerStateBackend
+from pytket.extensions.qiskit import AerBackend
+from pytket.extensions.qiskit import AerStateBackend
 from pytket.extensions.quantinuum import QuantinuumBackend, QuantinuumAPIOffline
 
 # Qiskit imports
@@ -147,9 +147,12 @@ class pytketTesting(Base):
         '''
         Runs circuit on pytket simulator and returns counts
         '''
-        # Pytket Quantinuum backend
-        api_offline = QuantinuumAPIOffline()
-        backend = QuantinuumBackend(device_name="H1-1LE", api_handler=api_offline)
+        # # Pytket Quantinuum backend
+        # api_offline = QuantinuumAPIOffline()
+        # backend = QuantinuumBackend(device_name="H1-1LE", api_handler=api_offline)
+        
+        # Buggy on github actions, so using AerBackend instead
+        backend = AerBackend()
 
         try:
             # Get original circuit shots

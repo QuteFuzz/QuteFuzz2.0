@@ -28,7 +28,7 @@ compound_stmts = (compound_stmt NEWLINE)+;
 qubit_def_external  = singular_qubit_def_external 
                     | register_qubit_def_external;
 
-singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
+singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "1" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
 register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_register" LPAREN '"' qubit_def_name '",' qreg_size RPAREN;
 
 compound_stmt = qubit_op;
