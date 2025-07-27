@@ -22,6 +22,10 @@
 
 std::string Node::indentation_tracker = "";
 
+/// @brief Given a term, return a node for that term. `parent` is guaranteed to never be `nullptr` so no checks are done
+/// @param parent 
+/// @param term 
+/// @return 
 std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent, const Term& term){
 
 	if(term.is_syntax()){
@@ -31,7 +35,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 	U64 hash = term.get_hash();
 	std::string str = term.get_string();
 
-	if((parent != nullptr) && (*parent == Common::compare_op_bitwise_or_pair)){
+	if(*parent == Common::compare_op_bitwise_or_pair){
 		return std::make_shared<Compare_op_bitwise_or_pair_child>(str, hash);
 	}
 	
@@ -48,46 +52,46 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 			return dummy;
 
-			case Common::block: case Common::main_block: {
-				context.reset(Context::BLOCK);
-				return context.setup_block(str, hash);
-			}
+		case Common::block: case Common::main_block: {
+			context.reset(Context::BLOCK);
+			return context.setup_block(str, hash);
+		}
 
-			case Common::non_comptime_block:
-				context.set_can_apply_subroutines(false);
-				return std::make_shared<Node>(str, hash);
+		case Common::non_comptime_block:
+			context.set_can_apply_subroutines(false);
+			return std::make_shared<Node>(str, hash);
 
 		case Common::body:
 			return std::make_shared<Node>(str, hash);
 
 		case Common::compound_stmts:
-			if((parent != nullptr) && (*parent == Common::body)){
+			if(*parent == Common::body){
 				context.set_qig();
 				context.set_can_apply_subroutines();
 			}
 
-				return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
-			
-			case Common::arguments: {
-				context.set_current_applied_block();
-				size_t num_args = context.get_current_gate_num_params();
-				return std::make_shared<Arguments>(str, hash, num_args);
-			}
+			return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+		
+		case Common::arguments: {
+			context.set_current_applied_block();
+			size_t num_args = context.get_current_gate_num_params();
+			return std::make_shared<Arguments>(str, hash, num_args);
+		}
 
-			case Common::arg: {
-				return context.get_current_arg(str, hash);
-			}
+		case Common::arg: {
+			return context.get_current_arg(str, hash);
+		}
 
-			case Common::arg_singular_qubit: {
-				return std::make_shared<Qubit_list>(str, hash, 1);
-			}
+		case Common::arg_singular_qubit: {
+			return std::make_shared<Qubit_list>(str, hash, 1);
+		}
 
-			case Common::arg_register_qubits: {
-				return std::make_shared<Qubit_list>(str, hash, context.get_current_applied_block_qubit_def_size());
-			}
-			
-			case Common::compound_stmt:
-				return context.get_compound_stmt(str, hash);
+		case Common::arg_register_qubits: {
+			return std::make_shared<Qubit_list>(str, hash, context.get_current_applied_block_qubit_def_size());
+		}
+		
+		case Common::compound_stmt:
+			return context.get_compound_stmt(str, hash);
 
 		case Common::if_stmt:
 			return context.get_control_flow_stmt(str, hash);
@@ -128,15 +132,15 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.reset(Context::QUBIT_OP);
 			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
 
-			case Common::subroutine: {				
-				std::shared_ptr<Block> subroutine = context.get_random_block();
-				int num_sub_qubits = subroutine->num_external_qubits();
-				subroutine->qubit_def_pointer_reset();
-				return context.make_current_gate(subroutine->get_owner(), num_sub_qubits, subroutine->num_external_qubit_defs());				
-			}
-	
-			case Common::circuit_name:
-				return std::make_shared<Variable>(context.get_current_block_owner());
+		case Common::subroutine: {				
+			std::shared_ptr<Block> subroutine = context.get_random_block();
+			int num_sub_qubits = subroutine->num_external_qubits();
+			subroutine->qubit_def_pointer_reset();
+			return context.make_current_gate(subroutine->get_owner(), num_sub_qubits, subroutine->num_external_qubit_defs());				
+		}
+
+		case Common::circuit_name:
+			return std::make_shared<Variable>(context.get_current_block_owner());
 
 		case Common::qreg_size:
 			return context.get_current_qubit_definition_size();
@@ -185,34 +189,27 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Integer>();
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
-			case Common::tdg: case Common::s: case Common::sdg:{
-				return context.make_current_gate(str, 1, 0);
-			}
+		case Common::tdg: case Common::s: case Common::sdg:
+			return context.make_current_gate(str, 1, 0);
 
-			case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
-			case Common::ch: {
-				return context.make_current_gate(str, 2, 0);
-			}
+		case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
+		case Common::ch:
+			return context.make_current_gate(str, 2, 0);
 
-			case Common::crz: {
-				return context.make_current_gate(str, 2, 1);
-			}
+		case Common::crz:
+			return context.make_current_gate(str, 2, 1);
 
-			case Common::ccx: case Common::cswap: case Common::toffoli:{
-				return context.make_current_gate(str, 3, 0);
-			}
+		case Common::ccx: case Common::cswap: case Common::toffoli:
+			return context.make_current_gate(str, 3, 0);
 
-			case Common::u1: case Common::rx: case Common::ry: case Common::rz:{
-				return context.make_current_gate(str, 1, 1);
-			}
+		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
+			return context.make_current_gate(str, 1, 1);
 
-			case Common::u2:{
-				return context.make_current_gate(str, 1, 2);
-			}
+		case Common::u2:
+			return context.make_current_gate(str, 1, 2);
 
-			case Common::u3: case Common::u:{
-				return context.make_current_gate(str, 1, 3);
-			}
+		case Common::u3: case Common::u:
+			return context.make_current_gate(str, 1, 3);
 
 		default:
 			return std::make_shared<Node>(str, hash);
@@ -254,7 +251,7 @@ Result<Node> Ast::build(){
 		Term entry_as_term;
 		entry_as_term.set(entry);
 
-		std::shared_ptr<Node> root_ptr = get_node_from_term(nullptr, entry_as_term);
+		std::shared_ptr<Node> root_ptr = get_node_from_term(dummy, entry_as_term);
 
 		write_branch(root_ptr, entry_as_term);
 
