@@ -22,11 +22,15 @@
 
 std::string Node::indentation_tracker = "";
 
-/// @brief Given a term, return a node for that term. `parent` is guaranteed to never be `nullptr` so no checks are done
+/// @brief Given a term, return a node for that term. `parent` is guaranteed to never be `nullptr` but runtime error thrown incase not true
 /// @param parent 
 /// @param term 
 /// @return 
 std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent, const Term& term){
+
+	if(parent == nullptr){
+		throw std::runtime_error(ANNOT("Node must have a parent!"));
+	}
 
 	if(term.is_syntax()){
 		return std::make_shared<Node>(term.get_syntax());
@@ -66,7 +70,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::compound_stmts:
 			if(*parent == Common::body){
-				context.set_qig();
 				context.set_can_apply_subroutines();
 			}
 
@@ -282,12 +285,6 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 
 			INFO("Program written to " + program_path.string());
 			
-			// render AST
-			// render_ast(ast_root, current_circuit_dir);
-
-			// render QIG for main
-			context.render_qig();
-
 		} else {
         	ERROR(maybe_ast_root.get_error());
 		}

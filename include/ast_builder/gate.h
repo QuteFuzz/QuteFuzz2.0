@@ -2,20 +2,14 @@
 #define GATE_H
 
 #include <node.h>
-#include <graph.h>
 
 class Gate : public Node {
     public:
         
-        Gate(const std::string str, int _qubits, int _params, std::shared_ptr<Graph> qig = nullptr) :
+        Gate(const std::string str, int _qubits, int _params) :
             Node(str),
             num_qubits(_qubits),
-            num_params(_params),
-            best_entanglement(
-                (qig != nullptr) ?
-                qig->get_best_entanglement(num_qubits) :
-                std::nullopt
-            )
+            num_params(_params)
         {}
 
         int get_num_qubits(){
@@ -26,15 +20,9 @@ class Gate : public Node {
             return num_params;
         }
 
-        std::optional<std::vector<int>> get_best_entanglement(){
-            return best_entanglement;
-        }
-
-    private:
+        private:
         int num_qubits;
         int num_params;
-        std::optional<std::vector<int>> best_entanglement;
-
 };
 
 

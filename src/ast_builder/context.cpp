@@ -5,7 +5,6 @@ namespace Context {
     void Context::reset(Level l){
 
         if(l == PROGRAM){
-            qig = nullptr;
             subroutines_node = nullptr;
             subroutine_counter = 0;
             blocks.clear();
@@ -142,12 +141,7 @@ namespace Context {
     }
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
-        if(current_gate == nullptr) {
-            current_qubit = get_current_block()->get_random_qubit(std::nullopt);        
-        } else {
-            current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement());
-        }
-
+        current_qubit = get_current_block()->get_random_qubit();     
         return current_qubit;
     }
 
@@ -198,7 +192,7 @@ namespace Context {
     }
 
     std::shared_ptr<Gate> Context::make_current_gate(const std::string& str, int num_qubits, int num_params) {
-        current_gate = std::make_shared<Gate>(str, num_qubits, num_params, qig);
+        current_gate = std::make_shared<Gate>(str, num_qubits, num_params);
         return current_gate;
     }
 
@@ -240,24 +234,4 @@ namespace Context {
         }
     }
 
-    void Context::render_qig(){
-        if((qig != nullptr) && Common::render_qigs){
-            // render old qig
-            std::string qig_owner = qig->get_owner();
-            std::shared_ptr<Block> assosiated_block = get_block(qig_owner);
-
-            fs::path img_path = circuit_dir / (qig_owner + "_qig.png");
-            qig->render_graph(img_path, assosiated_block);
-        }
-    }
-
-    void Context::set_qig(){
-        render_qig();
-
-        size_t total_num_qubits = get_current_block()->total_num_qubits();
-
-        INFO("Setting QIG for " + current_block_owner + " with " + std::to_string(total_num_qubits) + " qubits");
-        
-        qig = std::make_shared<Graph>(current_block_owner, total_num_qubits);
-    }
 }

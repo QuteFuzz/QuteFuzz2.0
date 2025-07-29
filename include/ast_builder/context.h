@@ -3,7 +3,6 @@
 
 #include <block.h>
 #include <qubit_definition.h>
-#include <graph.h>
 #include <variable.h>
 #include <qubit_defs.h>
 #include <discard_qubit_defs.h>
@@ -115,7 +114,6 @@ namespace Context {
             int subroutine_counter = 0;
             int current_applied_block_qubit_def_size = 0;
 
-            std::shared_ptr<Graph> qig = nullptr;
             fs::path circuit_dir;
 			
 			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;

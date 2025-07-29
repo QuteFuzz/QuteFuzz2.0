@@ -6,7 +6,6 @@
 #include <term.h>
 #include <grammar.h>
 #include <node.h>
-#include <graph.h>
 #include <context.h>
 
 class Ast{
