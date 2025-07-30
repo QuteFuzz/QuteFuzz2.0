@@ -65,5 +65,9 @@ imports = "from sympy import Symbol" NEWLINE
         "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE;
 
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
-                "pt = pytketTesting() " NEWLINE
-                "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
+                "pt = pytketTesting() " NEWLINE testing_method;
+
+testing_method = "pt.ks_diff_test(" main_circuit_name ", " circuit_id ")" NEWLINE
+                | "pt.run_guppy_pytket_diff(" main_circuit_name ", " circuit_id ")" NEWLINE
+                # | "pt.run_circ_statevector(" main_circuit_name ", " circuit_id ")" NEWLINE    # TODO: No measures allowed in statevector tests
+                ;

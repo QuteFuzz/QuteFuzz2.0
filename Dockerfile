@@ -17,10 +17,15 @@ RUN apt update && apt install -y \
     gdb \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum[pecos] --break-system-packages
+# Create and activate virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum 
+RUN pip install selene-sim 
 
 # Install latest guppylang from main branch on GitHub
-RUN python3 -m pip install git+https://github.com/CQCL/guppylang.git@main --break-system-packages
+RUN python3 -m pip install git+https://github.com/CQCL/guppylang.git@main
 
 # Allow configurable working directory
 ARG WORKDIR_PATH=/qutefuzz

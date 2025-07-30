@@ -87,6 +87,8 @@ namespace Common {
         t = 12638201494206808739ULL,
         tdg = 6262443406867765286ULL,
         phasedxpowgate = 11832025932794728373ULL,
+        project_z = 2608459580584910443ULL,
+        measure_and_reset = 15416528854723921477ULL,
 
         // TWO QUBIT GATES
         cx = 622136697450792830ULL,
@@ -120,6 +122,7 @@ namespace Common {
         qubit_op = 7363837753828900628ULL,
         gate_op = 17845938762380861480ULL,
         subroutine_op = 4275855153236832595ULL,
+        measurement_op = 5371156234969671235ULL,
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,        
@@ -164,11 +167,6 @@ namespace Common {
         simple_stmts = 7071648921283339959ULL,
         compound_stmt = 4421131487532525991ULL,
         compound_stmts = 17100464358870324028ULL,
- 
-        measure = 13586824709325088415ULL,
-        measure_array = 5009991113106631741ULL,
-        reset = 1086335023529244512ULL,
-        project_z = 2608459580584910443ULL,
         
         indent = 8881161079555216635ULL,
         dedent = 2224769550356995471ULL,

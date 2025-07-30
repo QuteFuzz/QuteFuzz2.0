@@ -144,6 +144,8 @@ namespace Context {
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
         if(current_gate == nullptr) {
             current_qubit = get_current_block()->get_random_qubit(std::nullopt);        
+        } else if(current_gate->get_string() == "measure_and_reset") {
+            current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement(), true);
         } else {
             current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement());
         }

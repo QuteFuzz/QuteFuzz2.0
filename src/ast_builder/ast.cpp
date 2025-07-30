@@ -124,9 +124,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::gate_op_kind:
 			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
-		case Common::qubit_op:
+		case Common::qubit_op: {
 			context.reset(Context::QUBIT_OP);
-			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines());
+			std::shared_ptr<Block> current_block = context.get_current_block();
+			return std::make_shared<Qubit_op>(str, hash, current_block->get_can_apply_subroutines(), current_block->num_internal_qubits() > 0);
+		}
 
 			case Common::subroutine: {				
 				std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -185,7 +187,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Integer>();
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
-			case Common::tdg: case Common::s: case Common::sdg:{
+			case Common::tdg: case Common::s: case Common::sdg: case Common::project_z:
+			case Common::measure_and_reset:{
 				return context.make_current_gate(str, 1, 0);
 			}
 

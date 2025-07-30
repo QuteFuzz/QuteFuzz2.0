@@ -62,7 +62,7 @@ size_t Block::make_qubit_definitions(bool external){
 /// @brief Pick random qubit from combination of external and internal qubits
 /// @param best_entanglement 
 /// @return 
-std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement){
+std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<int>> best_entanglement, bool internal_only){
     size_t total_qubits = qubits.get_total();
 
     if(total_qubits){
@@ -74,13 +74,13 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<
         #endif
 
         // When getting entanglement, index can go above num_external_qubits, representing access into internal qubits
-        if(best_entanglement.has_value()){
+        if(best_entanglement.has_value()) {
             std::vector<int> e = best_entanglement.value();
 
             qubit = qubits.at(e[0]);
             int pointer = 0;
 
-            while(qubit->is_used()){
+            while(qubit->is_used() || (internal_only && qubit->is_external())){
                 qubit = qubits.at(e[++pointer]);
             }
 
@@ -89,8 +89,8 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(std::optional<std::vector<
         } else {
 
             qubit = qubits.at(random_int(total_qubits - 1));
-            
-            while(qubit->is_used()){
+
+            while(qubit->is_used() || (internal_only && qubit->is_external())){
                 qubit = qubits.at(random_int(total_qubits - 1));
             }
 
