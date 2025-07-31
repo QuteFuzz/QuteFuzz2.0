@@ -1,6 +1,5 @@
 #include <run.h>
 #include <ast.h>
-#include <qubit_combinations.h>
 
 
 void Program_Spec::setup_builder(const std::string entry_name){
@@ -165,9 +164,9 @@ void Run::loop(){
                 Common::verbose = !Common::verbose;
                 INFO("Verbose mode is now " + (Common::verbose ? "enabled" : "disabled"));
 
-            } else if (current_command == "render_qigs"){
-                Common::render_qigs = !Common::render_qigs;
-                INFO("QIG render " + (Common::plot ? "enabled" : "disabled"));
+            } else if (current_command == "render_dags"){
+                Common::render_dags = !Common::render_dags;
+                INFO("DAG render " + (Common::plot ? "enabled" : "disabled"));
 
             } else if (current_command == "run_tests"){
                 run_tests();

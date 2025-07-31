@@ -75,13 +75,17 @@ class Block : public Node {
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_external_qubit_def();
 
-        std::shared_ptr<Qubit::Qubit> get_random_qubit();
+        Qubit::Qubit* get_random_qubit();
         
         size_t make_register_qubit_definition(int max_size, bool external);
 
         size_t make_singular_qubit_definition(bool external);
 
         size_t make_qubit_definitions(bool external);
+
+        size_t get_dag_score();
+        
+        void render_dag(const fs::path& current_circuit_dir);
 
     private:
         std::string owner;

@@ -39,6 +39,7 @@ struct Node_constraint {
 class Node {
 
     public:
+        static std::string indentation_tracker;
 
         Node(){}
 
@@ -115,14 +116,13 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void make_dot_string(std::string& ret) const {
+        void extend_dot_string(std::ostringstream& ss) const {
             for(const std::shared_ptr<Node>& child : children){                
-                ret += "    " + escape(string) + " -> " + escape(child->get_string()) + ";\n";
-                child->make_dot_string(ret);                   
+                ss << "    " << escape(string) << " -> " << escape(child->get_string()) << ";" << std::endl;
+                child->extend_dot_string(ss);
             }
         }
 
-        static std::string indentation_tracker;
 
     protected:
         std::string string;
@@ -130,11 +130,8 @@ class Node {
         Node_kind kind;
 
         std::string indentation_str;
-
         std::vector<std::shared_ptr<Node>> children;
-
         Node_build_state state = NB_BUILD;
-
         std::optional<Node_constraint> constraint;
 };
 

@@ -14,6 +14,7 @@ namespace Context {
 
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
+            current_port = 0;
         }
     }
 
@@ -132,8 +133,11 @@ namespace Context {
         if(current_gate != nullptr){
             std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def = current_applied_block->get_next_external_qubit_def();
             Arg::Type arg_qubit_def_type = qubit_def->get_type() == Qubit_definition::Type::SINGULAR_EXTERNAL ? Arg::Type::SINGULAR : Arg::Type::REGISTER;
+
             current_applied_block_qubit_def_size = (arg_qubit_def_type == Arg::Type::SINGULAR) ? 1 : std::stoi(qubit_def->get_size()->get_string());
+
             return std::make_shared<Arg::Arg>(str, hash, arg_qubit_def_type);
+
         } else {
             WARNING("Current gate not set but trying to get arg! Using dummy instead");
             return std::make_shared<Arg::Arg>();
@@ -141,7 +145,11 @@ namespace Context {
     }
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
-        current_qubit = get_current_block()->get_random_qubit();     
+        Qubit::Qubit* random_qubit = get_current_block()->get_random_qubit(); 
+        
+        random_qubit->extend_flow_path(current_gate, current_port++);
+
+        current_qubit = std::make_shared<Qubit::Qubit>(*random_qubit);
         return current_qubit;
     }
 

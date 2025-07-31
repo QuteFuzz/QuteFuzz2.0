@@ -3,7 +3,7 @@
 namespace Common {
     bool plot = false;
     bool verbose = false;
-    bool render_qigs = false;
+    bool render_dags = false;
 }
 
 void lower(std::string& str){
@@ -177,4 +177,19 @@ std::string escape(const std::string& str){
     std::ostringstream oss;
     oss << std::quoted(str);
     return oss.str();
+}
+
+std::string random_hex_colour(){
+
+    std::uniform_int_distribution<int> int_dist(0, 255);
+
+    std::ostringstream ss;
+
+    ss << "#"
+    << std::hex << std::setfill('0')
+    << std::setw(2) << int_dist(seed()) 
+    << std::setw(2) << int_dist(seed()) 
+    << std::setw(2) << int_dist(seed());
+
+    return ss.str();
 }

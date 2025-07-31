@@ -99,10 +99,6 @@ namespace Context {
 				return current_applied_block;
 			}
 
-			void render_qig();
-
-			void set_qig();
-
         private:
 			std::string current_block_owner;
             std::vector<std::shared_ptr<Block>> blocks;
@@ -119,6 +115,7 @@ namespace Context {
 			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Qubit::Qubit> current_qubit;
 			std::shared_ptr<Gate> current_gate;
+			size_t current_port = 0;
 			std::shared_ptr<Block> current_applied_block;
 			std::shared_ptr<Node> subroutines_node = nullptr;
 

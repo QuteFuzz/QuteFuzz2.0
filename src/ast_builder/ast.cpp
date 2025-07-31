@@ -138,7 +138,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::subroutine: {				
 			std::shared_ptr<Block> subroutine = context.get_random_block();
 			int num_sub_qubits = subroutine->num_external_qubits();
+
 			subroutine->qubit_def_pointer_reset();
+			
 			return context.make_current_gate(subroutine->get_owner(), num_sub_qubits, subroutine->num_external_qubit_defs());				
 		}
 
@@ -277,12 +279,14 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 		if(maybe_ast_root.is_ok()){
 			Node ast_root = maybe_ast_root.get_ok();
 
-			// write program
 			fs::path program_path = current_circuit_dir / ("circuit" + extension);
 			std::ofstream stream(program_path.string());
-			
-			stream << ast_root << std::endl;
 
+			// render dag (main block)
+			context.get_current_block()->render_dag(current_circuit_dir);
+
+			// write program
+			stream << ast_root << std::endl;
 			INFO("Program written to " + program_path.string());
 			
 		} else {
@@ -293,13 +297,13 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 
 void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
 
-	std::string dot_string;
+	std::ostringstream dot_string;
 
-	dot_string += "digraph AST {\n";
+	dot_string << "digraph AST {" << std::endl;
 
-	root.make_dot_string(dot_string);
+	root.extend_dot_string(dot_string);
 
-    dot_string += "}\n";
+    dot_string << "}" << std::endl;
 
     // render graph
 	fs::path ast_path = current_circuit_dir / "ast.png";
@@ -307,7 +311,7 @@ void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
     const std::string str = ast_path.string();
     std::string command = "dot -Tpng -o " + str;
     
-    pipe_to_command(command, dot_string);
+    pipe_to_command(command, dot_string.str());
     INFO("AST rendered to " + ast_path.string());
 }
 

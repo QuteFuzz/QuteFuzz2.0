@@ -23,7 +23,7 @@ class Singular_qubit : public Node {
         
         bool is_used(){return used;}
 
-        inline std::shared_ptr<Variable> get_name(){
+        inline std::shared_ptr<Variable> get_name() const {
             return std::make_shared<Variable>(name);
         }
         

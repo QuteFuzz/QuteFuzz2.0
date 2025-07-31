@@ -61,7 +61,7 @@ size_t Block::make_qubit_definitions(bool external){
 
 /// @brief Pick random qubit from combination of external and internal qubits
 /// @return 
-std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(){
+Qubit::Qubit* Block::get_random_qubit(){
     size_t total_qubits = qubits.get_total();
 
     if(total_qubits){
@@ -78,10 +78,10 @@ std::shared_ptr<Qubit::Qubit> Block::get_random_qubit(){
 
         qubit->set_used();
 
-        return std::make_shared<Qubit::Qubit>(*qubit);
+        return qubit;
     
     } else {
-        return std::make_shared<Qubit::Qubit>(dummy_qubit);
+        return &dummy_qubit;
     }
 }
 
@@ -133,4 +133,28 @@ std::shared_ptr<Qubit_definition::Qubit_definition> Block::get_next_external_qub
         return std::make_shared<Qubit_definition::Qubit_definition>(*maybe_def); 
 
     }
+}
+
+size_t Block::get_dag_score(){
+    return 0;
+}
+
+void Block::render_dag(const fs::path& current_circuit_dir){
+    std::ostringstream dot_string;
+
+    dot_string << "digraph G {\n";
+
+    for(const Qubit::Qubit& qubit : qubits){
+        qubit.extend_dot_string(dot_string);
+    }
+
+    dot_string << "}\n";
+
+    fs::path dag_render_path = current_circuit_dir / "dag.png";
+
+    const std::string str = dag_render_path.string();
+    std::string command = "dot -Tpng -o " + str;
+    
+    pipe_to_command(command, dot_string.str());
+    INFO("Program DAG rendered to " + dag_render_path.string());
 }
