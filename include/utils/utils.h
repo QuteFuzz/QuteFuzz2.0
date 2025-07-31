@@ -125,7 +125,9 @@ namespace Common {
         measurement_op = 5371156234969671235ULL,
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
-        qubit_list = 18380990572907722739ULL,        
+        qubit_list = 18380990572907722739ULL, 
+        qubit_def_list = 12288968177510665943ULL, 
+        qubit_def_size = 16541258826307231238ULL,      
     
         qubit_defs_internal = 15763474746718250229ULL,
         qubit_def_internal = 8367506410210901254ULL,

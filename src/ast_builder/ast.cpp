@@ -166,6 +166,16 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Qubit_list>(str, hash, num_qubits);
 		}
 
+		case Common::qubit_def_list: {
+			context.get_current_block()->qubit_def_pointer_reset();
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_external_qubit_defs()));
+		}
+
+		case Common::qubit_def_size: {
+			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_def = context.get_current_qubit_definition();
+			return current_qubit_def->get_type() == Qubit_definition::Type::REGISTER_EXTERNAL ? context.get_current_qubit_definition_size() : std::make_shared<Integer>("0");
+		}
+
 		case Common::qubit_index:
 			return context.get_current_qubit_index();
 

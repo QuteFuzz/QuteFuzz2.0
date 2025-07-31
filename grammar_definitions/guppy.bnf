@@ -40,7 +40,7 @@ qubit_def_internal = singular_qubit_def_internal
 singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
-compound_stmt = qubit_op ;
+compound_stmt = qubit_op;
                 # | if_stmt;
 
 if_stmt =

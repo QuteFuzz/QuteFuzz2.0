@@ -67,7 +67,9 @@ imports = "from sympy import Symbol" NEWLINE
 compiler_call = main_circuit_name ".measure_all() " NEWLINE
                 "pt = pytketTesting() " NEWLINE testing_method;
 
-testing_method = "pt.ks_diff_test(" main_circuit_name ", " circuit_id ")" NEWLINE
-                | "pt.run_guppy_pytket_diff(" main_circuit_name ", " circuit_id ")" NEWLINE
+testing_method = "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN NEWLINE
+                # "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy!
                 # | "pt.run_circ_statevector(" main_circuit_name ", " circuit_id ")" NEWLINE    # TODO: No measures allowed in statevector tests
                 ;
+
+qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;

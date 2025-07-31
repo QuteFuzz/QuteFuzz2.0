@@ -21,7 +21,8 @@ RUN apt update && apt install -y \
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum 
+# TODO: Change tket2 to tket in future
+RUN pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum tket2 
 RUN pip install selene-sim 
 
 # Install latest guppylang from main branch on GitHub
