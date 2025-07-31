@@ -40,8 +40,8 @@ qubit_def_internal = singular_qubit_def_internal
 singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
-compound_stmt = qubit_op;
-                # | if_stmt;
+compound_stmt = qubit_op
+                | if_stmt;
 
 if_stmt =
     'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
@@ -124,8 +124,8 @@ primary:
     atom;
 
 atom:
-    NUMBER
-    | 'True' 
+    # NUMBER
+     'True' 
     | 'False';
 
 qubit_op  = gate_op

@@ -346,6 +346,18 @@ class guppyTesting(Base):
             print(f"Compilation timed out after {timeout_seconds} seconds")
             is_testcase_interesting = True
         except Exception as e:
+            from guppylang.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang.diagnostic import DiagnosticsRenderer
+                from guppylang.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+                return
+
+            # If it's not a GuppyError, fall back to default hook
             print("Error during compilation:", e)
             is_testcase_interesting = True
 
