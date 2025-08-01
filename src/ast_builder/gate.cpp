@@ -1,3 +1,3 @@
 #include <gate.h>
 
-int Gate::index_tracker = 0;
+int Gate::gate_counter = 0;

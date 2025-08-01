@@ -4,7 +4,7 @@
 #include <node.h>
 
 class Gate : public Node {
-    static int index_tracker;
+    static int gate_counter;
 
     public:
         
@@ -12,11 +12,11 @@ class Gate : public Node {
             Node(str),
             num_qubits(_qubits),
             num_params(_params),
-            index(index_tracker++)
+            id(gate_counter++)
         {}
 
-        std::string get_index_as_str(){
-            return std::to_string(index);
+        std::string get_id_as_str(){
+            return std::to_string(id);
         }
 
         int get_num_qubits(){
@@ -30,7 +30,7 @@ class Gate : public Node {
     private:
         int num_qubits;
         int num_params;
-        int index;
+        int id;
 };
 
 

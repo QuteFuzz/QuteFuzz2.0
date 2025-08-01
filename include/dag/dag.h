@@ -21,7 +21,7 @@ namespace Dag {
             }
 
             std::string get_op_name() const {
-                return op->get_string() + "_" + op->get_index_as_str();
+                return op->get_string() + "_" + op->get_id_as_str();
             }
 
             friend std::ostream& operator<<(std::ostream& stream, const Edge& edge) {
