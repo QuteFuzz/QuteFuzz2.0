@@ -76,13 +76,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
 		
 		case Common::arguments: {
-			context.set_current_applied_block();
+			context.set_current_gate_definition();
 			size_t num_args = context.get_current_gate_num_params();
 			return std::make_shared<Arguments>(str, hash, num_args);
 		}
 
 		case Common::arg: {
-			return context.get_current_arg(str, hash);
+			context.set_current_arg(str, hash);
+			return context.get_current_arg();
 		}
 
 		case Common::arg_singular_qubit: {
@@ -90,7 +91,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::arg_register_qubits: {
-			return std::make_shared<Qubit_list>(str, hash, context.get_current_applied_block_qubit_def_size());
+			return std::make_shared<Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
 		}
 		
 		case Common::compound_stmt:
@@ -309,7 +310,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 }
 
 int Ast::get_dag_score(){
-	// Dag::Process(context.get_current_block())
+	Dag::Heuristics(context.get_current_block()->get_qubits());
 
 	return 0;
 }

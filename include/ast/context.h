@@ -47,13 +47,15 @@ namespace Context {
             
 			std::shared_ptr<Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
 
-			std::shared_ptr<Block> get_block(std::string owner);
+			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
 			void set_current_qubit();
 
 			std::shared_ptr<Qubit::Qubit> get_current_qubit();
 
-			std::shared_ptr<Arg::Arg> get_current_arg(const std::string& str, const U64& hash);
+			void set_current_arg(const std::string& str, const U64& hash);
+
+			std::shared_ptr<Arg> get_current_arg();
 
 			std::shared_ptr<Integer> get_current_qubit_index();
 
@@ -84,10 +86,6 @@ namespace Context {
 			int get_current_gate_num_params();
 
 			int get_current_gate_num_qubits();
-			
-			int get_current_applied_block_qubit_def_size() const {
-				return current_applied_block_qubit_def_size;
-			}
 		
 			bool current_block_is_subroutine(){
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
@@ -97,10 +95,10 @@ namespace Context {
 				subroutines_node = _node;
 			}
 
-			void set_current_applied_block();
+			void set_current_gate_definition();
 
-			std::shared_ptr<Block> get_current_applied_block() const {
-				return current_applied_block;
+			std::shared_ptr<Block> get_current_gate_definition() const {
+				return current_gate_definition.value_or(std::make_shared<Block>(dummy_block));
 			}
 
         private:
@@ -112,7 +110,6 @@ namespace Context {
 			Variable dummy_var;
 
             int subroutine_counter = 0;
-            int current_applied_block_qubit_def_size = 0;
 
             fs::path circuit_dir;
 			
@@ -120,8 +117,12 @@ namespace Context {
 			std::shared_ptr<Qubit::Qubit> current_qubit;
 			std::shared_ptr<Gate> current_gate;
 			size_t current_port = 0;
-			std::shared_ptr<Block> current_applied_block;
+
+			std::shared_ptr<Arg> current_arg;
+
 			std::shared_ptr<Node> subroutines_node = nullptr;
+			
+			std::optional<std::shared_ptr<Block>> current_gate_definition = std::nullopt; // not all gates have definitions
 
 	        size_t compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
     };

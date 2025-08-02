@@ -47,24 +47,24 @@ namespace Dag {
     };
 
     /// @brief Given a set of qubits, get DAG score using the path taken by each qubit
-    class Process {
+    class Heuristics {
         
         public:
-            Process(){}
+            Heuristics(){}
 
             /// @brief Use qubit paths to construct useful data structures used to calculate graph theoretic metrics
             /// @param qubits 
-            Process(const Collection<Qubit::Qubit>& qubits);
+            Heuristics(const Collection<Qubit::Qubit>& qubits);
 
-            friend std::ostream& operator<<(std::ostream& stream, const Process& process){
+            friend std::ostream& operator<<(std::ostream& stream, const Heuristics& h){
 
                 stream << "=========================================" << std::endl;
                 stream << "                ADJ LIST                 " << std::endl; 
                 stream << "=========================================" << std::endl;
 
-                stream << "N_NODES: " << process.n_nodes << std::endl;
+                stream << "N_NODES: " << h.n_nodes << std::endl;
 
-                for(const auto&[node, neighbours] : process.adj_list){
+                for(const auto&[node, neighbours] : h.adj_list){
 
                     stream << node << ": ";
 
@@ -81,8 +81,7 @@ namespace Dag {
             int score();
 
         private:
-            size_t n_nodes;
-
+            size_t n_nodes = 0;
             std::unordered_map<int, std::vector<int>> adj_list;
 
     };

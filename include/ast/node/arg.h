@@ -3,42 +3,35 @@
 
 #include <node.h>
 
-namespace Arg {
+class Arg : public Node {
+    public:
 
-    enum Type {
-        SINGULAR,
-        REGISTER,
-        //INTEGER,
-        //FLOAT,
-    };
+        /// @brief Dummy argument
+        Arg() :
+            Node("arg", hash_rule_name("arg"))
+        {}
 
-    class Arg : public Node {
-        public:
-
-            /// @brief Dummy argument
-            Arg() :
-                Node("arg", hash_rule_name("arg")),
-                type(SINGULAR)
-            {
-                constraint = std::make_optional<Node_constraint>(Common::qubit, 1);
-            }
-
-            Arg(const std::string& str, const U64& hash, Type _type) :
-                Node(str, hash),
-                type(_type)
-            {
-                if (type == SINGULAR) {
-                    constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
-                } else if (type == REGISTER) {
-                    constraint = std::make_optional<Node_constraint>(Common::arg_register_qubits, 1);
-                }
-            }
+        Arg(const std::string& str, const U64& hash, std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def):
+            Node(str, hash)
+        {
+            if(qubit_def->get_type() == Qubit_definition::Type::SINGULAR_EXTERNAL){
+                constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
+                qubit_def_size = 1;
             
-        private:
-            Type type;
+            } else {
+                constraint = std::make_optional<Node_constraint>(Common::arg_register_qubits, 1);
+                qubit_def_size = std::stoi(qubit_def->get_size()->get_string());
+            }
 
-    };
+        }
 
-}
+        size_t get_qubit_def_size(){
+            return qubit_def_size;
+        }
+        
+    private:
+        size_t qubit_def_size = 0;
+
+};
 
 #endif
