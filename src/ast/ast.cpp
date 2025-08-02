@@ -283,7 +283,9 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			std::ofstream stream(program_path.string());
 
 			// render dag (main block)
-			context.get_current_block()->render_dag(current_circuit_dir);
+			render_dag(current_circuit_dir);
+
+			std::cout << get_dag_score() << std::endl;
 
 			// write program
 			stream << ast_root << std::endl;
@@ -294,6 +296,13 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 		}
     }
 }
+
+int Ast::get_dag_score(){
+	// Dag::Process(context.get_current_block())
+
+	return 0;
+}
+
 
 void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
 
@@ -315,3 +324,23 @@ void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
     INFO("AST rendered to " + ast_path.string());
 }
 
+
+void Ast::render_dag(const fs::path& current_circuit_dir){
+    std::ostringstream dot_string;
+
+    dot_string << "digraph G {\n";
+
+    for(const Qubit::Qubit& qubit : context.get_current_block()->get_qubits()){
+        qubit.extend_dot_string(dot_string);
+    }
+
+    dot_string << "}\n";
+
+    fs::path dag_render_path = current_circuit_dir / "dag.png";
+
+    const std::string str = dag_render_path.string();
+    std::string command = "dot -Tpng -o " + str;
+    
+    pipe_to_command(command, dot_string.str());
+    INFO("Program DAG rendered to " + dag_render_path.string());
+}

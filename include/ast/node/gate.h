@@ -4,15 +4,13 @@
 #include <node.h>
 
 class Gate : public Node {
-    static int gate_counter;
 
     public:
         
         Gate(const std::string str, int _qubits, int _params) :
             Node(str),
             num_qubits(_qubits),
-            num_params(_params),
-            id(gate_counter++)
+            num_params(_params)
         {}
 
         std::string get_id_as_str(){
@@ -30,7 +28,6 @@ class Gate : public Node {
     private:
         int num_qubits;
         int num_params;
-        int id;
 };
 
 

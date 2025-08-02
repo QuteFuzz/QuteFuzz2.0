@@ -50,11 +50,11 @@ struct Collection {
             }
         }
 
-        auto begin(){
+        auto begin() const {
             return coll.begin();
         }
 
-        auto end(){
+        auto end() const {
             return coll.end();
         }
 

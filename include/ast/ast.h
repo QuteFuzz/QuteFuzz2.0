@@ -30,6 +30,10 @@ class Ast{
 
         void render_ast(const Node& root, const fs::path& current_circuit_dir);
 
+        void render_dag(const fs::path& current_circuit_dir);
+
+        int get_dag_score();
+
     protected:
 
         std::shared_ptr<Rule> entry = nullptr;

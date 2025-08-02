@@ -132,6 +132,11 @@ int vector_max(std::vector<int> in){
 void pipe_to_command(std::string command, std::string write){
     FILE* pipe = popen(command.c_str(), "w");
 
+    if(Common::verbose){
+        INFO("Running: " + command);
+        INFO("Piping: " + write + " to command");
+    }
+
     if(!pipe){
         throw std::runtime_error(ANNOT("Failed to open pipe to command " + command));
     }
@@ -140,11 +145,6 @@ void pipe_to_command(std::string command, std::string write){
     
     if(pclose(pipe)){
         throw std::runtime_error(ANNOT("Command " + command + " failed"));
-    }
-
-    if(Common::verbose){
-        INFO("Run command " + command);
-        INFO("Piped " + write + " to command");
     }
 }
 

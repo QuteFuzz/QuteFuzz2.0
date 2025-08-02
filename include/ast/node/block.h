@@ -69,6 +69,10 @@ class Block : public Node {
             }
         }
 
+        Collection<Qubit::Qubit> get_qubits(){
+            return qubits;
+        }
+
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
@@ -82,10 +86,6 @@ class Block : public Node {
         size_t make_singular_qubit_definition(bool external);
 
         size_t make_qubit_definitions(bool external);
-
-        size_t get_dag_score();
-        
-        void render_dag(const fs::path& current_circuit_dir);
 
     private:
         std::string owner;

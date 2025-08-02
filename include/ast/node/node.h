@@ -40,6 +40,7 @@ class Node {
 
     public:
         static std::string indentation_tracker;
+        static int node_counter;
 
         Node(){}
 
@@ -49,7 +50,9 @@ class Node {
             hash(_hash),
             kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
             indentation_str(_indentation_str)
-        {}
+        {
+            id = node_counter++;
+        }
 
         virtual ~Node() = default;
 
@@ -67,6 +70,14 @@ class Node {
 
         std::string get_string() const {
             return string;
+        }
+
+        int get_id() const {
+            return id;
+        }
+
+        virtual std::string resolved_name() const {
+            return string + ", id: " + std::to_string(id);
         }
 
         Node_kind get_node_kind() const {return kind;}
@@ -128,6 +139,7 @@ class Node {
         std::string string;
         U64 hash;
         Node_kind kind;
+        int id;
 
         std::string indentation_str;
         std::vector<std::shared_ptr<Node>> children;
