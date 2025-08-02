@@ -35,10 +35,6 @@ namespace Context {
 				return current_block_owner;
 			}
 
-			std::shared_ptr<Gate> get_current_gate() {
-				return current_gate;
-			}
-
             void set_can_apply_subroutines(bool flag = true);
 
             size_t get_max_defined_qubits();
@@ -53,6 +49,8 @@ namespace Context {
 
 			std::shared_ptr<Block> get_block(std::string owner);
 
+			void set_current_qubit();
+
 			std::shared_ptr<Qubit::Qubit> get_current_qubit();
 
 			std::shared_ptr<Arg::Arg> get_current_arg(const std::string& str, const U64& hash);
@@ -61,7 +59,11 @@ namespace Context {
 
 			std::shared_ptr<Variable> get_current_qubit_name();
 
+			void set_current_qubit_definition();
+
 			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
+
+			void set_current_qubit_definition_owned();
 
 			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
 
@@ -69,9 +71,11 @@ namespace Context {
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
-			std::shared_ptr<Gate> make_current_gate(const std::string& str, int num_qubits, int num_params);
+			void set_current_gate(const std::string& str, int num_qubits, int num_params);
 
-			std::shared_ptr<Discard_qubit_defs> discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
+			std::shared_ptr<Gate> get_current_gate();
+
+			std::shared_ptr<Discard_qubit_defs> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
 
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
 

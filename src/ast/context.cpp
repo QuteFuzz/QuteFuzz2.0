@@ -144,12 +144,15 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
+    void Context::set_current_qubit(){
         Qubit::Qubit* random_qubit = get_current_block()->get_random_qubit(); 
         
         random_qubit->extend_flow_path(current_gate, current_port++);
 
         current_qubit = std::make_shared<Qubit::Qubit>(*random_qubit);
+    }
+
+    std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
         return current_qubit;
     }
 
@@ -171,13 +174,19 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
+    void Context::set_current_qubit_definition(){
         current_qubit_definition = get_current_block()->get_next_qubit_def();
+    }
+
+    std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
+    void Context::set_current_qubit_definition_owned(){
         current_qubit_definition = get_current_block()->get_next_owned_qubit_def();
+    }
+
+    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
         return std::make_shared<Discard_qubit_def>(str, hash, current_qubit_definition);
     }
 
@@ -199,12 +208,15 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Gate> Context::make_current_gate(const std::string& str, int num_qubits, int num_params) {
+    void Context::set_current_gate(const std::string& str, int num_qubits, int num_params){
         current_gate = std::make_shared<Gate>(str, num_qubits, num_params);
+    }
+
+    std::shared_ptr<Gate> Context::get_current_gate(){
         return current_gate;
     }
 
-    std::shared_ptr<Discard_qubit_defs> Context::discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
+    std::shared_ptr<Discard_qubit_defs> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
         return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
     }
 
