@@ -61,7 +61,7 @@ namespace Context {
         }
     }
 
-    /// @brief This is completely safe. If this function is called, then `set_can_apply_subroutines` must've passed
+    /// @brief This loop is guaranteed to stop. If this function is called, then `set_can_apply_subroutines` must've passed
     /// So you just need to return a current block that's not the main block, or the current block and needs <= num qubits in current block
     /// Qubit comparison needed because `set_can_apply_subroutines` only tells you that there's at least one block that can be picked
     /// @return 
