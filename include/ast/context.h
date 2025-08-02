@@ -27,10 +27,6 @@ namespace Context {
 
 			void reset(Level l);
 
-            void set_circuits_dir(fs::path dir){
-                circuit_dir = dir;
-            }
-
 			std::string get_current_block_owner(){
 				return current_block_owner;
 			}
@@ -110,8 +106,6 @@ namespace Context {
 			Variable dummy_var;
 
             int subroutine_counter = 0;
-
-            fs::path circuit_dir;
 			
 			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Qubit::Qubit> current_qubit;

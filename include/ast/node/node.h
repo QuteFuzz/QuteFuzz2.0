@@ -127,14 +127,6 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void extend_dot_string(std::ostringstream& ss) const {
-            for(const std::shared_ptr<Node>& child : children){                
-                ss << "    " << escape(string) << " -> " << escape(child->get_string()) << ";" << std::endl;
-                child->extend_dot_string(ss);
-            }
-        }
-
-
     protected:
         std::string string;
         U64 hash;

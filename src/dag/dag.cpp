@@ -6,14 +6,16 @@ Dag::Heuristics::Heuristics(const Collection<Qubit::Qubit>& qubits)
 {   
     // prepare adj_list
     for(const Qubit::Qubit& qubit : qubits){
-        qubit.add_path_to_adj_list(adj_list);
+        qubit.add_path_to_heuristics(*this);
     }
 
-    n_nodes = adj_list.size();
+    n_nodes = data.size();
 
     std::cout << *this;
 }
 
-int Dag::Heuristics::score(){
-    return 0;
+/// @brief Combine heuristics to get dag score
+/// @return 
+int Dag::Heuristics::score(){   
+    return max_out_degree();
 }

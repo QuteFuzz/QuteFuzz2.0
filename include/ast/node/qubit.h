@@ -97,7 +97,7 @@ namespace Qubit {
 
             void extend_dot_string(std::ostringstream& ss) const;
 
-            void add_path_to_adj_list(std::unordered_map<int, std::vector<int>>& adj_list) const;
+            void add_path_to_heuristics(Dag::Heuristics& h) const;
             
         private:
             std::variant<Register_qubit, Singular_qubit> value;

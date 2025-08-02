@@ -283,8 +283,6 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 	for(build_counter = 0; build_counter < num_programs; build_counter++){
 		fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
 		fs::create_directory(current_circuit_dir);
-
-		context.set_circuits_dir(current_circuit_dir);
 		
 	    Result<Node> maybe_ast_root = build();
 
@@ -297,7 +295,9 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 			// render dag (main block)
 			render_dag(current_circuit_dir);
 
-			std::cout << get_dag_score() << std::endl;
+			int dag_score = get_dag_score();
+
+			INFO("Dag score: " + std::to_string(dag_score));
 
 			// write program
 			stream << ast_root << std::endl;
@@ -310,32 +310,8 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 }
 
 int Ast::get_dag_score(){
-	Dag::Heuristics(context.get_current_block()->get_qubits());
-
-	return 0;
+	return Dag::Heuristics(context.get_current_block()->get_qubits()).score();
 }
-
-
-void Ast::render_ast(const Node& root, const fs::path& current_circuit_dir){
-
-	std::ostringstream dot_string;
-
-	dot_string << "digraph AST {" << std::endl;
-
-	root.extend_dot_string(dot_string);
-
-    dot_string << "}" << std::endl;
-
-    // render graph
-	fs::path ast_path = current_circuit_dir / "ast.png";
-
-    const std::string str = ast_path.string();
-    std::string command = "dot -Tpng -o " + str;
-    
-    pipe_to_command(command, dot_string.str());
-    INFO("AST rendered to " + ast_path.string());
-}
-
 
 void Ast::render_dag(const fs::path& current_circuit_dir){
     std::ostringstream dot_string;

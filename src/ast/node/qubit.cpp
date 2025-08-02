@@ -57,7 +57,7 @@ void Qubit::Qubit::extend_dot_string(std::ostringstream& ss) const {
     }
 }
 
-void Qubit::Qubit::add_path_to_adj_list(std::unordered_map<int, std::vector<int>>& adj_list) const {
+void Qubit::Qubit::add_path_to_heuristics(Dag::Heuristics& h) const {
 
     if(flow_path_length >= 2){
 
@@ -65,11 +65,7 @@ void Qubit::Qubit::add_path_to_adj_list(std::unordered_map<int, std::vector<int>
             int current_node_id = flow_path.at(i).get_node_id();
             int next_node_id = flow_path.at(i+1).get_node_id();
 
-            if(adj_list.contains(current_node_id)){
-                adj_list.at(current_node_id).push_back(next_node_id);
-            } else {
-                adj_list[current_node_id] = {next_node_id};
-            }
+            h.add_edge(current_node_id, next_node_id);
         }
     }
 }
