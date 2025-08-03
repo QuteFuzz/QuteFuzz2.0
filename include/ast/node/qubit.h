@@ -1,8 +1,10 @@
 #ifndef QUBIT_H
 #define QUBIT_H
 
+#include <gate.h>
 #include <register_qubit.h>
 #include <singular_qubit.h>
+#include <dag.h>
 
 namespace Qubit {
 
@@ -61,7 +63,7 @@ namespace Qubit {
                 }, value);
             }
 
-            inline std::shared_ptr<Variable> get_name(){
+            inline std::shared_ptr<Variable> get_name() const {
                 return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
                     return val.get_name();
                 }, value);
@@ -75,7 +77,7 @@ namespace Qubit {
                 return ((type == REGISTER_EXTERNAL) || (type == REGISTER_INTERNAL));
             }
 
-            inline std::shared_ptr<Integer> get_index(){
+            inline std::shared_ptr<Integer> get_index() const {
                 if(is_register_def()){
                     return std::get<Register_qubit>(value).get_index();
                 }
@@ -85,19 +87,25 @@ namespace Qubit {
                 return std::make_shared<Integer>();
             }
 
-            inline std::string resolved_name(){
-
-                if(is_register_def()){
-                    return get_name()->get_string() + "_" + get_index()->get_string();
-                } else {
-                    return get_name()->get_string();
-                }
-
+            std::vector<Dag::Edge> get_flow_path(){
+                return flow_path;
             }
+
+            std::string resolved_name() const override;
+            
+            void extend_flow_path(const std::shared_ptr<Node> node, size_t current_port);
+
+            void extend_dot_string(std::ostringstream& ss) const;
+
+            void add_path_to_heuristics(Dag::Heuristics& h) const;
             
         private:
             std::variant<Register_qubit, Singular_qubit> value;
             Type type;
+
+            std::vector<Dag::Edge> flow_path;
+            std::string flow_path_colour = random_hex_colour();
+            size_t flow_path_length = 0;
     };
 
 }

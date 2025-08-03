@@ -39,6 +39,8 @@ struct Node_constraint {
 class Node {
 
     public:
+        static std::string indentation_tracker;
+        static int node_counter;
 
         Node(){}
 
@@ -48,7 +50,9 @@ class Node {
             hash(_hash),
             kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
             indentation_str(_indentation_str)
-        {}
+        {
+            id = node_counter++;
+        }
 
         virtual ~Node() = default;
 
@@ -66,6 +70,14 @@ class Node {
 
         std::string get_string() const {
             return string;
+        }
+
+        int get_id() const {
+            return id;
+        }
+
+        virtual std::string resolved_name() const {
+            return string + ", id: " + std::to_string(id);
         }
 
         Node_kind get_node_kind() const {return kind;}
@@ -115,26 +127,15 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void make_dot_string(std::string& ret) const {
-            for(const std::shared_ptr<Node>& child : children){                
-                ret += "    " + escape(string) + " -> " + escape(child->get_string()) + ";\n";
-                child->make_dot_string(ret);                   
-            }
-        }
-
-        static std::string indentation_tracker;
-
     protected:
         std::string string;
         U64 hash;
         Node_kind kind;
+        int id;
 
         std::string indentation_str;
-
         std::vector<std::shared_ptr<Node>> children;
-
         Node_build_state state = NB_BUILD;
-
         std::optional<Node_constraint> constraint;
 };
 

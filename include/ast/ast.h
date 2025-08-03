@@ -6,7 +6,6 @@
 #include <term.h>
 #include <grammar.h>
 #include <node.h>
-#include <graph.h>
 #include <context.h>
 
 class Ast{
@@ -29,7 +28,9 @@ class Ast{
 
         virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
 
-        void render_ast(const Node& root, const fs::path& current_circuit_dir);
+        void render_dag(const fs::path& current_circuit_dir);
+
+        int get_dag_score();
 
     protected:
 

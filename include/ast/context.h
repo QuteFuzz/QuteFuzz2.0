@@ -3,7 +3,6 @@
 
 #include <block.h>
 #include <qubit_definition.h>
-#include <graph.h>
 #include <variable.h>
 #include <qubit_defs.h>
 #include <discard_qubit_defs.h>
@@ -28,16 +27,8 @@ namespace Context {
 
 			void reset(Level l);
 
-            void set_circuits_dir(fs::path dir){
-                circuit_dir = dir;
-            }
-
 			std::string get_current_block_owner(){
 				return current_block_owner;
-			}
-
-			std::shared_ptr<Gate> get_current_gate() {
-				return current_gate;
 			}
 
             void set_can_apply_subroutines(bool flag = true);
@@ -52,17 +43,25 @@ namespace Context {
             
 			std::shared_ptr<Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
 
-			std::shared_ptr<Block> get_block(std::string owner);
+			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
+
+			void set_current_qubit();
 
 			std::shared_ptr<Qubit::Qubit> get_current_qubit();
 
-			std::shared_ptr<Arg::Arg> get_current_arg(const std::string& str, const U64& hash);
+			void set_current_arg(const std::string& str, const U64& hash);
+
+			std::shared_ptr<Arg> get_current_arg();
 
 			std::shared_ptr<Integer> get_current_qubit_index();
 
 			std::shared_ptr<Variable> get_current_qubit_name();
 
+			void set_current_qubit_definition();
+
 			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
+
+			void set_current_qubit_definition_owned();
 
 			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
 
@@ -70,9 +69,11 @@ namespace Context {
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
-			std::shared_ptr<Gate> make_current_gate(const std::string& str, int num_qubits, int num_params);
+			void set_current_gate(const std::string& str, int num_qubits, int num_params);
 
-			std::shared_ptr<Discard_qubit_defs> discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
+			std::shared_ptr<Gate> get_current_gate();
+
+			std::shared_ptr<Discard_qubit_defs> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
 
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
 
@@ -81,10 +82,6 @@ namespace Context {
 			int get_current_gate_num_params();
 
 			int get_current_gate_num_qubits();
-			
-			int get_current_applied_block_qubit_def_size() const {
-				return current_applied_block_qubit_def_size;
-			}
 		
 			bool current_block_is_subroutine(){
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
@@ -94,15 +91,11 @@ namespace Context {
 				subroutines_node = _node;
 			}
 
-			void set_current_applied_block();
+			void set_current_gate_definition();
 
-			std::shared_ptr<Block> get_current_applied_block() const {
-				return current_applied_block;
+			std::shared_ptr<Block> get_current_gate_definition() const {
+				return current_gate_definition.value_or(std::make_shared<Block>(dummy_block));
 			}
-
-			void render_qig();
-
-			void set_qig();
 
         private:
 			std::string current_block_owner;
@@ -113,16 +106,17 @@ namespace Context {
 			Variable dummy_var;
 
             int subroutine_counter = 0;
-            int current_applied_block_qubit_def_size = 0;
-
-            std::shared_ptr<Graph> qig = nullptr;
-            fs::path circuit_dir;
 			
 			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Qubit::Qubit> current_qubit;
 			std::shared_ptr<Gate> current_gate;
-			std::shared_ptr<Block> current_applied_block;
+			size_t current_port = 0;
+
+			std::shared_ptr<Arg> current_arg;
+
 			std::shared_ptr<Node> subroutines_node = nullptr;
+			
+			std::optional<std::shared_ptr<Block>> current_gate_definition = std::nullopt; // not all gates have definitions
 
 	        size_t compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
     };

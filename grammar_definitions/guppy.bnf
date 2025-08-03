@@ -137,7 +137,7 @@ subroutine_op = subroutine LPAREN arguments RPAREN;
 # For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
 arguments = arg (COMMA arg)*;
 
-arg = arg_singular_qubit
+arg = arg_singular_qubit    
     | LBRACK arg_register_qubits RBRACK
     ;
 
