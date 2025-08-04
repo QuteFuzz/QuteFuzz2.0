@@ -95,8 +95,8 @@ class Base():
 
         return p_value
     
-    def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128]):
-        return np.dot(sv1, sv2)
+    def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128], precision: int = 6) -> float:
+        return np.round(abs(np.vdot(sv1, sv2)), precision)
 
     def save_interesting_circuit(self, circuit_number: int, interesting_dir: pathlib.Path) -> None:
         '''
@@ -198,14 +198,14 @@ class pytketTesting(Base):
         try:
             backend = AerStateBackend()
             # circuit with no passes
-            no_pass_statevector = circuit.get_statevector()
+            uncompiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=0)
+            no_pass_statevector = uncompiled_circ.get_statevector()
 
             # Get statevector after every optimisation level
             for i in range(3):
-                compiled_circ = circuit.copy()
-                backend.get_compiled_circuit(compiled_circ, optimisation_level=i+1)
+                compiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=i+1)
                 pass_statevector = compiled_circ.get_statevector()
-                dot_prod = np.round(abs(self.compare_statevectors(no_pass_statevector, pass_statevector)), 6)
+                dot_prod = self.compare_statevectors(no_pass_statevector, pass_statevector, 6)
 
                 if dot_prod == 1:
                     print("Statevectors are the same\n")

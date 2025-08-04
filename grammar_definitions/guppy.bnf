@@ -123,10 +123,10 @@ shift_expr:
 primary:
     atom;
 
-atom:
+atom:'True' 
+    | 'False'
     # NUMBER
-     'True' 
-    | 'False';
+    ;
 
 qubit_op  = gate_op
             | subroutine_op
