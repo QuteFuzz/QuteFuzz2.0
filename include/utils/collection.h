@@ -2,6 +2,7 @@
 #define COLLECTION_H
 
 #include <qubit.h>
+#include <bit.h>
 
 template<typename T>
 struct Collection {
@@ -46,6 +47,10 @@ struct Collection {
             if constexpr (std::is_same_v<T, Qubit::Qubit>){
                 for(Qubit::Qubit& qb : coll){
                     qb.reset();
+                }
+            } else if constexpr (std::is_same_v<T, Bit::Bit>){
+                for(Bit::Bit& b : coll){
+                    b.reset();
                 }
             }
         }

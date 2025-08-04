@@ -159,8 +159,11 @@ discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 discard_internal_qubit = discard_single_qubit
                         | discard_qreg;
 
-discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN;
-discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN;
+discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN
+                | "measure_array" LPAREN qubit_def_name RPAREN;
+discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN
+                | "measure" LPAREN qubit_def_name RPAREN
+                ;
 
 gate_name = x | y | z | h | cx | toffoli | rz | rx | ry
     | t | tdg | s | sdg | ch | crz | project_z

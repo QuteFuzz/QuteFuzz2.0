@@ -3,8 +3,10 @@
 
 #include <block.h>
 #include <qubit_definition.h>
+#include <bit_definition.h>
 #include <variable.h>
 #include <qubit_defs.h>
+#include <bit_defs.h>
 #include <discard_qubit_defs.h>
 #include <discard_qubit_def.h>
 #include <arg.h>
@@ -35,6 +37,8 @@ namespace Context {
 
             size_t get_max_defined_qubits();
 
+			size_t get_max_defined_bits();
+
 			std::shared_ptr<Block> get_current_block() const;
 
 			std::shared_ptr<Block> get_random_block();
@@ -43,11 +47,17 @@ namespace Context {
             
 			std::shared_ptr<Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
 
+			std::shared_ptr<Bit_defs> make_bit_definitions(std::string& str, U64& hash);
+
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
 			void set_current_qubit();
 
+			void set_current_bit();
+
 			std::shared_ptr<Qubit::Qubit> get_current_qubit();
+
+			std::shared_ptr<Bit::Bit> get_current_bit();
 
 			void set_current_arg(const std::string& str, const U64& hash);
 
@@ -55,13 +65,23 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_qubit_index();
 
+			std::shared_ptr<Integer> get_current_bit_index();
+
 			std::shared_ptr<Variable> get_current_qubit_name();
+
+			std::shared_ptr<Variable> get_current_bit_name();
 
 			void set_current_qubit_definition();
 
+			void set_current_bit_definition();
+
 			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
 
+			std::shared_ptr<Bit_definition::Bit_definition> get_current_bit_definition();
+
 			void set_current_qubit_definition_owned();
+
+			void set_current_bit_definition_owned();
 
 			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
 
@@ -69,7 +89,11 @@ namespace Context {
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
-			void set_current_gate(const std::string& str, int num_qubits, int num_params);
+			std::shared_ptr<Integer> get_current_bit_definition_size();
+
+			std::shared_ptr<Variable> get_current_bit_definition_name();
+
+			void set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params);
 
 			std::shared_ptr<Gate> get_current_gate();
 
@@ -82,6 +106,8 @@ namespace Context {
 			int get_current_gate_num_params();
 
 			int get_current_gate_num_qubits();
+
+			int get_current_gate_num_bits();
 		
 			bool current_block_is_subroutine(){
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
@@ -108,7 +134,9 @@ namespace Context {
             int subroutine_counter = 0;
 			
 			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;
+			std::shared_ptr<Bit_definition::Bit_definition> current_bit_definition;
 			std::shared_ptr<Qubit::Qubit> current_qubit;
+			std::shared_ptr<Bit::Bit> current_bit;
 			std::shared_ptr<Gate> current_gate;
 			size_t current_port = 0;
 

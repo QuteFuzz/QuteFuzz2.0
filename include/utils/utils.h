@@ -66,7 +66,9 @@ namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circuit";
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3;
+    constexpr int MIN_BITS = 1;
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
+    constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
     constexpr int COMPOUND_STMT_DEPTH = 2;
 
@@ -119,15 +121,19 @@ namespace Common {
 
         body = 14793735007222968981ULL,
         qubit_def_name = 9637820166840754028ULL,
+        bit_def_name = 10693244643305520522ULL,
         qreg_size = 11502232252882731618ULL,
+        creg_size = 4440641367620343308ULL,
         qubit = 9613145697666387222ULL,
+        bit = 23676991090714736ULL,
         qubit_op = 7363837753828900628ULL,
         gate_op = 17845938762380861480ULL,
         subroutine_op = 4275855153236832595ULL,
         measurement_op = 5371156234969671235ULL,
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
-        qubit_list = 18380990572907722739ULL, 
+        qubit_list = 18380990572907722739ULL,
+        bit_list = 3372974018932553881ULL,
         qubit_def_list = 12288968177510665943ULL, 
         qubit_def_size = 16541258826307231238ULL,      
     
@@ -140,12 +146,25 @@ namespace Common {
         qubit_def_external = 9066873179617854836ULL,
         register_qubit_def_external = 17118825122301876444ULL,
         singular_qubit_def_external = 5477905196976266716ULL,
-        
+
+        bit_defs_external = 9605680741777250781ULL,
+        bit_def_external = 13726870050363098110ULL,
+        bit_def_internal = 5486644757629614132ULL,
+        bit_defs_internal = 17430815952964625635ULL,
+        singular_bit_def_external = 4316476105238344134ULL,
+        register_bit_def_external = 8288554911174669510ULL,
+        singular_bit_def_internal = 11391126108199619852ULL,
+        register_bit_def_internal = 15363204914135945228ULL,
+
         singular_qubit = 358282167276964286ULL,
         register_qubit = 1224902788537856702ULL,
+        singular_bit = 9032933660288388984ULL,
+        register_bit = 17133561988447867000ULL,
 
         qubit_name = 8757953683662904688ULL,
+        bit_name = 6055046893651473182ULL,
         qubit_index = 6830264791288854081ULL,
+        bit_index = 8231177906794104931ULL,
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,

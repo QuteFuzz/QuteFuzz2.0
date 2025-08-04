@@ -4,6 +4,8 @@
 #include <node.h>
 #include <qubit_definition.h>
 #include <qubit.h>
+#include <bit_definition.h>
+#include <bit.h>
 #include <collection.h>
 
 class Block : public Node {
@@ -15,11 +17,14 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal) : 
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal, 
+              int _target_num_bits_external, int _target_num_bits_internal) : 
             Node(str, hash),
             owner(owner_name), 
             target_num_qubits_external(_target_num_qubits_external),
-            target_num_qubits_internal(_target_num_qubits_internal) {}
+            target_num_qubits_internal(_target_num_qubits_internal),
+            target_num_bits_external(_target_num_bits_external),
+            target_num_bits_internal(_target_num_bits_internal) {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -53,12 +58,40 @@ class Block : public Node {
             return qubit_defs.get_num_external();
         }
 
+        inline size_t total_num_bits() const {
+            return bits.get_total();
+        }
+
+        inline size_t num_external_bits() const {
+            return bits.get_num_external();
+        }
+
+        inline size_t num_internal_bits() const {
+            return bits.get_num_internal();
+        }
+
+        inline size_t num_external_bit_defs() const {
+            return bit_defs.get_num_external();
+        }
+
+        inline size_t num_internal_bit_defs() const {
+            return bit_defs.get_num_internal();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
         }
 
+        void bit_flag_reset(){
+            bits.reset();
+        }
+
         void qubit_def_pointer_reset(){
             qubit_def_pointer = 0;
+        }
+
+        void bit_def_pointer_reset(){
+            bit_def_pointer = 0;
         }
 
         inline Qubit::Qubit* qubit_at(size_t index){
@@ -69,8 +102,20 @@ class Block : public Node {
             }
         }
 
+        inline Bit::Bit* bit_at(size_t index){
+            if(index < bits.get_total()){
+                return bits.at(index);
+            } else {
+                return &dummy_bit;
+            }
+        }
+
         Collection<Qubit::Qubit> get_qubits(){
             return qubits;
+        }
+
+        Collection<Bit::Bit> get_bits(){
+            return bits;
         }
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
@@ -79,27 +124,49 @@ class Block : public Node {
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_external_qubit_def();
 
+        std::shared_ptr<Bit_definition::Bit_definition> get_next_bit_def();
+
+        std::shared_ptr<Bit_definition::Bit_definition> get_next_owned_bit_def();
+
+        std::shared_ptr<Bit_definition::Bit_definition> get_next_external_bit_def();
+
         Qubit::Qubit* get_random_qubit(bool internal_only = false);
-        
+
+        Bit::Bit* get_random_bit();
+
+        size_t make_register_bit_definition(int max_size, bool external);
+
         size_t make_register_qubit_definition(int max_size, bool external);
+
+        size_t make_singular_bit_definition(bool external);
 
         size_t make_singular_qubit_definition(bool external);
 
         size_t make_qubit_definitions(bool external);
 
+        size_t make_bit_definitions(bool external);
+
     private:
         std::string owner;
         int target_num_qubits_external = Common::MIN_QUBITS;
         int target_num_qubits_internal = 0;
+        int target_num_bits_external = Common::MIN_BITS;
+        int target_num_bits_internal = 0;
         
         bool can_apply_subroutines = true;
 
         Collection<Qubit::Qubit> qubits;
         Collection<Qubit_definition::Qubit_definition> qubit_defs;
 
+        Collection<Bit::Bit> bits;
+        Collection<Bit_definition::Bit_definition> bit_defs;
+
         size_t qubit_def_pointer = 0;
+        size_t bit_def_pointer = 0;
         Qubit::Qubit dummy_qubit;
+        Bit::Bit dummy_bit;
         Qubit_definition::Qubit_definition dummy_def;
+        Bit_definition::Bit_definition dummy_bit_def;
 
 };
 

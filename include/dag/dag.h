@@ -10,6 +10,10 @@ namespace Qubit {
     class Qubit;
 }
 
+namespace Bit {
+    class Bit;
+}
+
 namespace Dag {
 
     class Edge {
@@ -60,7 +64,7 @@ namespace Dag {
 
             /// @brief Use qubit paths to construct useful data structures used to calculate graph theoretic metrics
             /// @param qubits 
-            Heuristics(const Collection<Qubit::Qubit>& qubits);
+            Heuristics(const Collection<Qubit::Qubit>& qubits, const Collection<Bit::Bit>& bits);
 
             void add_edge(int source_node_id, int dest_node_id){
                 if(data.contains(source_node_id)){
