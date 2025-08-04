@@ -5,9 +5,9 @@ namespace Context {
     void Context::reset(Level l){
 
         if(l == PROGRAM){
-            qig = nullptr;
             subroutines_node = nullptr;
             subroutine_counter = 0;
+            Node::node_counter = 0;
             blocks.clear();
 
         } else if (l == BLOCK){
@@ -15,6 +15,7 @@ namespace Context {
 
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
+            current_port = 0;
         }
     }
 
@@ -60,7 +61,7 @@ namespace Context {
         }
     }
 
-    /// @brief This is completely safe. If this function is called, then `set_can_apply_subroutines` must've passed
+    /// @brief This loop is guaranteed to stop. If this function is called, then `set_can_apply_subroutines` must've passed
     /// So you just need to return a current block that's not the main block, or the current block and needs <= num qubits in current block
     /// Qubit comparison needed because `set_can_apply_subroutines` only tells you that there's at least one block that can be picked
     /// @return 
@@ -119,38 +120,37 @@ namespace Context {
         return std::make_shared<Qubit_defs>(str, hash, num_defs, external);  
     }
 
-    std::shared_ptr<Block> Context::get_block(std::string owner){
+    std::optional<std::shared_ptr<Block>> Context::get_block(std::string owner){
         for(const std::shared_ptr<Block>& block : blocks){
-            if(block->owned_by(owner)) return block; 
+            if(block->owned_by(owner)) return std::make_optional<std::shared_ptr<Block>>(block); 
         }
 
         INFO("Block owner by " + owner + " not defined!");
 
-        return nullptr;
+        return std::nullopt;
     }
 
-    std::shared_ptr<Arg::Arg> Context::get_current_arg(const std::string& str, const U64& hash){
-        if(current_gate != nullptr){
-            std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def = current_applied_block->get_next_external_qubit_def();
-            Arg::Type arg_qubit_def_type = qubit_def->get_type() == Qubit_definition::Type::SINGULAR_EXTERNAL ? Arg::Type::SINGULAR : Arg::Type::REGISTER;
-            current_applied_block_qubit_def_size = (arg_qubit_def_type == Arg::Type::SINGULAR) ? 1 : std::stoi(qubit_def->get_size()->get_string());
-            return std::make_shared<Arg::Arg>(str, hash, arg_qubit_def_type);
-        } else {
-            WARNING("Current gate not set but trying to get arg! Using dummy instead");
-            return std::make_shared<Arg::Arg>();
+    void Context::set_current_arg(const std::string& str, const U64& hash){
+        if((current_gate != nullptr) && current_gate_definition.has_value()){
+            std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def = current_gate_definition.value()->get_next_external_qubit_def();
+            current_arg = std::make_shared<Arg>(str, hash, qubit_def);
         }
+    }
+
+    std::shared_ptr<Arg> Context::get_current_arg(){
+        return current_arg;
+    }
+
+    void Context::set_current_qubit(){
+        Qubit::Qubit* random_qubit = get_current_block()->get_random_qubit(current_gate->get_string()=="measure_and_reset"); 
+        
+        random_qubit->extend_flow_path(current_gate, current_port++);
+
+        current_qubit = std::make_shared<Qubit::Qubit>(*random_qubit);
     }
 
     std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
-        if(current_gate == nullptr) {
-            current_qubit = get_current_block()->get_random_qubit(std::nullopt);        
-        } else if(current_gate->get_string() == "measure_and_reset") {
-            current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement(), true);
-        } else {
-            current_qubit = get_current_block()->get_random_qubit(current_gate->get_best_entanglement());
-        }
-
-        return current_qubit;
+        return current_qubit; // TODO: Reinstate restruction to only be able to return external qubits when encountering measure_and_reset
     }
 
     std::shared_ptr<Integer> Context::get_current_qubit_index(){
@@ -171,13 +171,19 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
+    void Context::set_current_qubit_definition(){
         current_qubit_definition = get_current_block()->get_next_qubit_def();
+    }
+
+    std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
+    void Context::set_current_qubit_definition_owned(){
         current_qubit_definition = get_current_block()->get_next_owned_qubit_def();
+    }
+
+    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
         return std::make_shared<Discard_qubit_def>(str, hash, current_qubit_definition);
     }
 
@@ -199,12 +205,15 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Gate> Context::make_current_gate(const std::string& str, int num_qubits, int num_params) {
-        current_gate = std::make_shared<Gate>(str, num_qubits, num_params, qig);
+    void Context::set_current_gate(const std::string& str, int num_qubits, int num_params){
+        current_gate = std::make_shared<Gate>(str, num_qubits, num_params);
+    }
+
+    std::shared_ptr<Gate> Context::get_current_gate(){
         return current_gate;
     }
 
-    std::shared_ptr<Discard_qubit_defs> Context::discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
+    std::shared_ptr<Discard_qubit_defs> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
         return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
     }
 
@@ -221,7 +230,7 @@ namespace Context {
         if(current_gate != nullptr){
             return current_gate->get_num_params();
         } else {
-            WARNING("Current gate not set but trying to get num params! Assumed 1 parameter");
+            WARNING("Current gate not set but trying to get num params! 1 parameter will be returned");
             return 1;
         }
     }
@@ -230,36 +239,13 @@ namespace Context {
         if(current_gate != nullptr){
             return current_gate->get_num_qubits();
         } else {
-            WARNING("Current gate not set but trying to get num params! Assumed 1 qubit");
+            WARNING("Current gate not set but trying to get num params! 1 qubit will be returned");
             return 1;
         }
     }
 
-    void Context::set_current_applied_block(){
-        current_applied_block = get_block(current_gate->get_string());
-        if(current_applied_block == nullptr){
-            ERROR("Current applied block not set! Assumed current gate is function");
-        }
+    void Context::set_current_gate_definition(){
+        current_gate_definition = get_block(current_gate->get_string());
     }
 
-    void Context::render_qig(){
-        if((qig != nullptr) && Common::render_qigs){
-            // render old qig
-            std::string qig_owner = qig->get_owner();
-            std::shared_ptr<Block> assosiated_block = get_block(qig_owner);
-
-            fs::path img_path = circuit_dir / (qig_owner + "_qig.png");
-            qig->render_graph(img_path, assosiated_block);
-        }
-    }
-
-    void Context::set_qig(){
-        render_qig();
-
-        size_t total_num_qubits = get_current_block()->total_num_qubits();
-
-        INFO("Setting QIG for " + current_block_owner + " with " + std::to_string(total_num_qubits) + " qubits");
-        
-        qig = std::make_shared<Graph>(current_block_owner, total_num_qubits);
-    }
 }

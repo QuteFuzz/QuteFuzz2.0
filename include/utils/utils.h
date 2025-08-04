@@ -60,6 +60,8 @@ std::string pipe_from_command(std::string command);
 
 std::string escape(const std::string& str);
 
+std::string random_hex_colour();
+
 namespace Common {
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circuit";
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
@@ -70,7 +72,7 @@ namespace Common {
 
     extern bool plot;
     extern bool verbose;
-    extern bool render_qigs;
+    extern bool render_dags;
     
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES

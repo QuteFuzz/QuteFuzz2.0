@@ -41,7 +41,8 @@ singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
 compound_stmt = qubit_op
-                | if_stmt;
+                | if_stmt
+                ;
 
 if_stmt =
     'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
@@ -123,10 +124,7 @@ shift_expr:
 primary:
     atom;
 
-atom:'True' 
-    | 'False'
-    # NUMBER
-    ;
+atom: NUMBER;
 
 qubit_op  = gate_op
             | subroutine_op
@@ -141,7 +139,7 @@ measurement_op = measure_and_reset LPAREN qubit_list RPAREN
 # For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
 arguments = arg (COMMA arg)*;
 
-arg = arg_singular_qubit
+arg = arg_singular_qubit    
     | LBRACK arg_register_qubits RBRACK
     ;
 

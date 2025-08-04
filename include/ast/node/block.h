@@ -69,13 +69,17 @@ class Block : public Node {
             }
         }
 
+        Collection<Qubit::Qubit> get_qubits(){
+            return qubits;
+        }
+
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
 
         std::shared_ptr<Qubit_definition::Qubit_definition> get_next_external_qubit_def();
 
-        std::shared_ptr<Qubit::Qubit> get_random_qubit(std::optional<std::vector<int>> best_entanglement, bool internal_only = false);
+        Qubit::Qubit* get_random_qubit(bool internal_only = false);
         
         size_t make_register_qubit_definition(int max_size, bool external);
 

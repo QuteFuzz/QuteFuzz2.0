@@ -50,6 +50,14 @@ struct Collection {
             }
         }
 
+        auto begin() const {
+            return coll.begin();
+        }
+
+        auto end() const {
+            return coll.end();
+        }
+
     private:
     
         std::vector<T> coll = {};

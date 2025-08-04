@@ -11,13 +11,17 @@
 
 *)
 
-program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+program = imports NEWLINE subroutines NEWLINE main_block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
 block     = block_def NEWLINE qubit_defs_external NEWLINE body NEWLINE;
 
 block_def = circuit_name " = Circuit()";
+
+main_block = block;
+
+main_block_def = block_def;
 
 qubit_defs_external = (qubit_def_external NEWLINE)+;
 

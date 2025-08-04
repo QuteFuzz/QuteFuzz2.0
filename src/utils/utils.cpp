@@ -3,7 +3,7 @@
 namespace Common {
     bool plot = false;
     bool verbose = false;
-    bool render_qigs = false;
+    bool render_dags = false;
 }
 
 void lower(std::string& str){
@@ -132,6 +132,11 @@ int vector_max(std::vector<int> in){
 void pipe_to_command(std::string command, std::string write){
     FILE* pipe = popen(command.c_str(), "w");
 
+    if(Common::verbose){
+        INFO("Running: " + command);
+        INFO("Piping: " + write + " to command");
+    }
+
     if(!pipe){
         throw std::runtime_error(ANNOT("Failed to open pipe to command " + command));
     }
@@ -140,11 +145,6 @@ void pipe_to_command(std::string command, std::string write){
     
     if(pclose(pipe)){
         throw std::runtime_error(ANNOT("Command " + command + " failed"));
-    }
-
-    if(Common::verbose){
-        INFO("Run command " + command);
-        INFO("Piped " + write + " to command");
     }
 }
 
@@ -177,4 +177,19 @@ std::string escape(const std::string& str){
     std::ostringstream oss;
     oss << std::quoted(str);
     return oss.str();
+}
+
+std::string random_hex_colour(){
+
+    std::uniform_int_distribution<int> int_dist(0, 255);
+
+    std::ostringstream ss;
+
+    ss << "#"
+    << std::hex << std::setfill('0')
+    << std::setw(2) << int_dist(seed()) 
+    << std::setw(2) << int_dist(seed()) 
+    << std::setw(2) << int_dist(seed());
+
+    return ss.str();
 }
