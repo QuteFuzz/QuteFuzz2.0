@@ -1,6 +1,4 @@
 .vscode
-.devcontainer
-docker-compose.dev.yml
 build
 outputs
 .venv

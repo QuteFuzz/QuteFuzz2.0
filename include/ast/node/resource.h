@@ -1,12 +1,12 @@
-#ifndef BIT_H
-#define BIT_H
+#ifndef RESOURCE_H
+#define RESOURCE_H
 
 #include <gate.h>
-#include <register_bit.h>
-#include <singular_bit.h>
+#include <register_resource.h>
+#include <singular_resource.h>
 #include <dag.h>
 
-namespace Bit {
+namespace Resource {
 
     enum Type {
         REGISTER_EXTERNAL,
@@ -15,34 +15,64 @@ namespace Bit {
         SINGULAR_INTERNAL
     };
 
-    class Bit : public Node {
+    enum Resource_Type {
+        QUBIT,
+        BIT
+    };
+
+    class Resource : public Node {
         public:
 
-            /// @brief Dummy bit
-            Bit() :
-                Node("bit", hash_rule_name("bit")),
-                value(Singular_bit()),
-                type(SINGULAR_EXTERNAL)
+            /// @brief Dummy qubit
+            Resource() :
+                Node("resource", hash_rule_name("resource")),
+                value(Singular_resource::Singular_qubit()),
+                type(SINGULAR_EXTERNAL),
+                resource_type(QUBIT)
             {}
 
-            Bit(Register_bit bit, bool external) :
+            Resource(Register_resource::Register_qubit qubit, bool external) :
+                Node("qubit", hash_rule_name("qubit")),
+                value(qubit),
+                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
+                resource_type(QUBIT)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
+            }
+
+            Resource(Singular_resource::Singular_qubit qubit, bool external) :
+                Node("qubit", hash_rule_name("qubit")),
+                value(qubit),
+                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
+                resource_type(BIT)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
+            }
+
+            Resource(Register_resource::Register_bit bit, bool external) :
                 Node("bit", hash_rule_name("bit")),
                 value(bit),
-                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
+                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
+                resource_type(BIT)
             {
                 constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
             }
 
-            Bit(Singular_bit bit, bool external) :
+            Resource(Singular_resource::Singular_bit bit, bool external) :
                 Node("bit", hash_rule_name("bit")),
                 value(bit),
-                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
+                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
+                resource_type(BIT)
             {
                 constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
             }
 
             Type get_type(){
                 return type;
+            }
+
+            Resource_Type get_resource_type(){
+                return resource_type;
             }
 
             void reset(){
@@ -69,6 +99,10 @@ namespace Bit {
                 }, value);
             }
 
+            inline bool is_qubit() const {
+                return ((resource_type == QUBIT));
+            }
+
             inline bool is_external() const {
                 return ((type == REGISTER_EXTERNAL) || (type == SINGULAR_EXTERNAL));
             }
@@ -79,10 +113,11 @@ namespace Bit {
 
             inline std::shared_ptr<Integer> get_index() const {
                 if(is_register_def()){
-                    return std::get<Register_bit>(value).get_index();
+                    if (is_qubit()) return std::get<Register_resource::Register_qubit>(value).get_index();
+                    else return std::get<Register_resource::Register_bit>(value).get_index();
                 }
 
-                ERROR("Singular bits do not have indices!");
+                ERROR("Singular resource do not have indices!");
 
                 return std::make_shared<Integer>();
             }
@@ -100,8 +135,9 @@ namespace Bit {
             void add_path_to_heuristics(Dag::Heuristics& h) const;
             
         private:
-            std::variant<Register_bit, Singular_bit> value;
+            std::variant<Register_resource::Register_qubit, Singular_resource::Singular_qubit, Register_resource::Register_bit, Singular_resource::Singular_bit> value;
             Type type;
+            Resource_Type resource_type;
 
             std::vector<Dag::Edge> flow_path;
             std::string flow_path_colour = random_hex_colour();

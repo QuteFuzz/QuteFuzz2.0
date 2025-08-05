@@ -2,10 +2,8 @@
 #define BLOCK_H
 
 #include <node.h>
-#include <qubit_definition.h>
-#include <qubit.h>
-#include <bit_definition.h>
-#include <bit.h>
+#include <resource_definition.h>
+#include <resource.h>
 #include <collection.h>
 
 class Block : public Node {
@@ -94,7 +92,7 @@ class Block : public Node {
             bit_def_pointer = 0;
         }
 
-        inline Qubit::Qubit* qubit_at(size_t index){
+        inline Resource::Resource* qubit_at(size_t index){
             if(index < qubits.get_total()){
                 return qubits.at(index);
             } else {
@@ -102,7 +100,7 @@ class Block : public Node {
             }
         }
 
-        inline Bit::Bit* bit_at(size_t index){
+        inline Resource::Resource* bit_at(size_t index){
             if(index < bits.get_total()){
                 return bits.at(index);
             } else {
@@ -110,29 +108,29 @@ class Block : public Node {
             }
         }
 
-        Collection<Qubit::Qubit> get_qubits(){
+        Collection<Resource::Resource> get_qubits(){
             return qubits;
         }
 
-        Collection<Bit::Bit> get_bits(){
+        Collection<Resource::Resource> get_bits(){
             return bits;
         }
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
+        std::shared_ptr<Resource_definition::Qubit_definition> get_next_qubit_def();
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
+        std::shared_ptr<Resource_definition::Qubit_definition> get_next_owned_qubit_def();
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_external_qubit_def();
+        std::shared_ptr<Resource_definition::Qubit_definition> get_next_external_qubit_def();
 
-        std::shared_ptr<Bit_definition::Bit_definition> get_next_bit_def();
+        std::shared_ptr<Resource_definition::Bit_definition> get_next_bit_def();
 
-        std::shared_ptr<Bit_definition::Bit_definition> get_next_owned_bit_def();
+        std::shared_ptr<Resource_definition::Bit_definition> get_next_owned_bit_def();
 
-        std::shared_ptr<Bit_definition::Bit_definition> get_next_external_bit_def();
+        std::shared_ptr<Resource_definition::Bit_definition> get_next_external_bit_def();
 
-        Qubit::Qubit* get_random_qubit(bool internal_only = false);
+        Resource::Resource* get_random_qubit(bool internal_only = false);
 
-        Bit::Bit* get_random_bit();
+        Resource::Resource* get_random_bit();
 
         size_t make_register_bit_definition(int max_size, bool external);
 
@@ -155,18 +153,18 @@ class Block : public Node {
         
         bool can_apply_subroutines = true;
 
-        Collection<Qubit::Qubit> qubits;
-        Collection<Qubit_definition::Qubit_definition> qubit_defs;
+        Collection<Resource::Resource> qubits;
+        Collection<Resource_definition::Qubit_definition> qubit_defs;
 
-        Collection<Bit::Bit> bits;
-        Collection<Bit_definition::Bit_definition> bit_defs;
+        Collection<Resource::Resource> bits;
+        Collection<Resource_definition::Bit_definition> bit_defs;
 
         size_t qubit_def_pointer = 0;
         size_t bit_def_pointer = 0;
-        Qubit::Qubit dummy_qubit;
-        Bit::Bit dummy_bit;
-        Qubit_definition::Qubit_definition dummy_def;
-        Bit_definition::Bit_definition dummy_bit_def;
+        Resource::Resource dummy_qubit;
+        Resource::Resource dummy_bit;
+        Resource_definition::Qubit_definition dummy_def;
+        Resource_definition::Bit_definition dummy_bit_def;
 
 };
 

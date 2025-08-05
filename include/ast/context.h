@@ -2,11 +2,9 @@
 #define CONTEXT_H
 
 #include <block.h>
-#include <qubit_definition.h>
-#include <bit_definition.h>
+#include <resource_definition.h>
 #include <variable.h>
-#include <qubit_defs.h>
-#include <bit_defs.h>
+#include <resource_defs.h>
 #include <discard_qubit_defs.h>
 #include <discard_qubit_def.h>
 #include <arg.h>
@@ -45,9 +43,9 @@ namespace Context {
 
             std::shared_ptr<Block> setup_block(std::string str, U64 hash);
             
-			std::shared_ptr<Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs::Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
 
-			std::shared_ptr<Bit_defs> make_bit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs::Bit_defs> make_bit_definitions(std::string& str, U64& hash);
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
@@ -55,9 +53,9 @@ namespace Context {
 
 			void set_current_bit();
 
-			std::shared_ptr<Qubit::Qubit> get_current_qubit();
+			std::shared_ptr<Resource::Resource> get_current_qubit();
 
-			std::shared_ptr<Bit::Bit> get_current_bit();
+			std::shared_ptr<Resource::Resource> get_current_bit();
 
 			void set_current_arg(const std::string& str, const U64& hash);
 
@@ -75,9 +73,9 @@ namespace Context {
 
 			void set_current_bit_definition();
 
-			std::shared_ptr<Qubit_definition::Qubit_definition> get_current_qubit_definition();
+			std::shared_ptr<Resource_definition::Qubit_definition> get_current_qubit_definition();
 
-			std::shared_ptr<Bit_definition::Bit_definition> get_current_bit_definition();
+			std::shared_ptr<Resource_definition::Bit_definition> get_current_bit_definition();
 
 			void set_current_qubit_definition_owned();
 
@@ -88,6 +86,8 @@ namespace Context {
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
+
+			std::shared_ptr<Integer> get_current_qubit_definition_size_0_indexed();
 
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
@@ -133,10 +133,10 @@ namespace Context {
 
             int subroutine_counter = 0;
 			
-			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_definition;
-			std::shared_ptr<Bit_definition::Bit_definition> current_bit_definition;
-			std::shared_ptr<Qubit::Qubit> current_qubit;
-			std::shared_ptr<Bit::Bit> current_bit;
+			std::shared_ptr<Resource_definition::Qubit_definition> current_qubit_definition;
+			std::shared_ptr<Resource_definition::Bit_definition> current_bit_definition;
+			std::shared_ptr<Resource::Resource> current_qubit;
+			std::shared_ptr<Resource::Resource> current_bit;
 			std::shared_ptr<Gate> current_gate;
 			size_t current_port = 0;
 

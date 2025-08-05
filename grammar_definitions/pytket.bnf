@@ -40,7 +40,7 @@ bit_def_external = singular_bit_def_external
 singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "1" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
 register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_register" LPAREN '"' qubit_def_name '",' qreg_size RPAREN;
 
-singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "1" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
+singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
 register_bit_def_external = bit_def_name EQUALS circuit_name ".add_c_register" LPAREN '"' bit_def_name '",' creg_size RPAREN;
 
 compound_stmt = qubit_op

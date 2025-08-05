@@ -7,11 +7,9 @@
 #include <simple_stmt.h>
 #include <float.h>
 #include <float_list.h>
-#include <qubit_list.h>
-#include <bit_list.h>
+#include <resource_list.h>
 #include <arguments.h>
-#include <qubit_defs.h>
-#include <bit_defs.h>
+#include <resource_defs.h>
 #include <qubit_op.h>
 #include <gate_op_kind.h>
 #include <subroutines.h>
@@ -89,11 +87,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::arg_singular_qubit: {
-			return std::make_shared<Qubit_list>(str, hash, 1);
+			return std::make_shared<Resource_list::Qubit_list>(str, hash, 1);
 		}
 
 		case Common::arg_register_qubits: {
-			return std::make_shared<Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
+			return std::make_shared<Resource_list::Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
 		}
 		
 		case Common::compound_stmt:
@@ -180,22 +178,22 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::qubit_list: {
 			size_t num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Qubit_list>(str, hash, num_qubits);
+			return std::make_shared<Resource_list::Qubit_list>(str, hash, num_qubits);
 		}
 
 		case Common::bit_list: {
 			size_t num_bits = context.get_current_gate_num_bits();
-			return std::make_shared<Bit_list>(str, hash, num_bits);
+			return std::make_shared<Resource_list::Bit_list>(str, hash, num_bits);
 		}
 
+		// qubit_def_list and qubit_def_size are a special cases used only for pytket->guppy conversion
 		case Common::qubit_def_list: {
 			context.get_current_block()->qubit_def_pointer_reset();
 			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_external_qubit_defs()));
 		}
 
 		case Common::qubit_def_size: {
-			std::shared_ptr<Qubit_definition::Qubit_definition> current_qubit_def = context.get_current_qubit_definition();
-			return current_qubit_def->get_type() == Qubit_definition::Type::REGISTER_EXTERNAL ? context.get_current_qubit_definition_size() : std::make_shared<Integer>("0");
+			return context.get_current_qubit_definition_size_0_indexed();
 		}
 
 		case Common::qubit_index:
@@ -362,11 +360,11 @@ void Ast::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "digraph G {\n";
 
-    for(const Qubit::Qubit& qubit : context.get_current_block()->get_qubits()){
+    for(const Resource::Resource& qubit : context.get_current_block()->get_qubits()){
         qubit.extend_dot_string(dot_string);
     }
 
-	for(const Bit::Bit& bit : context.get_current_block()->get_bits()){
+	for(const Resource::Resource& bit : context.get_current_block()->get_bits()){
 		bit.extend_dot_string(dot_string);
 	}
 

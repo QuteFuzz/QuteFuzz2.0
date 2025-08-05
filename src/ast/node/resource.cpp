@@ -1,6 +1,6 @@
-#include <bit.h>
+#include <resource.h>
 
-std::string Bit::Bit::resolved_name() const {
+std::string Resource::Resource::resolved_name() const {
 
     if(is_register_def()){
         return get_name()->get_string() + "[" + get_index()->get_string() + "]";
@@ -10,12 +10,12 @@ std::string Bit::Bit::resolved_name() const {
 
 }
 
-void Bit::Bit::extend_flow_path(const std::shared_ptr<Node> node, size_t current_port){
+void Resource::Resource::extend_flow_path(const std::shared_ptr<Node> node, size_t current_port){
 
     Dag::Edge edge;
 
     if(flow_path_length == 0){
-        // bit being operated on for the first time
+        // qubit being operated on for the first time
         edge = Dag::Edge(0, current_port, node);
 
     } else {
@@ -26,7 +26,7 @@ void Bit::Bit::extend_flow_path(const std::shared_ptr<Node> node, size_t current
     flow_path.push_back(edge);
 }
 
-void Bit::Bit::extend_dot_string(std::ostringstream& ss) const {
+void Resource::Resource::extend_dot_string(std::ostringstream& ss) const {
     std::string input_node = "\"Input: " + resolved_name() + "\"";
     std::string output_node = "\"Output: " + resolved_name()+ "\"";
 
@@ -57,7 +57,7 @@ void Bit::Bit::extend_dot_string(std::ostringstream& ss) const {
     }
 }
 
-void Bit::Bit::add_path_to_heuristics(Dag::Heuristics& h) const {
+void Resource::Resource::add_path_to_heuristics(Dag::Heuristics& h) const {
 
     if(flow_path_length >= 2){
 

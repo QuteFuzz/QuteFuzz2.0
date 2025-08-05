@@ -130,24 +130,24 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs::Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         bool external = (hash == Common::qubit_defs_external);
 
         size_t num_defs = current_block->make_qubit_definitions(external);
 
-        return std::make_shared<Qubit_defs>(str, hash, num_defs, external);  
+        return std::make_shared<Resource_defs::Qubit_defs>(str, hash, num_defs, external);  
     }
 
-    std::shared_ptr<Bit_defs> Context::make_bit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs::Bit_defs> Context::make_bit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         bool external = (hash == Common::bit_defs_external);
 
         size_t num_defs = current_block->make_bit_definitions(external);
 
-        return std::make_shared<Bit_defs>(str, hash, num_defs, external);  
+        return std::make_shared<Resource_defs::Bit_defs>(str, hash, num_defs, external);  
     }
 
     std::optional<std::shared_ptr<Block>> Context::get_block(std::string owner){
@@ -162,7 +162,7 @@ namespace Context {
 
     void Context::set_current_arg(const std::string& str, const U64& hash){
         if((current_gate != nullptr) && current_gate_definition.has_value()){
-            std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def = current_gate_definition.value()->get_next_external_qubit_def();
+            std::shared_ptr<Resource_definition::Qubit_definition> qubit_def = current_gate_definition.value()->get_next_external_qubit_def();
             current_arg = std::make_shared<Arg>(str, hash, qubit_def);
         }
     }
@@ -172,26 +172,26 @@ namespace Context {
     }
 
     void Context::set_current_qubit(){
-        Qubit::Qubit* random_qubit = get_current_block()->get_random_qubit(current_gate->get_string()=="measure_and_reset"); 
+        Resource::Resource* random_qubit = get_current_block()->get_random_qubit(current_gate->get_string()=="measure_and_reset"); 
         
         random_qubit->extend_flow_path(current_gate, current_port++);
 
-        current_qubit = std::make_shared<Qubit::Qubit>(*random_qubit);
+        current_qubit = std::make_shared<Resource::Resource>(*random_qubit);
     }
 
     void Context::set_current_bit(){
-        Bit::Bit* random_bit = get_current_block()->get_random_bit();
+        Resource::Resource* random_bit = get_current_block()->get_random_bit();
         
         random_bit->extend_flow_path(current_gate, current_port++);
 
-        current_bit = std::make_shared<Bit::Bit>(*random_bit);
+        current_bit = std::make_shared<Resource::Resource>(*random_bit);
     }
 
-    std::shared_ptr<Qubit::Qubit> Context::get_current_qubit(){
+    std::shared_ptr<Resource::Resource> Context::get_current_qubit(){
         return current_qubit;
     }
 
-    std::shared_ptr<Bit::Bit> Context::get_current_bit(){
+    std::shared_ptr<Resource::Resource> Context::get_current_bit(){
         return current_bit;
     }
 
@@ -239,11 +239,11 @@ namespace Context {
         current_bit_definition = get_current_block()->get_next_bit_def();
     }
 
-    std::shared_ptr<Qubit_definition::Qubit_definition> Context::get_current_qubit_definition(){
+    std::shared_ptr<Resource_definition::Qubit_definition> Context::get_current_qubit_definition(){
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Bit_definition::Bit_definition> Context::get_current_bit_definition(){
+    std::shared_ptr<Resource_definition::Bit_definition> Context::get_current_bit_definition(){
         return current_bit_definition;
     }
 
@@ -264,6 +264,15 @@ namespace Context {
             return current_qubit_definition->get_size();
         } else  {
             WARNING("Current qubit not set but trying to get size! Using dummy instead");
+            return std::make_shared<Integer>(dummy_int);
+        }
+    }
+
+    std::shared_ptr<Integer> Context::get_current_qubit_definition_size_0_indexed(){
+        if(current_qubit_definition != nullptr){
+            return (current_qubit_definition->is_register_def() && current_qubit_definition->is_external()) ? current_qubit_definition->get_size() : std::make_shared<Integer>("0");
+        } else {
+            WARNING("Current qubit definition not set or is singular but trying to get size! Using dummy instead");
             return std::make_shared<Integer>(dummy_int);
         }
     }

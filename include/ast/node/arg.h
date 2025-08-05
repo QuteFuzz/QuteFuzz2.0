@@ -11,10 +11,10 @@ class Arg : public Node {
             Node("arg", hash_rule_name("arg"))
         {}
 
-        Arg(const std::string& str, const U64& hash, std::shared_ptr<Qubit_definition::Qubit_definition> qubit_def):
+        Arg(const std::string& str, const U64& hash, std::shared_ptr<Resource_definition::Qubit_definition> qubit_def):
             Node(str, hash)
         {
-            if(qubit_def->get_type() == Qubit_definition::Type::SINGULAR_EXTERNAL){
+            if(qubit_def->get_type() == Resource_definition::Type::SINGULAR_EXTERNAL){
                 constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
                 qubit_def_size = 1;
             
