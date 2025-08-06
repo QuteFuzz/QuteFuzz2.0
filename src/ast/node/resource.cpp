@@ -1,6 +1,9 @@
-#include <qubit.h>
+#include <resource.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 
-std::string Qubit::Qubit::resolved_name() const {
+std::string Resource::Resource::resolved_name() const {
 
     if(is_register_def()){
         return get_name()->get_string() + "[" + get_index()->get_string() + "]";
@@ -10,7 +13,7 @@ std::string Qubit::Qubit::resolved_name() const {
 
 }
 
-void Qubit::Qubit::extend_flow_path(const std::shared_ptr<Node> node, size_t current_port){
+void Resource::Resource::extend_flow_path(const std::shared_ptr<Node> node, size_t current_port){
 
     Dag::Edge edge;
 
@@ -26,7 +29,7 @@ void Qubit::Qubit::extend_flow_path(const std::shared_ptr<Node> node, size_t cur
     flow_path.push_back(edge);
 }
 
-void Qubit::Qubit::extend_dot_string(std::ostringstream& ss) const {
+void Resource::Resource::extend_dot_string(std::ostringstream& ss) const {
     std::string input_node = "\"Input: " + resolved_name() + "\"";
     std::string output_node = "\"Output: " + resolved_name()+ "\"";
 
@@ -57,7 +60,7 @@ void Qubit::Qubit::extend_dot_string(std::ostringstream& ss) const {
     }
 }
 
-void Qubit::Qubit::add_path_to_heuristics(Dag::Heuristics& h) const {
+void Resource::Resource::add_path_to_heuristics(Dag::Heuristics& h) const {
 
     if(flow_path_length >= 2){
 

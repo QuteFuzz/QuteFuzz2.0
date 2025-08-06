@@ -166,7 +166,7 @@ void Run::loop(){
 
             } else if (current_command == "render_dags"){
                 Common::render_dags = !Common::render_dags;
-                INFO("DAG render " + (Common::plot ? "enabled" : "disabled"));
+                INFO("DAG render " + (Common::render_dags ? "enabled" : "disabled"));
 
             } else if (current_command == "run_tests"){
                 run_tests();

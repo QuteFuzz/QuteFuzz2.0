@@ -32,17 +32,21 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 # Pytket imports
 from pytket.circuit import Circuit
 from pytket.passes import *
-# from pytket.extensions.qiskit import AerBackend
-# from pytket.extensions.qiskit import AerStateBackend
-from pytket.extensions.quantinuum import QuantinuumBackend, QuantinuumAPIOffline
+from pytket.extensions.qiskit import AerBackend
+from pytket.extensions.qiskit import AerStateBackend
 
 # Qiskit imports
 from qiskit import QuantumCircuit, transpile
 
 # Guppylang imports
-from guppylang import guppy
+from guppylang import guppy, array, qubit
 from guppylang import enable_experimental_features
+from guppylang.std.quantum import *
+from guppylang.std.qsystem import *
+from guppylang.std.builtins import result
 enable_experimental_features()
+from selene_sim import build, Quest
+from hugr.qsystem.result import QsysResult
 
 
 class Base():
@@ -91,21 +95,19 @@ class Base():
 
         return p_value
     
-    def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128]):
-        return np.dot(sv1, sv2)
+    def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128], precision: int = 6) -> float:
+        return np.round(abs(np.vdot(sv1, sv2)), precision)
 
     def save_interesting_circuit(self, circuit_number: int, interesting_dir: pathlib.Path) -> None:
         '''
         Saves an interesting circuit file to the specified directory
         '''
-        # Ensure the interesting directory exists
+
         interesting_dir.mkdir(parents=True, exist_ok=True)
         
-        # Define source and destination paths
         circuit_source_path = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit.py"
         circuit_dest_path = interesting_dir / f"circuit{circuit_number}.py"
         
-        # Check if source file exists and copy it
         if circuit_source_path.exists():
             try:
                 shutil.copy2(circuit_source_path, circuit_dest_path)
@@ -116,8 +118,6 @@ class Base():
             print(f"Warning: Circuit file not found at {circuit_source_path}")
 
     def plot_histogram(self, res : Counter[int, int], title : str, compilation_level : int, circuit_number : int = 0):
-        # Check the number of existing plots in plots_path (if exists), then increment the number of the plot
-        # and save the plot with that number
         plots_dir = self.OUTPUT_DIR / f"circuit{circuit_number}"
         if not plots_dir.exists():
             plots_dir.mkdir(parents=True, exist_ok=True)
@@ -143,18 +143,16 @@ class pytketTesting(Base):
     def __init__(self):
         super().__init__()
     
-    def run_circ(self, circuit : Circuit, circuit_number : int) -> None:
+    def ks_diff_test(self, circuit : Circuit, circuit_number : int) -> None:
         '''
         Runs circuit on pytket simulator and returns counts
         '''
-        # Pytket Quantinuum backend
-        api_offline = QuantinuumAPIOffline()
-        backend = QuantinuumBackend(device_name="H1-1LE", api_handler=api_offline)
+        backend = AerBackend()
 
         try:
             # Get original circuit shots
             uncompiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=0)
-            handle1 = backend.process_circuit(uncompiled_circ, n_shots=1000)
+            handle1 = backend.process_circuit(uncompiled_circ, n_shots=100000)
             result1 = backend.get_result(handle1)
             counts1 = self.preprocess_counts(result1.get_counts())
             is_testcase_interesting = False
@@ -165,12 +163,12 @@ class pytketTesting(Base):
                 compiled_circ = backend.get_compiled_circuit(circuit, optimisation_level=i+1)
             
                 # Process the compiled circuit
-                handle2 = backend.process_circuit(compiled_circ, n_shots=1000)
+                handle2 = backend.process_circuit(compiled_circ, n_shots=100000)
                 result2 = backend.get_result(handle2)
                 counts2 = self.preprocess_counts(result2.get_counts())
 
                 # Run the kstest on the two results
-                ks_value = self.ks_test(counts1, counts2, 1000)
+                ks_value = self.ks_test(counts1, counts2, 100000)
                 print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
 
                 # Heuristic to determine if the testcase is interesting
@@ -191,37 +189,101 @@ class pytketTesting(Base):
         # Dump files to a "interesting circuits" folder if found interesting testcase
         if is_testcase_interesting:
             print(f"Interesting circuit found: {circuit_number}")
-            interesting_dir = self.OUTPUT_DIR / "interesting_circuits"
-            self.save_interesting_circuit(circuit_number, interesting_dir)
-    
-    def run_circ_statevector(self, circuit : Circuit, test_pass : BasePass ) -> NDArray[np.complex128]:
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+
+    def run_circ_statevector(self, circuit : Circuit, circuit_number : int) -> NDArray[np.complex128]:
         '''
         Runs circuit on pytket simulator and returns statevector
         '''
         try:
+            backend = AerStateBackend()
             # circuit with no passes
-            no_pass_statevector = circuit.get_statevector()
-            
-            # Put it through the pass specified, modifying it in-place
-            test_pass.apply(circuit)
+            uncompiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=0)
+            no_pass_statevector = uncompiled_circ.get_statevector()
 
-            # circuit after pass
-            pass_statevector = circuit.get_statevector()
-                
-            if np.round(abs(np.vdot(no_pass_statevector, pass_statevector)), 6)==1:
-                print("Statevectors are the same\n")
-            else:
-                print ("Statevectors not the same")
-                print("Dot product: ", np.round(abs(np.vdot(no_pass_statevector, pass_statevector)), 6))
+            # Get statevector after every optimisation level
+            for i in range(3):
+                compiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=i+1)
+                pass_statevector = compiled_circ.get_statevector()
+                dot_prod = self.compare_statevectors(no_pass_statevector, pass_statevector, 6)
+
+                if dot_prod == 1:
+                    print("Statevectors are the same\n")
+                else:
+                    print ("Statevectors not the same")
+                    print("Dot product: ", dot_prod)
 
         except Exception:
+            print("Exception :", traceback.format_exc())
+
+    def run_guppy_pytket_diff(self, circuit : Circuit, circuit_number : int, qubit_defs_list : list[int]) -> None:
+        '''
+        Loads pytket circuit as a guppy circuit and runs it, comparing the results
+        with normal AerBackend
+        '''
+        pytket_circ_copy = circuit.copy()
+        guppy_circuit = guppy.load_pytket("guppy_circuit", circuit)
+
+        @guppy.comptime
+        def main() -> None:
+            qubit_variables = []
+            
+            for qubit_def in qubit_defs_list:
+                if qubit_def > 0:
+                    qubit_array = [qubit() for _ in range(qubit_def)]
+                    qubit_variables.append(qubit_array)
+                else:
+                    single_qubit = qubit()
+                    qubit_variables.append(single_qubit)
+            
+            r = guppy_circuit(*qubit_variables)
+            result("c", r)
+
+            for var in qubit_variables:
+                if isinstance(var, list):
+                    discard_array(var)
+                else:
+                    discard(var)
+
+        try:
+            # Getting guppy circuit results
+            compiled_circ = guppy.compile(main)
+            runner = build(compiled_circ)
+            results = QsysResult(
+                runner.run_shots(Quest(), n_qubits=circuit.n_qubits, n_shots=10000)
+            )
+            counts_guppy = results.collated_counts()
+            counts_guppy = Counter({key[0][1]: value for key, value in counts_guppy.items()})
+
+            # Getting uncompiled pytket circuit results
+            backend = AerBackend()
+            uncompiled_pytket_circ = backend.get_compiled_circuit(pytket_circ_copy, optimisation_level=0)
+            handle = backend.process_circuit(uncompiled_pytket_circ, n_shots=10000)
+            result_pytket = backend.get_result(handle)
+            counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+
+            # Run the kstest on the two results
+            ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)
+            print(f"Guppy vs Pytket ks-test p-value: {ks_value}")
+
+            # Heuristic to determine if the testcase is interesting
+            if ks_value < 0.05:
+                print(f"Interesting circuit found: {circuit_number}")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            
+            if self.plot:
+                self.plot_histogram(counts_guppy, "Guppy Circuit Results", 0, circuit_number)
+                self.plot_histogram(counts_pytket, "Pytket Circuit Results", 0, circuit_number)
+
+        except Exception as e:
+            print("Error during guppy compilation:", e)
             print("Exception :", traceback.format_exc())
 
 class qiskitTesting(Base):
     def __init__(self):
         super().__init__()
-    
-    def run_circ(self, circuit : Circuit, circuit_number : int) -> float:
+
+    def ks_diff_test(self, circuit : Circuit, circuit_number : int) -> float:
         '''
         Runs circuit on qiskit simulator and returns counts
         '''
@@ -231,15 +293,15 @@ class qiskitTesting(Base):
         
         # Get original circuit shots
         uncompiled_circ = transpile(circuit, backend, optimization_level=0)
-        counts1 = self.preprocess_counts(backend.run(uncompiled_circ, shots=1000).result().get_counts())
+        counts1 = self.preprocess_counts(backend.run(uncompiled_circ, shots=10000).result().get_counts())
 
         # Compile circuit at 3 different optimisation levels
         for i in range(3):
             compiled_circ = transpile(circuit, backend, optimization_level=i+1)
-            counts2 = self.preprocess_counts(backend.run(compiled_circ, shots=1000).result().get_counts())
+            counts2 = self.preprocess_counts(backend.run(compiled_circ, shots=10000).result().get_counts())
 
             # Run the kstest on the two results
-            ks_value = self.ks_test(counts1, counts2, 1000)
+            ks_value = self.ks_test(counts1, counts2, 10000)
             print(f"Optimisation level {i+1} ks-test p-value: {ks_value}")
 
             # plot results
@@ -264,7 +326,7 @@ class guppyTesting(Base):
     def __init__(self):
         super().__init__()
 
-    def run_circ(self, circuit : Any, circuit_number : int) -> None:
+    def ks_diff_test(self, circuit : Any, circuit_number : int) -> None:
         '''
         Compiles guppy circuit
         '''
@@ -284,6 +346,18 @@ class guppyTesting(Base):
             print(f"Compilation timed out after {timeout_seconds} seconds")
             is_testcase_interesting = True
         except Exception as e:
+            from guppylang.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang.diagnostic import DiagnosticsRenderer
+                from guppylang.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+                return
+
+            # If it's not a GuppyError, fall back to default hook
             print("Error during compilation:", e)
             is_testcase_interesting = True
 

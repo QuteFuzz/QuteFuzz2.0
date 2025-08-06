@@ -15,7 +15,7 @@ program = imports NEWLINE subroutines NEWLINE main_block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
-block     = block_def NEWLINE qubit_defs_external NEWLINE body NEWLINE;
+block     = block_def NEWLINE qubit_defs_external bit_defs_external NEWLINE body NEWLINE;
 
 block_def = circuit_name " = Circuit()";
 
@@ -25,6 +25,8 @@ main_block_def = block_def;
 
 qubit_defs_external = (qubit_def_external NEWLINE)+;
 
+bit_defs_external = (bit_def_external NEWLINE)+;
+
 body = compound_stmts;
 
 compound_stmts = (compound_stmt NEWLINE)+;
@@ -32,10 +34,18 @@ compound_stmts = (compound_stmt NEWLINE)+;
 qubit_def_external  = singular_qubit_def_external 
                     | register_qubit_def_external;
 
-singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
+bit_def_external = singular_bit_def_external
+                 | register_bit_def_external;
+
+singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "1" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
 register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_register" LPAREN '"' qubit_def_name '",' qreg_size RPAREN;
 
-compound_stmt = qubit_op;
+singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
+register_bit_def_external = bit_def_name EQUALS circuit_name ".add_c_register" LPAREN '"' bit_def_name '",' creg_size RPAREN;
+
+compound_stmt = qubit_op
+                # | if_stmt
+                ;
 
 qubit_op =
     gate_op
@@ -43,7 +53,7 @@ qubit_op =
     ;
 
 gate_op = circuit_name DOT gate_name gate_op_kind;
-subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
+subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list COMMA SPACE bit_list "])";
 
 gate_name   = X | Y | Z | CX | CY | CZ | Rx;
 
@@ -60,7 +70,16 @@ qubit = singular_qubit | register_qubit;
 
 singular_qubit = qubit_name;
 
-register_qubit = qubit_name "[" qubit_index "]"; 
+register_qubit = qubit_name "[" qubit_index "]";
+
+
+bit_list = bit (COMMA SPACE bit)*;
+
+bit = singular_bit | register_bit;
+
+singular_bit = bit_name;
+
+register_bit = bit_name "[" bit_index "]";
 
 imports = "from sympy import Symbol" NEWLINE
         "from diff_testing.lib import pytketTesting" NEWLINE
@@ -68,6 +87,11 @@ imports = "from sympy import Symbol" NEWLINE
         "from pytket import Circuit, Qubit, Bit" NEWLINE
         "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE;
 
-compiler_call = main_circuit_name ".measure_all() " NEWLINE
-                "pt = pytketTesting() " NEWLINE
-                "pt.run_circ(" main_circuit_name ", " circuit_id ")" NEWLINE;
+compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
+
+testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
+                | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN
+                # "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy!
+                ;
+
+qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;

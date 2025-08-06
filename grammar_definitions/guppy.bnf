@@ -40,8 +40,9 @@ qubit_def_internal = singular_qubit_def_internal
 singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
-compound_stmt = qubit_op ;
-                # | if_stmt;
+compound_stmt = qubit_op
+                | if_stmt
+                ;
 
 if_stmt =
     'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
@@ -123,16 +124,17 @@ shift_expr:
 primary:
     atom;
 
-atom:
-    NUMBER
-    | 'True' 
-    | 'False';
+atom: NUMBER;
 
 qubit_op  = gate_op
-            | subroutine_op;
+            | subroutine_op
+            | measurement_op;
 
 gate_op = gate_name gate_op_kind;
 subroutine_op = subroutine LPAREN arguments RPAREN;
+measurement_op = measure_and_reset LPAREN qubit_list RPAREN
+                #| "measure_array" LPAREN arg_register_qubits RPAREN
+                ;
 
 # For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
 arguments = arg (COMMA arg)*;
@@ -157,13 +159,14 @@ discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 discard_internal_qubit = discard_single_qubit
                         | discard_qreg;
 
-discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN;
-discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN;
+discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN
+                | "measure_array" LPAREN qubit_def_name RPAREN;
+discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN
+                | "measure" LPAREN qubit_def_name RPAREN
+                ;
 
-gate_name = 
-    x | y | z | h | cx | toffoli | rz | rx | ry
-    | t | tdg | s | sdg | ch | crz 
-    # | measure | measure_array | reset | project_z
+gate_name = x | y | z | h | cx | toffoli | rz | rx | ry
+    | t | tdg | s | sdg | ch | crz | project_z
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
@@ -178,8 +181,10 @@ imports = "from guppylang.decorator import guppy " NEWLINE
         "from guppylang.std.angles import angle, pi " NEWLINE
         "from guppylang.std.builtins import array, owned, py, comptime, result, owned " NEWLINE
         "from guppylang.std.quantum import * " NEWLINE
+        "from guppylang.std.qsystem import * " NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
         "from pathlib import Path " NEWLINE;
 
-compiler_call = "gt = guppyTesting()" NEWLINE
-                "gt.run_circ(main_circuit" COMMA circuit_id RPAREN NEWLINE;
+compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
+
+testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE;

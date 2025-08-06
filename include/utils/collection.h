@@ -1,7 +1,7 @@
 #ifndef COLLECTION_H
 #define COLLECTION_H
 
-#include <qubit.h>
+#include <resource.h>
 
 template<typename T>
 struct Collection {
@@ -43,8 +43,8 @@ struct Collection {
         }
 
         void reset(){
-            if constexpr (std::is_same_v<T, Qubit::Qubit>){
-                for(Qubit::Qubit& qb : coll){
+            if constexpr (std::is_same_v<T, Resource::Resource>){
+                for(Resource::Resource& qb : coll){
                     qb.reset();
                 }
             }

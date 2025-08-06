@@ -7,9 +7,10 @@ class Gate : public Node {
 
     public:
         
-        Gate(const std::string str, int _qubits, int _params) :
+        Gate(const std::string str, int _qubits, int _bits, int _params) :
             Node(str),
             num_qubits(_qubits),
+            num_bits(_bits),
             num_params(_params)
         {}
 
@@ -21,12 +22,17 @@ class Gate : public Node {
             return num_qubits;
         }
 
+        int get_num_bits(){
+            return num_bits;
+        }
+
         int get_num_params(){
             return num_params;
         }
 
     private:
         int num_qubits;
+        int num_bits;
         int num_params;
 };
 

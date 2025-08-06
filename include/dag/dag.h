@@ -6,8 +6,8 @@
 template<typename T>
 struct Collection;
 
-namespace Qubit {
-    class Qubit;
+namespace Resource {
+    class Resource;
 }
 
 namespace Dag {
@@ -60,7 +60,7 @@ namespace Dag {
 
             /// @brief Use qubit paths to construct useful data structures used to calculate graph theoretic metrics
             /// @param qubits 
-            Heuristics(const Collection<Qubit::Qubit>& qubits);
+            Heuristics(const Collection<Resource::Resource>& qubits, const Collection<Resource::Resource>& bits);
 
             void add_edge(int source_node_id, int dest_node_id){
                 if(data.contains(source_node_id)){

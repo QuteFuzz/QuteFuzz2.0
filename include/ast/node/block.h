@@ -2,8 +2,8 @@
 #define BLOCK_H
 
 #include <node.h>
-#include <qubit_definition.h>
-#include <qubit.h>
+#include <resource_definition.h>
+#include <resource.h>
 #include <collection.h>
 
 class Block : public Node {
@@ -15,11 +15,14 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal) : 
+        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal, 
+              int _target_num_bits_external, int _target_num_bits_internal) : 
             Node(str, hash),
             owner(owner_name), 
             target_num_qubits_external(_target_num_qubits_external),
-            target_num_qubits_internal(_target_num_qubits_internal) {}
+            target_num_qubits_internal(_target_num_qubits_internal),
+            target_num_bits_external(_target_num_bits_external),
+            target_num_bits_internal(_target_num_bits_internal) {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -53,15 +56,43 @@ class Block : public Node {
             return qubit_defs.get_num_external();
         }
 
+        inline size_t total_num_bits() const {
+            return bits.get_total();
+        }
+
+        inline size_t num_external_bits() const {
+            return bits.get_num_external();
+        }
+
+        inline size_t num_internal_bits() const {
+            return bits.get_num_internal();
+        }
+
+        inline size_t num_external_bit_defs() const {
+            return bit_defs.get_num_external();
+        }
+
+        inline size_t num_internal_bit_defs() const {
+            return bit_defs.get_num_internal();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
+        }
+
+        void bit_flag_reset(){
+            bits.reset();
         }
 
         void qubit_def_pointer_reset(){
             qubit_def_pointer = 0;
         }
 
-        inline Qubit::Qubit* qubit_at(size_t index){
+        void bit_def_pointer_reset(){
+            bit_def_pointer = 0;
+        }
+
+        inline Resource::Resource* qubit_at(size_t index){
             if(index < qubits.get_total()){
                 return qubits.at(index);
             } else {
@@ -69,37 +100,57 @@ class Block : public Node {
             }
         }
 
-        Collection<Qubit::Qubit> get_qubits(){
+        inline Resource::Resource* bit_at(size_t index){
+            if(index < bits.get_total()){
+                return bits.at(index);
+            } else {
+                return &dummy_bit;
+            }
+        }
+
+        Collection<Resource::Resource> get_qubits(){
             return qubits;
         }
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_qubit_def();
+        Collection<Resource::Resource> get_bits(){
+            return bits;
+        }
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_owned_qubit_def();
+        std::shared_ptr<Resource_definition> get_next_resource_def(bool is_qubit);
 
-        std::shared_ptr<Qubit_definition::Qubit_definition> get_next_external_qubit_def();
+        std::shared_ptr<Resource_definition> get_next_owned_resource_def(bool is_qubit);
 
-        Qubit::Qubit* get_random_qubit();
-        
-        size_t make_register_qubit_definition(int max_size, bool external);
+        std::shared_ptr<Resource_definition> get_next_external_resource_def(bool is_qubit);
 
-        size_t make_singular_qubit_definition(bool external);
+        Resource::Resource* get_random_resource(bool internal_only = false, bool is_qubit = true);
 
-        size_t make_qubit_definitions(bool external);
+        size_t make_register_resource_definition(int max_size, bool external, bool is_qubit);
+
+        size_t make_singular_resource_definition(bool external, bool is_qubit);
+
+        size_t make_resource_definitions(bool external, bool is_qubit);
 
     private:
         std::string owner;
         int target_num_qubits_external = Common::MIN_QUBITS;
         int target_num_qubits_internal = 0;
+        int target_num_bits_external = Common::MIN_BITS;
+        int target_num_bits_internal = 0;
         
         bool can_apply_subroutines = true;
 
-        Collection<Qubit::Qubit> qubits;
-        Collection<Qubit_definition::Qubit_definition> qubit_defs;
+        Collection<Resource::Resource> qubits;
+        Collection<Resource_definition> qubit_defs;
+
+        Collection<Resource::Resource> bits;
+        Collection<Resource_definition> bit_defs;
 
         size_t qubit_def_pointer = 0;
-        Qubit::Qubit dummy_qubit;
-        Qubit_definition::Qubit_definition dummy_def;
+        size_t bit_def_pointer = 0;
+        Resource::Resource dummy_qubit;
+        Resource::Resource dummy_bit;
+        Resource_definition dummy_def;
+        Resource_definition dummy_bit_def;
 
 };
 
