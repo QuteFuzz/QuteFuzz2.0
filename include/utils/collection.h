@@ -16,6 +16,10 @@ struct Collection {
             } else {
                 num_internal += 1;
             }
+            
+            if(elem.is_owned()){
+                num_owned += 1;
+            }
 
             coll.push_back(elem);
         }
@@ -42,6 +46,10 @@ struct Collection {
             return num_internal + num_external;
         }
 
+        size_t get_num_owned() const {
+            return num_owned;
+        }
+
         void reset(){
             if constexpr (std::is_same_v<T, Resource::Resource>){
                 for(Resource::Resource& qb : coll){
@@ -63,6 +71,7 @@ struct Collection {
         std::vector<T> coll = {};
         size_t num_internal = 0;
         size_t num_external = 0;
+        size_t num_owned = 0;
 
 };
 

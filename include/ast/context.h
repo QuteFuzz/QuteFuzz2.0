@@ -43,9 +43,9 @@ namespace Context {
 
             std::shared_ptr<Block> setup_block(std::string str, U64 hash);
             
-			std::shared_ptr<Resource_defs> make_qubit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs> make_qubit_definitions(std::string& str, U64& hash, bool external, bool owned);
 
-			std::shared_ptr<Resource_defs> make_bit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs> make_bit_definitions(std::string& str, U64& hash, bool external, bool owned);
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 

@@ -48,6 +48,10 @@ class Block : public Node {
             return qubits.get_num_internal();
         }
 
+        inline size_t num_owned_qubits() const {
+            return qubits.get_num_owned();
+        }
+
         inline size_t num_internal_qubit_defs() const {
             return qubit_defs.get_num_internal();
         }
@@ -122,13 +126,13 @@ class Block : public Node {
 
         std::shared_ptr<Resource_definition> get_next_external_resource_def(bool is_qubit);
 
-        Resource::Resource* get_random_resource(bool internal_only = false, bool is_qubit = true);
+        Resource::Resource* get_random_resource(bool owned_only = false, bool is_qubit = true);
 
-        size_t make_register_resource_definition(int max_size, bool external, bool is_qubit);
+        size_t make_register_resource_definition(int max_size, bool external, bool is_qubit, bool owned);
 
-        size_t make_singular_resource_definition(bool external, bool is_qubit);
+        size_t make_singular_resource_definition(bool external, bool is_qubit, bool owned);
 
-        size_t make_resource_definitions(bool external, bool is_qubit);
+        size_t make_resource_definitions(bool external, bool is_qubit, bool owned);
 
     private:
         std::string owner;

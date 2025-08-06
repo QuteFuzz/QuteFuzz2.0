@@ -31,12 +31,13 @@ namespace Resource {
                 resource_type(QUBIT)
             {}
 
-            Resource(Register_resource resource, bool external) :
+            Resource(Register_resource resource, bool external, bool owned) :
                 Node(resource.get_resource_classification() ? "qubit" : "bit", 
                     hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
                 value(resource),
                 type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
-                resource_type(resource.get_resource_classification() ? QUBIT : BIT)
+                resource_type(resource.get_resource_classification() ? QUBIT : BIT),
+                owned(owned)
             {
                 if (resource.get_resource_classification()) {
                     constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
@@ -45,12 +46,13 @@ namespace Resource {
                 }
             }
 
-            Resource(Singular_resource resource, bool external) :
+            Resource(Singular_resource resource, bool external, bool owned) :
                 Node(resource.get_resource_classification() ? "qubit" : "bit", 
                     hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
                 value(resource),
                 type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
-                resource_type(resource.get_resource_classification() ? QUBIT : BIT)
+                resource_type(resource.get_resource_classification() ? QUBIT : BIT),
+                owned(owned)
             {
                 if (resource.get_resource_classification()) {
                     constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
@@ -79,6 +81,14 @@ namespace Resource {
                 std::visit([](auto&& val){
                     val.set_used();
                 }, value);
+            }
+
+            bool is_owned() const {
+                return owned;
+            }
+
+            void set_owned(bool _owned) {
+                owned = _owned;
             }
 
             inline std::shared_ptr<Variable> get_name() const {
@@ -125,6 +135,7 @@ namespace Resource {
             std::variant<Register_resource, Singular_resource> value;
             Resource_Type type;
             Resource_Classification resource_type;
+            bool owned = false;
 
             std::vector<Dag::Edge> flow_path;
             std::string flow_path_colour = random_hex_colour();

@@ -16,12 +16,13 @@ class Resource_definition : public Node {
             resource_type(Resource::QUBIT)
         {}
 
-        Resource_definition(Register_resource_definition def, bool external, bool is_qubit) :
+        Resource_definition(Register_resource_definition def, bool external, bool is_qubit, bool _owned) :
             Node(is_qubit ? "qubit_def" : "bit_def", 
                  hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
             value(def), 
             type(external ? Resource::REGISTER_EXTERNAL : Resource::REGISTER_INTERNAL),
-            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
+            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT),
+            owned(_owned)
         {
             if (external) {
                 if (is_qubit) {
@@ -38,12 +39,13 @@ class Resource_definition : public Node {
             }
         }
 
-        Resource_definition(Singular_resource_definition def, bool external, bool is_qubit) :
+        Resource_definition(Singular_resource_definition def, bool external, bool is_qubit, bool _owned) :
             Node(is_qubit ? "qubit_def" : "bit_def", 
                  hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
             value(def), 
             type(external ? Resource::SINGULAR_EXTERNAL : Resource::SINGULAR_INTERNAL),
-            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
+            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT),
+            owned(_owned)
         {
             if (external) {
                 if (is_qubit) {
@@ -84,6 +86,14 @@ class Resource_definition : public Node {
             return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::SINGULAR_EXTERNAL));
         }
 
+        inline bool is_owned() const {
+            return owned;
+        }
+
+        inline void set_owned(bool _owned) {
+            owned = _owned;
+        }
+
         inline bool is_register_def() const {
             return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::REGISTER_INTERNAL));
         }
@@ -92,6 +102,7 @@ class Resource_definition : public Node {
         std::variant<Register_resource_definition, Singular_resource_definition> value;
         Resource::Resource_Type type;
         Resource::Resource_Classification resource_type;
+        bool owned = false;
 
 };
 

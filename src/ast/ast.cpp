@@ -135,7 +135,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::qubit_op: {
 			context.reset(Context::QUBIT_OP);
-			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), context.get_current_block()->num_internal_qubits() > 0);
+			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), context.get_current_block()->num_owned_qubits() > 0);
 		}
 	
 		case Common::circuit_name:
@@ -151,8 +151,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.set_current_qubit_definition();
 			return context.get_current_qubit_definition();
 
-		case Common::qubit_defs_external: case Common::qubit_defs_internal:
-			return context.make_qubit_definitions(str, hash);
+		case Common::qubit_defs_external: 
+			return context.make_qubit_definitions(str, hash, true, false);
+		case Common::qubit_defs_internal: 
+			 return context.make_qubit_definitions(str, hash, false, true);
+		case Common::qubit_defs_external_owned:
+			return context.make_qubit_definitions(str, hash, true, true);
 
 		case Common::creg_size:
 			return context.get_current_bit_definition_size();
@@ -164,8 +168,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.set_current_bit_definition();
 			return context.get_current_bit_definition();
 
-		case Common::bit_defs_external: case Common::bit_defs_internal:
-			return context.make_bit_definitions(str, hash);
+		case Common::bit_defs_external: 
+			return context.make_bit_definitions(str, hash, true, true);
+		case Common::bit_defs_internal:
+			return context.make_bit_definitions(str, hash, false, true);
 
 		case Common::discard_internal_qubits: {
 			context.get_current_block()->qubit_def_pointer_reset();
@@ -267,6 +273,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::u3: case Common::u:
 			context.set_current_gate(str, 1, 0, 3);
+			return context.get_current_gate();
+		
+		case Common::Measure:
+			context.set_current_gate(str, 1, 1, 0);
 			return context.get_current_gate();
 
 		default:

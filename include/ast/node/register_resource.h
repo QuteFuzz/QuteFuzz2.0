@@ -14,12 +14,13 @@ class Register_resource : public Node {
             Node("Register_resource", hash_rule_name("register_resource"))
         {}
 
-        Register_resource(Variable _name, Integer _index, bool _is_qubit) : 
+        Register_resource(Variable _name, Integer _index, bool _is_qubit, bool _owned) : 
             Node(_is_qubit ? "register_qubit" : "register_bit", 
                  hash_rule_name(_is_qubit ? "register_qubit" : "register_bit")),
             name(_name),
             index(_index),
-            is_qubit(_is_qubit)
+            is_qubit(_is_qubit),
+            owned(_owned)
         {}
 
         void reset(){used = false;}
@@ -27,6 +28,14 @@ class Register_resource : public Node {
         void set_used(){used = true;}
         
         bool is_used(){return used;}
+
+        void set_owned(bool _owned) {
+            owned = _owned;
+        }
+
+        bool is_owned() const {
+            return owned;
+        }
 
         bool get_resource_classification() const {return is_qubit;}
 
@@ -43,6 +52,7 @@ class Register_resource : public Node {
         Integer index;
         bool is_qubit = true;
         bool used = false;
+        bool owned = false;
 
 };
 

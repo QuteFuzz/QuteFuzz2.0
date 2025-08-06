@@ -130,22 +130,19 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Resource_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs> Context::make_qubit_definitions(std::string& str, U64& hash, bool external, bool owned){
         std::shared_ptr<Block> current_block = get_current_block();
-
-        bool external = (hash == Common::qubit_defs_external);
-
-        size_t num_defs = current_block->make_resource_definitions(external, true);
+        
+        size_t num_defs = current_block->make_resource_definitions(external, true, owned);
 
         return std::make_shared<Resource_defs>(str, hash, num_defs, external, true);
     }
 
-    std::shared_ptr<Resource_defs> Context::make_bit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs> Context::make_bit_definitions(std::string& str, U64& hash, bool external, bool owned){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        bool external = (hash == Common::bit_defs_external);
-
-        size_t num_defs = current_block->make_resource_definitions(external, false);
+        // Currently, all bits are owned
+        size_t num_defs = current_block->make_resource_definitions(external, false, owned);
 
         return std::make_shared<Resource_defs>(str, hash, num_defs, external, false);
     }

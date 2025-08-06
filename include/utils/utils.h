@@ -93,6 +93,7 @@ namespace Common {
         phasedxpowgate = 11832025932794728373ULL,
         project_z = 2608459580584910443ULL,
         measure_and_reset = 15416528854723921477ULL,
+        Measure = 13586824709325088415ULL,
 
         // TWO QUBIT GATES
         cx = 622136697450792830ULL,
@@ -143,6 +144,7 @@ namespace Common {
         singular_qubit_def_internal = 14695716164594440254ULL,
     
         qubit_defs_external = 12875408231208951867ULL,
+        qubit_defs_external_owned = 2338026120644312637ULL,
         qubit_def_external = 9066873179617854836ULL,
         register_qubit_def_external = 17118825122301876444ULL,
         singular_qubit_def_external = 5477905196976266716ULL,
