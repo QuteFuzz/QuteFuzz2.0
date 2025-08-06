@@ -8,6 +8,7 @@
 #include <float.h>
 #include <float_list.h>
 #include <resource_list.h>
+#include <sstream>
 #include <arguments.h>
 #include <resource_defs.h>
 #include <qubit_op.h>
@@ -87,11 +88,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::arg_singular_qubit: {
-			return std::make_shared<Resource_list::Qubit_list>(str, hash, 1);
+			return std::make_shared<Resource_list>(str, hash, 1, true);
 		}
 
 		case Common::arg_register_qubits: {
-			return std::make_shared<Resource_list::Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
+			return std::make_shared<Resource_list>(str, hash, context.get_current_arg()->get_qubit_def_size(), true);
 		}
 		
 		case Common::compound_stmt:
@@ -178,12 +179,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::qubit_list: {
 			size_t num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Resource_list::Qubit_list>(str, hash, num_qubits);
+			return std::make_shared<Resource_list>(str, hash, num_qubits, true);
 		}
 
 		case Common::bit_list: {
 			size_t num_bits = context.get_current_gate_num_bits();
-			return std::make_shared<Resource_list::Bit_list>(str, hash, num_bits);
+			return std::make_shared<Resource_list>(str, hash, num_bits, false);
 		}
 
 		// qubit_def_list and qubit_def_size are a special cases used only for pytket->guppy conversion

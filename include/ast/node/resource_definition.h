@@ -4,150 +4,95 @@
 #include <register_resource_definition.h>
 #include <singular_resource_definition.h>
 
-namespace Resource_definition {
+class Resource_definition : public Node {
 
-    enum Type {
-        REGISTER_INTERNAL,
-        SINGULAR_INTERNAL,
-        REGISTER_EXTERNAL,
-        SINGULAR_EXTERNAL
-    };
+    public:
 
-    class Qubit_definition : public Node {
+        /// @brief Dummy definition
+        Resource_definition() : 
+            Node("resource_def", hash_rule_name("resource_def")),
+            value(Register_resource_definition()), 
+            type(Resource::REGISTER_EXTERNAL),
+            resource_type(Resource::QUBIT)
+        {}
 
-        public:
-
-            /// @brief Dummy definition
-            Qubit_definition() : 
-                Node("qubit_def", hash_rule_name("qubit_def")),
-                value(Register_resource_definition::Register_qubit_definition()), 
-                type(REGISTER_EXTERNAL)
-            {}
-
-            Qubit_definition(Register_resource_definition::Register_qubit_definition def, bool external) :
-                Node("qubit_def", hash_rule_name("qubit_def")),
-                value(def), 
-                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
-            {
-                if (external) {
+        Resource_definition(Register_resource_definition def, bool external, bool is_qubit) :
+            Node(is_qubit ? "qubit_def" : "bit_def", 
+                 hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
+            value(def), 
+            type(external ? Resource::REGISTER_EXTERNAL : Resource::REGISTER_INTERNAL),
+            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
+        {
+            if (external) {
+                if (is_qubit) {
                     constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_external, 1);
                 } else {
-                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
-                }
-            }
-
-            Qubit_definition(Singular_resource_definition::Singular_qubit_definition def, bool external) :
-                Node("qubit_def", hash_rule_name("qubit_def")),
-                value(def), 
-                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
-            {
-                if (external) {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
-                }
-            }
-
-            Type get_type(){return type;}
-
-            inline std::shared_ptr<Variable> get_name(){
-                return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
-                    return val.get_name();
-                }, value);
-            }
-
-            inline std::shared_ptr<Integer> get_size(){                
-                if(is_register_def()){
-                    return std::get<Register_resource_definition::Register_qubit_definition>(value).get_size();   
-                }
-
-                ERROR("Singular qubit definitions do not have sizes!");
-
-                return std::make_shared<Integer>();
-            }
-
-            inline bool is_external() const {
-                return ((type == REGISTER_EXTERNAL) || (type == SINGULAR_EXTERNAL));
-            }
-
-            inline bool is_register_def() const {
-                return ((type == REGISTER_EXTERNAL) || (type == REGISTER_INTERNAL));
-            }
-
-        private:
-            std::variant<Register_resource_definition::Register_qubit_definition, Singular_resource_definition::Singular_qubit_definition> value;
-            Type type;
-    
-    };
-
-    class Bit_definition : public Node {
-
-        public:
-
-            /// @brief Dummy definition
-            Bit_definition(): 
-                Node("bit_def", hash_rule_name("bit_def")),
-                value(Register_resource_definition::Register_bit_definition()), 
-                type(REGISTER_EXTERNAL)
-            {}
-
-            Bit_definition(Register_resource_definition::Register_bit_definition def, bool external):
-                Node("bit_def", hash_rule_name("bit_def")),
-                value(def), 
-                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL)
-            {
-                if (external) {
                     constraint = std::make_optional<Node_constraint>(Common::register_bit_def_external, 1);
+                }
+            } else {
+                if (is_qubit) {
+                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
                 } else {
                     constraint = std::make_optional<Node_constraint>(Common::register_bit_def_internal, 1);
                 }
             }
+        }
 
-            Bit_definition(Singular_resource_definition::Singular_bit_definition def, bool external):
-                Node("bit_def", hash_rule_name("bit_def")),
-                value(def), 
-                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL)
-            {
-                if (external) {
+        Resource_definition(Singular_resource_definition def, bool external, bool is_qubit) :
+            Node(is_qubit ? "qubit_def" : "bit_def", 
+                 hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
+            value(def), 
+            type(external ? Resource::SINGULAR_EXTERNAL : Resource::SINGULAR_INTERNAL),
+            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
+        {
+            if (external) {
+                if (is_qubit) {
+                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
+                } else {
                     constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_external, 1);
+                }
+            } else {
+                if (is_qubit) {
+                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
                 } else {
                     constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_internal, 1);
                 }
             }
+        }
 
-            Type get_type(){return type;}
+        Resource::Resource_Type get_type() { return type; }
 
-            inline std::shared_ptr<Variable> get_name(){
-                return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
-                    return val.get_name();
-                }, value);
+        bool is_qubit() const { return resource_type == Resource::QUBIT; }
+
+        inline std::shared_ptr<Variable> get_name(){
+            return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
+                return val.get_name();
+            }, value);
+        }
+
+        inline std::shared_ptr<Integer> get_size(){                
+            if(is_register_def()){
+                return std::get<Register_resource_definition>(value).get_size();   
             }
 
-            inline std::shared_ptr<Integer> get_size(){                
-                if(is_register_def()){
-                    return std::get<Register_resource_definition::Register_bit_definition>(value).get_size();   
-                }
+            ERROR("Singular resource definitions do not have sizes!");
 
-                ERROR("Singular qubit definitions do not have sizes!");
+            return std::make_shared<Integer>();
+        }
 
-                return std::make_shared<Integer>();
-            }
+        inline bool is_external() const {
+            return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::SINGULAR_EXTERNAL));
+        }
 
-            //TODO: May not be needed but keep it here for now
-            inline bool is_external() const {
-                return ((type == REGISTER_EXTERNAL) || (type == SINGULAR_EXTERNAL));
-            }
+        inline bool is_register_def() const {
+            return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::REGISTER_INTERNAL));
+        }
 
-            inline bool is_register_def() const {
-                return ((type == REGISTER_EXTERNAL) || (type == REGISTER_INTERNAL));
-            }
+    private:
+        std::variant<Register_resource_definition, Singular_resource_definition> value;
+        Resource::Resource_Type type;
+        Resource::Resource_Classification resource_type;
 
-        private:
-            std::variant<Register_resource_definition::Register_bit_definition, Singular_resource_definition::Singular_bit_definition> value;
-            Type type;
-
-    };
-
-}
+};
 
 #endif

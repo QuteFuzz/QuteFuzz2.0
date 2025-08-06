@@ -43,9 +43,9 @@ namespace Context {
 
             std::shared_ptr<Block> setup_block(std::string str, U64 hash);
             
-			std::shared_ptr<Resource_defs::Qubit_defs> make_qubit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs> make_qubit_definitions(std::string& str, U64& hash);
 
-			std::shared_ptr<Resource_defs::Bit_defs> make_bit_definitions(std::string& str, U64& hash);
+			std::shared_ptr<Resource_defs> make_bit_definitions(std::string& str, U64& hash);
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
@@ -73,9 +73,9 @@ namespace Context {
 
 			void set_current_bit_definition();
 
-			std::shared_ptr<Resource_definition::Qubit_definition> get_current_qubit_definition();
+			std::shared_ptr<Resource_definition> get_current_qubit_definition();
 
-			std::shared_ptr<Resource_definition::Bit_definition> get_current_bit_definition();
+			std::shared_ptr<Resource_definition> get_current_bit_definition();
 
 			void set_current_qubit_definition_owned();
 
@@ -133,8 +133,8 @@ namespace Context {
 
             int subroutine_counter = 0;
 			
-			std::shared_ptr<Resource_definition::Qubit_definition> current_qubit_definition;
-			std::shared_ptr<Resource_definition::Bit_definition> current_bit_definition;
+			std::shared_ptr<Resource_definition> current_qubit_definition;
+			std::shared_ptr<Resource_definition> current_bit_definition;
 			std::shared_ptr<Resource::Resource> current_qubit;
 			std::shared_ptr<Resource::Resource> current_bit;
 			std::shared_ptr<Gate> current_gate;

@@ -4,64 +4,38 @@
 #include <node.h>
 #include <variable.h>
 
-namespace Singular_resource {
-    
-    class Singular_qubit : public Node {
+class Singular_resource : public Node {
+    public:
+        /// @brief Dummy resource
+        Singular_resource() :
+            Node("Singular_resource", hash_rule_name("singular_resource"))
+        {}
 
-        public:
-            /// @brief Dummy qubit
-            Singular_qubit() :
-                Node("Singular_qubit", hash_rule_name("singular_qubit"))
-            {}
+        // Initialize singular resource with node and hash rule name based on input type
+        Singular_resource(Variable _name, bool _is_qubit) : 
+            Node(_is_qubit ? "singular_qubit" : "singular_bit", 
+                 hash_rule_name(_is_qubit ? "singular_qubit" : "singular_bit")),
+            name(_name),
+            is_qubit(_is_qubit)
+        {}
 
-            Singular_qubit(Variable _name) : 
-                Node("Singular_qubit", hash_rule_name("singular_qubit")),
-                name(_name)
-            {}
+        void reset(){used = false;}
 
-            void reset(){used = false;}
+        void set_used(){used = true;}
+        
+        bool is_used(){return used;}
 
-            void set_used(){used = true;}
-            
-            bool is_used(){return used;}
+        bool get_resource_classification() {return is_qubit;}
 
-            inline std::shared_ptr<Variable> get_name() const {
-                return std::make_shared<Variable>(name);
-            }
-            
-        private:
-            bool used = false;
-            Variable name;
-    };
-
-    class Singular_bit : public Node {
-        public:
-
-            /// @brief Dummy bit
-            Singular_bit() :
-                Node("Singular_bit", hash_rule_name("singular_bit"))
-            {}
-
-            Singular_bit(Variable _name) :
-                Node("Singular_bit", hash_rule_name("singular_bit")),
-                name(_name)
-            {}
-
-            void reset(){used = false;}
-
-            void set_used(){used = true;}
-            
-            bool is_used(){return used;}
-
-            inline std::shared_ptr<Variable> get_name() const {
-                return std::make_shared<Variable>(name);
-            }
-
-        private:
-            bool used = false;
-            Variable name;
-    };
-}
+        inline std::shared_ptr<Variable> get_name() const {
+            return std::make_shared<Variable>(name);
+        }
+        
+    private:
+        bool used = false;
+        bool is_qubit = true;
+        Variable name;
+};
 
 
 

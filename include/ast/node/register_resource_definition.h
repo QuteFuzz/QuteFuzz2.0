@@ -7,90 +7,51 @@
 #include <integer.h>
 #include <collection.h>
 
-namespace Register_resource_definition {
+class Register_resource_definition : public Node {
 
-    
-    class Register_qubit_definition : public Node {
+    public:
 
-        public:
+        /// @brief Dummy resource definition
+        Register_resource_definition() : 
+            Node("Register_resource_definition", hash_rule_name("register_resource_definition"))
+        {}
 
-            /// dummy qubit def
-            Register_qubit_definition() : 
-                Node("register_qubit_def", hash_rule_name("register_qubit_def"))
-            {}
+        Register_resource_definition(Variable _name, Integer _size, bool _is_qubit): 
+            Node(_is_qubit ? "register_qubit_def" : "register_bit_def", 
+                 hash_rule_name(_is_qubit ? "register_qubit_def" : "register_bit_def")),
+            name(_name),
+            size(_size),
+            resource_type(_is_qubit ? Resource::QUBIT : Resource::BIT)
+        {}
 
-            Register_qubit_definition(Variable _name, Integer _size): 
-                Node("register_qubit_def", hash_rule_name("register_qubit_def")),
-                name(_name),
-                size(_size)
-            {}
+        std::shared_ptr<Variable> get_name(){
+            return std::make_shared<Variable>(name);
+        }
 
-            std::shared_ptr<Variable> get_name(){
-                return std::make_shared<Variable>(name);
+        std::shared_ptr<Integer> get_size(){
+            return std::make_shared<Integer>(size);
+        }
+
+        /// @brief Add resources to the given vector from the register
+        /// @param output 
+        /// @param external
+        /// @param _is_qubit
+        void make_resources(Collection<Resource::Resource>& output, bool external, bool _is_qubit) const {
+            size_t reg_size = safe_stoi(size.get_string()).value();
+
+            for(size_t i = 0; i < reg_size; i++){
+                Register_resource reg_resource(name, Integer(std::to_string(i)), _is_qubit);
+
+                output.add(Resource::Resource(reg_resource, external));
             }
+        }
 
-            std::shared_ptr<Integer> get_size(){
-                return std::make_shared<Integer>(size);
-            }
+    private:
+        Variable name;
+        Integer size;
+        Resource::Resource_Classification resource_type;
 
-            /// @brief Add qubits to the given vector from the qreg
-            /// @param qubits 
-            void make_qubits(Collection<Resource::Resource>& output, bool external) const {
-                size_t reg_size = safe_stoi(size.get_string()).value();
-
-                for(size_t i = 0; i < reg_size; i++){
-                    Register_resource::Register_qubit reg_qubit(name, Integer(std::to_string(i)));
-
-                    output.add(Resource::Resource(reg_qubit, external));
-                }
-            }
-
-        private:
-            Variable name;
-            Integer size;
-
-    };
-
-    class Register_bit_definition : public Node {
-
-        public:
-
-            /// dummy bit def
-            Register_bit_definition() : 
-                Node("register_bit_def", hash_rule_name("register_bit_def"))
-            {}
-
-            Register_bit_definition(Variable _name, Integer _size): 
-                Node("register_bit_def", hash_rule_name("register_bit_def")),
-                name(_name),
-                size(_size)
-            {}
-
-            std::shared_ptr<Variable> get_name(){
-                return std::make_shared<Variable>(name);
-            }
-
-            std::shared_ptr<Integer> get_size(){
-                return std::make_shared<Integer>(size);
-            }
-
-            void make_bits(Collection<Resource::Resource>& output, bool external) const {
-                size_t reg_size = safe_stoi(size.get_string()).value();
-
-                for(size_t i = 0; i < reg_size; i++){
-                    Register_resource::Register_bit reg_bit(name, Integer(std::to_string(i)));
-
-                    output.add(Resource::Resource(reg_bit, external));
-                }
-            }
-
-        private:
-            Variable name;
-            Integer size;
-
-    };
-
-}
+};
 
 
 #endif

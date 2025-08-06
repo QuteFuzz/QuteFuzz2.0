@@ -5,70 +5,35 @@
 #include <variable.h>
 #include <integer.h>
 
-namespace Register_resource {
-    class Register_qubit : public Node {
+class Register_resource : public Node {
 
-        public:
+    public:
 
-            /// @brief Dummy qubit
-            Register_qubit() :
-                Node("Register_qubit", hash_rule_name("register_qubit"))
-            {}
-
-            Register_qubit(Variable _name, Integer _index) : 
-                Node("Register_qubit", hash_rule_name("register_qubit")),
-                name(_name),
-                index(_index)
-            {}
-
-            void reset(){used = false;}
-
-            void set_used(){used = true;}
-            
-            bool is_used(){return used;}
-
-            inline std::shared_ptr<Variable> get_name() const {
-                return std::make_shared<Variable>(name);
-            }
-            
-            inline std::shared_ptr<Integer> get_index() const {
-                return std::make_shared<Integer>(index);
-            }
-
-        private:
-            Variable name;
-            Integer index;
-            bool used = false;
-
-    };
-
-
-
-    class Register_bit : public Node {
-        
-        public:
-
-        /// @brief Dummy bit
-        Register_bit() :
-            Node("Register_bit", hash_rule_name("register_bit"))
+        /// @brief Dummy resource
+        Register_resource() :
+            Node("Register_resource", hash_rule_name("register_resource"))
         {}
 
-        Register_bit(Variable _name, Integer _index) :
-            Node("Register_bit", hash_rule_name("register_bit")),
+        Register_resource(Variable _name, Integer _index, bool _is_qubit) : 
+            Node(_is_qubit ? "register_qubit" : "register_bit", 
+                 hash_rule_name(_is_qubit ? "register_qubit" : "register_bit")),
             name(_name),
-            index(_index)
+            index(_index),
+            is_qubit(_is_qubit)
         {}
 
         void reset(){used = false;}
 
         void set_used(){used = true;}
-
+        
         bool is_used(){return used;}
+
+        bool get_resource_classification() const {return is_qubit;}
 
         inline std::shared_ptr<Variable> get_name() const {
             return std::make_shared<Variable>(name);
         }
-
+        
         inline std::shared_ptr<Integer> get_index() const {
             return std::make_shared<Integer>(index);
         }
@@ -76,9 +41,10 @@ namespace Register_resource {
     private:
         Variable name;
         Integer index;
+        bool is_qubit = true;
         bool used = false;
-    };
-}
+
+};
 
 
 #endif

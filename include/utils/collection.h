@@ -47,10 +47,6 @@ struct Collection {
                 for(Resource::Resource& qb : coll){
                     qb.reset();
                 }
-            } else if constexpr (std::is_same_v<T, Resource::Resource>){
-                for(Resource::Resource& b : coll){
-                    b.reset();
-                }
             }
         }
 

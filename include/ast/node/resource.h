@@ -8,14 +8,14 @@
 
 namespace Resource {
 
-    enum Type {
+    enum Resource_Type {
         REGISTER_EXTERNAL,
         REGISTER_INTERNAL,
         SINGULAR_EXTERNAL,
         SINGULAR_INTERNAL
     };
 
-    enum Resource_Type {
+    enum Resource_Classification {
         QUBIT,
         BIT
     };
@@ -23,56 +23,44 @@ namespace Resource {
     class Resource : public Node {
         public:
 
-            /// @brief Dummy qubit
+            /// @brief Dummy resource
             Resource() :
                 Node("resource", hash_rule_name("resource")),
-                value(Singular_resource::Singular_qubit()),
+                value(Singular_resource()),
                 type(SINGULAR_EXTERNAL),
                 resource_type(QUBIT)
             {}
 
-            Resource(Register_resource::Register_qubit qubit, bool external) :
-                Node("qubit", hash_rule_name("qubit")),
-                value(qubit),
+            Resource(Register_resource resource, bool external) :
+                Node(resource.get_resource_classification() ? "qubit" : "bit", 
+                    hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
+                value(resource),
                 type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
-                resource_type(QUBIT)
+                resource_type(resource.get_resource_classification() ? QUBIT : BIT)
             {
-                constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
+                if (resource.get_resource_classification()) {
+                    constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
+                } else {
+                    constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
+                }
             }
 
-            Resource(Singular_resource::Singular_qubit qubit, bool external) :
-                Node("qubit", hash_rule_name("qubit")),
-                value(qubit),
+            Resource(Singular_resource resource, bool external) :
+                Node(resource.get_resource_classification() ? "qubit" : "bit", 
+                    hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
+                value(resource),
                 type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
-                resource_type(BIT)
+                resource_type(resource.get_resource_classification() ? QUBIT : BIT)
             {
-                constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
+                if (resource.get_resource_classification()) {
+                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
+                } else {
+                    constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
+                }
             }
 
-            Resource(Register_resource::Register_bit bit, bool external) :
-                Node("bit", hash_rule_name("bit")),
-                value(bit),
-                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
-                resource_type(BIT)
-            {
-                constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
-            }
-
-            Resource(Singular_resource::Singular_bit bit, bool external) :
-                Node("bit", hash_rule_name("bit")),
-                value(bit),
-                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
-                resource_type(BIT)
-            {
-                constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
-            }
-
-            Type get_type(){
+            Resource_Type get_type(){
                 return type;
-            }
-
-            Resource_Type get_resource_type(){
-                return resource_type;
             }
 
             void reset(){
@@ -113,8 +101,7 @@ namespace Resource {
 
             inline std::shared_ptr<Integer> get_index() const {
                 if(is_register_def()){
-                    if (is_qubit()) return std::get<Register_resource::Register_qubit>(value).get_index();
-                    else return std::get<Register_resource::Register_bit>(value).get_index();
+                    return std::get<Register_resource>(value).get_index();
                 }
 
                 ERROR("Singular resource do not have indices!");
@@ -135,9 +122,9 @@ namespace Resource {
             void add_path_to_heuristics(Dag::Heuristics& h) const;
             
         private:
-            std::variant<Register_resource::Register_qubit, Singular_resource::Singular_qubit, Register_resource::Register_bit, Singular_resource::Singular_bit> value;
-            Type type;
-            Resource_Type resource_type;
+            std::variant<Register_resource, Singular_resource> value;
+            Resource_Type type;
+            Resource_Classification resource_type;
 
             std::vector<Dag::Edge> flow_path;
             std::string flow_path_colour = random_hex_colour();

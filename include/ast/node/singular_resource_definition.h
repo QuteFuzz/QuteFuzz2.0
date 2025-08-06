@@ -2,66 +2,41 @@
 #define SINGULAR_RESOURCE_DEFINITION_H
 
 #include <node.h>
-#include <resource.h>
+#include <singular_resource.h>
+#include <collection.h>
 
-namespace Singular_resource_definition {
+class Singular_resource_definition : public Node {
 
-    class Singular_qubit_definition : public Node {
+    public:
 
-        public:
+        /// @brief Dummy resource definition
+        Singular_resource_definition() : 
+            Node("Singular_resource_definition", hash_rule_name("singular_resource_definition"))
+        {}
 
-            /// dummy qubit def
-            Singular_qubit_definition() : 
-                Node("singular_qubit_def", hash_rule_name("singular_qubit_def"))
-            {}
+        Singular_resource_definition(Variable _name, bool _is_qubit) : 
+            Node(_is_qubit ? "singular_qubit_def" : "singular_bit_def", 
+                 hash_rule_name(_is_qubit ? "singular_qubit_def" : "singular_bit_def")),
+            name(_name),
+            resource_type(_is_qubit ? Resource::QUBIT : Resource::BIT)
+        {}
 
-            Singular_qubit_definition(Variable _name) : 
-                Node("singular_qubit_def", hash_rule_name("singular_qubit_def")),
-                name(_name)
-            {}
+        std::shared_ptr<Variable> get_name(){
+            return std::make_shared<Variable>(name);
+        }
 
-            std::shared_ptr<Variable> get_name(){
-                return std::make_shared<Variable>(name);
-            }
+        /// @brief Add resources to the given vector
+        /// @param output 
+        void make_resources(Collection<Resource::Resource>& output, bool external, bool _is_qubit) const {
+            Singular_resource singular_resource(name, _is_qubit);
+            output.add(Resource::Resource(singular_resource, external));
+        }
 
-            void make_qubits(Collection<Resource::Resource>& output, bool external) const {
-                Singular_resource::Singular_qubit singular_qubit(name);
-                output.add(Resource::Resource(singular_qubit, external));
-            }
+    private:
+        Variable name;
+        Resource::Resource_Classification resource_type;
 
-        private:
-            Variable name;
-
-    };
-
-    class Singular_bit_definition : public Node {
-
-        public:
-
-            /// dummy bit def
-            Singular_bit_definition() : 
-                Node("singular_bit_def", hash_rule_name("singular_bit_def"))
-            {}
-
-            Singular_bit_definition(Variable _name) : 
-                Node("singular_bit_def", hash_rule_name("singular_bit_def")),
-                name(_name)
-            {}
-
-            std::shared_ptr<Variable> get_name(){
-                return std::make_shared<Variable>(name);
-            }
-
-            void make_bits(Collection<Resource::Resource>& output, bool external) const {
-                Singular_resource::Singular_bit singular_bit(name);
-                output.add(Resource::Resource(singular_bit, external));
-            }
-
-        private:
-            Variable name;
-
-    };
-}
+};
 
 
 

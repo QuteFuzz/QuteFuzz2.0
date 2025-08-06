@@ -1,4 +1,7 @@
 #include <resource.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 std::string Resource::Resource::resolved_name() const {
 

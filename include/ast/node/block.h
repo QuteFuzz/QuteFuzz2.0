@@ -116,33 +116,19 @@ class Block : public Node {
             return bits;
         }
 
-        std::shared_ptr<Resource_definition::Qubit_definition> get_next_qubit_def();
+        std::shared_ptr<Resource_definition> get_next_resource_def(bool is_qubit);
 
-        std::shared_ptr<Resource_definition::Qubit_definition> get_next_owned_qubit_def();
+        std::shared_ptr<Resource_definition> get_next_owned_resource_def(bool is_qubit);
 
-        std::shared_ptr<Resource_definition::Qubit_definition> get_next_external_qubit_def();
+        std::shared_ptr<Resource_definition> get_next_external_resource_def(bool is_qubit);
 
-        std::shared_ptr<Resource_definition::Bit_definition> get_next_bit_def();
+        Resource::Resource* get_random_resource(bool internal_only = false, bool is_qubit = true);
 
-        std::shared_ptr<Resource_definition::Bit_definition> get_next_owned_bit_def();
+        size_t make_register_resource_definition(int max_size, bool external, bool is_qubit);
 
-        std::shared_ptr<Resource_definition::Bit_definition> get_next_external_bit_def();
+        size_t make_singular_resource_definition(bool external, bool is_qubit);
 
-        Resource::Resource* get_random_qubit(bool internal_only = false);
-
-        Resource::Resource* get_random_bit();
-
-        size_t make_register_bit_definition(int max_size, bool external);
-
-        size_t make_register_qubit_definition(int max_size, bool external);
-
-        size_t make_singular_bit_definition(bool external);
-
-        size_t make_singular_qubit_definition(bool external);
-
-        size_t make_qubit_definitions(bool external);
-
-        size_t make_bit_definitions(bool external);
+        size_t make_resource_definitions(bool external, bool is_qubit);
 
     private:
         std::string owner;
@@ -154,17 +140,17 @@ class Block : public Node {
         bool can_apply_subroutines = true;
 
         Collection<Resource::Resource> qubits;
-        Collection<Resource_definition::Qubit_definition> qubit_defs;
+        Collection<Resource_definition> qubit_defs;
 
         Collection<Resource::Resource> bits;
-        Collection<Resource_definition::Bit_definition> bit_defs;
+        Collection<Resource_definition> bit_defs;
 
         size_t qubit_def_pointer = 0;
         size_t bit_def_pointer = 0;
         Resource::Resource dummy_qubit;
         Resource::Resource dummy_bit;
-        Resource_definition::Qubit_definition dummy_def;
-        Resource_definition::Bit_definition dummy_bit_def;
+        Resource_definition dummy_def;
+        Resource_definition dummy_bit_def;
 
 };
 

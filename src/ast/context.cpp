@@ -130,24 +130,24 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Resource_defs::Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         bool external = (hash == Common::qubit_defs_external);
 
-        size_t num_defs = current_block->make_qubit_definitions(external);
+        size_t num_defs = current_block->make_resource_definitions(external, true);
 
-        return std::make_shared<Resource_defs::Qubit_defs>(str, hash, num_defs, external);  
+        return std::make_shared<Resource_defs>(str, hash, num_defs, external, true);
     }
 
-    std::shared_ptr<Resource_defs::Bit_defs> Context::make_bit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Resource_defs> Context::make_bit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         bool external = (hash == Common::bit_defs_external);
 
-        size_t num_defs = current_block->make_bit_definitions(external);
+        size_t num_defs = current_block->make_resource_definitions(external, false);
 
-        return std::make_shared<Resource_defs::Bit_defs>(str, hash, num_defs, external);  
+        return std::make_shared<Resource_defs>(str, hash, num_defs, external, false);
     }
 
     std::optional<std::shared_ptr<Block>> Context::get_block(std::string owner){
@@ -162,7 +162,7 @@ namespace Context {
 
     void Context::set_current_arg(const std::string& str, const U64& hash){
         if((current_gate != nullptr) && current_gate_definition.has_value()){
-            std::shared_ptr<Resource_definition::Qubit_definition> qubit_def = current_gate_definition.value()->get_next_external_qubit_def();
+            std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_external_resource_def(true);
             current_arg = std::make_shared<Arg>(str, hash, qubit_def);
         }
     }
@@ -172,7 +172,7 @@ namespace Context {
     }
 
     void Context::set_current_qubit(){
-        Resource::Resource* random_qubit = get_current_block()->get_random_qubit(current_gate->get_string()=="measure_and_reset"); 
+        Resource::Resource* random_qubit = get_current_block()->get_random_resource(current_gate->get_string()=="measure_and_reset", true); 
         
         random_qubit->extend_flow_path(current_gate, current_port++);
 
@@ -180,8 +180,8 @@ namespace Context {
     }
 
     void Context::set_current_bit(){
-        Resource::Resource* random_bit = get_current_block()->get_random_bit();
-        
+        Resource::Resource* random_bit = get_current_block()->get_random_resource(false, false);
+
         random_bit->extend_flow_path(current_gate, current_port++);
 
         current_bit = std::make_shared<Resource::Resource>(*random_bit);
@@ -232,27 +232,27 @@ namespace Context {
     }
 
     void Context::set_current_qubit_definition(){
-        current_qubit_definition = get_current_block()->get_next_qubit_def();
+        current_qubit_definition = get_current_block()->get_next_resource_def(true);
     }
 
     void Context::set_current_bit_definition(){
-        current_bit_definition = get_current_block()->get_next_bit_def();
+        current_bit_definition = get_current_block()->get_next_resource_def(false);
     }
 
-    std::shared_ptr<Resource_definition::Qubit_definition> Context::get_current_qubit_definition(){
+    std::shared_ptr<Resource_definition> Context::get_current_qubit_definition(){
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Resource_definition::Bit_definition> Context::get_current_bit_definition(){
+    std::shared_ptr<Resource_definition> Context::get_current_bit_definition(){
         return current_bit_definition;
     }
 
     void Context::set_current_qubit_definition_owned(){
-        current_qubit_definition = get_current_block()->get_next_owned_qubit_def();
+        current_qubit_definition = get_current_block()->get_next_owned_resource_def(true);
     }
 
     void Context::set_current_bit_definition_owned(){
-        current_bit_definition = get_current_block()->get_next_owned_bit_def();
+        current_bit_definition = get_current_block()->get_next_owned_resource_def(false);
     }
 
     std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){

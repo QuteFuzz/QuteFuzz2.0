@@ -1,4 +1,5 @@
 #include <utils.h>
+#include <sstream>
 
 namespace Common {
     bool plot = false;
