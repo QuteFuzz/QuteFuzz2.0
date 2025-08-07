@@ -52,7 +52,7 @@ Resource::Bit* Block::get_random_bit(U8 scope_filter){
 std::shared_ptr<Qubit_definition> Block::get_next_qubit_def(U8 scope_filter){
     Qubit_definition* maybe_def = qubit_defs.at(qubit_def_pointer++);
 
-    while((maybe_def != nullptr) && (maybe_def->get_scope() & scope_filter)){
+    while((maybe_def != nullptr) && !(maybe_def->get_scope() & scope_filter)){
         maybe_def = qubit_defs.at(qubit_def_pointer++);
     }
 
@@ -66,7 +66,7 @@ std::shared_ptr<Qubit_definition> Block::get_next_qubit_def(U8 scope_filter){
 std::shared_ptr<Bit_definition> Block::get_next_bit_def(U8 scope_filter){
     Bit_definition* maybe_def = bit_defs.at(bit_def_pointer++);
 
-    while((maybe_def != nullptr) && (maybe_def->get_scope() & scope_filter)){
+    while((maybe_def != nullptr) && !(maybe_def->get_scope() & scope_filter)){
         maybe_def = bit_defs.at(bit_def_pointer++);
     }
 

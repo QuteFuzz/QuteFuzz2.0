@@ -133,10 +133,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::gate_op_kind:
 			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
-		case Common::qubit_op: {
+		case Common::qubit_op:
 			context.reset(Context::QUBIT_OP);
-			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), context.get_current_block()->num_internal_qubits() > 0);
-		}
+			return std::make_shared<Qubit_op>(str, hash, context.get_current_block());
 	
 		case Common::circuit_name:
 			return std::make_shared<Variable>(context.get_current_block_owner());
