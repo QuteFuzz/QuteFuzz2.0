@@ -54,13 +54,16 @@ class Node {
             id = node_counter++;
         }
 
+
         Node(const std::string _string, const U64 _hash, const Node_constraint& _constraint, const std::string _indentation_str = ""):
             string(_string),
             hash(_hash),
             kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
             indentation_str(_indentation_str),
             constraint(_constraint)
-        {}
+        {
+            id = node_counter++;
+        }
 
         virtual ~Node() = default;
 

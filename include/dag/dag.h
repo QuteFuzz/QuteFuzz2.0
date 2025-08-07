@@ -2,12 +2,10 @@
 #define DAG_H
 
 #include <node.h>
-
-template<typename T>
-struct Collection;
+#include <collection.h>
 
 namespace Resource {
-    class Resource;
+    class Qubit;
 }
 
 namespace Dag {
@@ -60,7 +58,7 @@ namespace Dag {
 
             /// @brief Use qubit paths to construct useful data structures used to calculate graph theoretic metrics
             /// @param qubits 
-            Heuristics(const Collection<Resource::Resource>& qubits, const Collection<Resource::Resource>& bits);
+            Heuristics(const Collection<Resource::Qubit>& qubits);
 
             void add_edge(int source_node_id, int dest_node_id){
                 if(data.contains(source_node_id)){

@@ -4,6 +4,7 @@
 #include <node.h>
 #include <singular_resource.h>
 #include <collection.h>
+#include <resource.h>
 
 class Singular_resource_definition : public Node {
 
@@ -11,35 +12,59 @@ class Singular_resource_definition : public Node {
 
         /// @brief Dummy resource definition
         Singular_resource_definition() : 
-            Node("Singular_resource_definition", hash_rule_name("singular_resource_definition"))
+            Node()
         {}
 
-        Singular_resource_definition(Variable _name, bool _is_qubit) : 
-            Node(_is_qubit ? "singular_qubit_def" : "singular_bit_def", 
-                 hash_rule_name(_is_qubit ? "singular_qubit_def" : "singular_bit_def")),
-            name(_name),
-            resource_type(_is_qubit ? Resource::QUBIT : Resource::BIT)
+        Singular_resource_definition(Variable _name) : 
+            Node("singular_resource_def", hash_rule_name("singular_resource_def")),
+            name(_name)
         {}
 
         std::shared_ptr<Variable> get_name(){
             return std::make_shared<Variable>(name);
         }
 
-        /// @brief Add resources to the given vector
-        /// @param output 
-        void make_resources(Collection<Resource::Resource>& output, bool external, bool _is_qubit) const {
-            Singular_resource singular_resource(name, _is_qubit);
-            output.add(Resource::Resource(singular_resource, external));
-        }
-
-    private:
+    protected:
         Variable name;
-        Resource::Resource_Classification resource_type;
 
 };
 
+class Singular_qubit_definition : public Singular_resource_definition {
+    
+    public:
+        Singular_qubit_definition(Variable _name) : 
+            Singular_resource_definition(
+                _name
+            )
+        
+        {}
 
+        void make_resources(Collection<Resource::Qubit>& output, Resource::Scope scope) const {
+            Singular_qubit singular_qubit(name);
+            output.add(Resource::Qubit(singular_qubit, scope));
+        }
 
+    private:
+
+};
+
+class Singular_bit_definition : public Singular_resource_definition {
+    
+    public:
+        Singular_bit_definition(Variable _name) : 
+            Singular_resource_definition(
+                _name
+            )
+        {}
+
+        void make_resources(Collection<Resource::Bit>& output, Resource::Scope scope) const {
+            Singular_bit singular_bit(name);
+            output.add(Resource::Bit(singular_bit, scope));
+        }
+
+    private:
+
+};
 
 #endif
 
