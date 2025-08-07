@@ -16,7 +16,7 @@ class Block : public Node {
         {}
 
         Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal, 
-              int _target_num_bits_external, int _target_num_bits_internal) : 
+            int _target_num_bits_external, int _target_num_bits_internal) : 
             Node(str, hash),
             owner(owner_name), 
             target_num_qubits_external(_target_num_qubits_external),
@@ -108,27 +108,27 @@ class Block : public Node {
             }
         }
 
-        Collection<Resource::Resource> get_qubits(){
+        Collection<Resource::Qubit> get_qubits(){
             return qubits;
         }
 
-        Collection<Resource::Resource> get_bits(){
+        Collection<Resource::Bit> get_bits(){
             return bits;
         }
 
-        std::shared_ptr<Resource_definition> get_next_resource_def(bool is_qubit);
+        Resource::Qubit* get_random_qubit(U8 scope_filter = ALL_SCOPES);
+        
+        Resource::Bit* get_random_bit(U8 scope_filter = ALL_SCOPES);
 
-        std::shared_ptr<Resource_definition> get_next_owned_resource_def(bool is_qubit);
+        std::shared_ptr<Qubit_definition> get_next_qubit_def(U8 scope_filter = ALL_SCOPES);
 
-        std::shared_ptr<Resource_definition> get_next_external_resource_def(bool is_qubit);
+        std::shared_ptr<Bit_definition> get_next_bit_def(U8 scope_filter = ALL_SCOPES);
 
-        Resource::Resource* get_random_resource(bool internal_only = false, bool is_qubit = true);
+        size_t make_register_resource_definition(int max_size, Resource::Scope scope, Resource::Classification classification, size_t& total_definitions);
 
-        size_t make_register_resource_definition(int max_size, bool external, bool is_qubit);
+        size_t make_singular_resource_definition(Resource::Scope scope, Resource::Classification classification, size_t& total_definitions);
 
-        size_t make_singular_resource_definition(bool external, bool is_qubit);
-
-        size_t make_resource_definitions(bool external, bool is_qubit);
+        size_t make_resource_definitions(Resource::Scope scope, Resource::Classification classification);
 
     private:
         std::string owner;
@@ -139,18 +139,20 @@ class Block : public Node {
         
         bool can_apply_subroutines = true;
 
-        Collection<Resource::Resource> qubits;
-        Collection<Resource_definition> qubit_defs;
+        Collection<Resource::Qubit> qubits;
+        Collection<Qubit_definition> qubit_defs;
 
-        Collection<Resource::Resource> bits;
-        Collection<Resource_definition> bit_defs;
+        Collection<Resource::Bit> bits;
+        Collection<Bit_definition> bit_defs;
 
         size_t qubit_def_pointer = 0;
         size_t bit_def_pointer = 0;
-        Resource::Resource dummy_qubit;
-        Resource::Resource dummy_bit;
-        Resource_definition dummy_def;
-        Resource_definition dummy_bit_def;
+
+        Resource::Qubit dummy_qubit;
+        Resource::Bit dummy_bit;
+
+        Qubit_definition dummy_qubit_def;
+        Bit_definition dummy_bit_def;
 
 };
 

@@ -1,9 +1,18 @@
 #ifndef COLLECTION_H
 #define COLLECTION_H
 
-#include <resource.h>
+namespace Resource {
+    class Qubit;
+    class Bit;
+}
+
+class Qubit_definition;
+class Bit_definition;
 
 template<typename T>
+concept Allowed_Type = std::is_same_v<T, Resource::Qubit> || std::is_same_v<T, Resource::Bit> || std::is_same_v<T, Qubit_definition> || std::is_same_v<T, Bit_definition>;
+
+template<Allowed_Type T>
 struct Collection {
 
     public:
@@ -43,9 +52,9 @@ struct Collection {
         }
 
         void reset(){
-            if constexpr (std::is_same_v<T, Resource::Resource>){
-                for(Resource::Resource& qb : coll){
-                    qb.reset();
+            if constexpr (std::is_same_v<T, Resource::Qubit> || std::is_same_v<T, Resource::Bit>){
+                for(T& elem : coll){
+                    elem.reset();
                 }
             }
         }

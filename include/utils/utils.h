@@ -36,6 +36,8 @@
 
 using U64 = uint64_t;
 
+using U8 = uint8_t;
+
 namespace fs = std::filesystem;
 
 U64 hash_rule_name(std::string rule_name);

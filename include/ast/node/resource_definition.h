@@ -12,57 +12,22 @@ class Resource_definition : public Node {
         Resource_definition() : 
             Node("resource_def", hash_rule_name("resource_def")),
             value(Register_resource_definition()), 
-            type(Resource::REGISTER_EXTERNAL),
-            resource_type(Resource::QUBIT)
+            scope(Resource::Scope::EXTERNAL)
         {}
 
-        Resource_definition(Register_resource_definition def, bool external, bool is_qubit) :
-            Node(is_qubit ? "qubit_def" : "bit_def", 
-                 hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
+        Resource_definition(Register_resource_definition def, Resource::Scope _scope) :
+            Node("resource_def", hash_rule_name("resource_def")),
             value(def), 
-            type(external ? Resource::REGISTER_EXTERNAL : Resource::REGISTER_INTERNAL),
-            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
-        {
-            if (external) {
-                if (is_qubit) {
-                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_external, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::register_bit_def_external, 1);
-                }
-            } else {
-                if (is_qubit) {
-                    constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::register_bit_def_internal, 1);
-                }
-            }
-        }
+            scope(_scope)
+        {}
 
-        Resource_definition(Singular_resource_definition def, bool external, bool is_qubit) :
-            Node(is_qubit ? "qubit_def" : "bit_def", 
-                 hash_rule_name(is_qubit ? "qubit_def" : "bit_def")),
+        Resource_definition(Singular_resource_definition def, Resource::Scope _scope) :
+            Node("resource_def", hash_rule_name("resource_def")),
             value(def), 
-            type(external ? Resource::SINGULAR_EXTERNAL : Resource::SINGULAR_INTERNAL),
-            resource_type(is_qubit ? Resource::QUBIT : Resource::BIT)
-        {
-            if (external) {
-                if (is_qubit) {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_external, 1);
-                }
-            } else {
-                if (is_qubit) {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_internal, 1);
-                }
-            }
-        }
+            scope(_scope)
+        {}
 
-        Resource::Resource_Type get_type() { return type; }
-
-        bool is_qubit() const { return resource_type == Resource::QUBIT; }
+        U8 get_scope() { return Resource::to_u8(scope); }
 
         inline std::shared_ptr<Variable> get_name(){
             return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
@@ -81,17 +46,86 @@ class Resource_definition : public Node {
         }
 
         inline bool is_external() const {
-            return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::SINGULAR_EXTERNAL));
+            return Resource::is_external(scope);
         }
 
         inline bool is_register_def() const {
-            return ((type == Resource::REGISTER_EXTERNAL) || (type == Resource::REGISTER_INTERNAL));
+            return std::holds_alternative<Register_resource_definition>(value);
         }
 
     private:
         std::variant<Register_resource_definition, Singular_resource_definition> value;
-        Resource::Resource_Type type;
-        Resource::Resource_Classification resource_type;
+        Resource::Scope scope;
+
+};
+
+class Qubit_definition : public Resource_definition {
+
+    public:
+        Qubit_definition() : Resource_definition() {}
+
+        Qubit_definition(Register_resource_definition def, Resource::Scope scope):
+            Resource_definition(
+                def, 
+                scope
+            )
+        {
+            if (Resource::is_external(scope)) {
+                constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_external, 1);
+            } else {
+                constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
+            }
+        }
+
+        Qubit_definition(Singular_resource_definition def, Resource::Scope scope):
+            Resource_definition(
+                def, 
+                scope
+            )
+        {
+            if (scope == Resource::Scope::EXTERNAL) {
+                constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
+            } else {
+                constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
+            }
+        }
+
+    private:
+
+};
+
+class Bit_definition : public Resource_definition {
+
+    public:
+        Bit_definition() : Resource_definition() {}
+
+        Bit_definition(Register_resource_definition def, Resource::Scope scope):
+            Resource_definition(
+                def, 
+                scope
+            )
+        {
+            if (scope == Resource::Scope::EXTERNAL) {
+                constraint = std::make_optional<Node_constraint>(Common::register_bit_def_external, 1);
+            } else {
+                constraint = std::make_optional<Node_constraint>(Common::register_bit_def_internal, 1);
+            }
+        }
+
+        Bit_definition(Singular_resource_definition def, Resource::Scope scope):
+            Resource_definition(
+                def, 
+                scope
+            )
+        {
+            if (scope == Resource::Scope::EXTERNAL) {
+                constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_external, 1);
+            } else {
+                constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_internal, 1);
+            }
+        }
+
+    private:
 
 };
 

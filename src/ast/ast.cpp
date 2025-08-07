@@ -88,11 +88,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::arg_singular_qubit: {
-			return std::make_shared<Resource_list>(str, hash, 1, true);
+			return std::make_shared<Qubit_list>(str, hash, 1);
 		}
 
 		case Common::arg_register_qubits: {
-			return std::make_shared<Resource_list>(str, hash, context.get_current_arg()->get_qubit_def_size(), true);
+			return std::make_shared<Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
 		}
 		
 		case Common::compound_stmt:
@@ -179,12 +179,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::qubit_list: {
 			size_t num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Resource_list>(str, hash, num_qubits, true);
+			return std::make_shared<Qubit_list>(str, hash, num_qubits);
 		}
 
 		case Common::bit_list: {
 			size_t num_bits = context.get_current_gate_num_bits();
-			return std::make_shared<Resource_list>(str, hash, num_bits, false);
+			return std::make_shared<Bit_list>(str, hash, num_bits);
 		}
 
 		// qubit_def_list and qubit_def_size are a special cases used only for pytket->guppy conversion
@@ -353,7 +353,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 }
 
 int Ast::get_dag_score(){
-	return Dag::Heuristics(context.get_current_block()->get_qubits(), context.get_current_block()->get_bits()).score();
+	return Dag::Heuristics(context.get_current_block()->get_qubits()).score();
 }
 
 void Ast::render_dag(const fs::path& current_circuit_dir){
@@ -361,13 +361,9 @@ void Ast::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "digraph G {\n";
 
-    for(const Resource::Resource& qubit : context.get_current_block()->get_qubits()){
+    for(const Resource::Qubit& qubit : context.get_current_block()->get_qubits()){
         qubit.extend_dot_string(dot_string);
     }
-
-	for(const Resource::Resource& bit : context.get_current_block()->get_bits()){
-		bit.extend_dot_string(dot_string);
-	}
 
     dot_string << "}\n";
 

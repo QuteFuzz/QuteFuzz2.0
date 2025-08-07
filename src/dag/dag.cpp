@@ -2,14 +2,10 @@
 #include <collection.h>
 #include <dag.h>
 
-Dag::Heuristics::Heuristics(const Collection<Resource::Resource>& qubits, const Collection<Resource::Resource>& bits) {
+Dag::Heuristics::Heuristics(const Collection<Resource::Qubit>& qubits) {
     // prepare adj_list
-    for(const Resource::Resource& qubit : qubits){
+    for(const Resource::Qubit& qubit : qubits){
         qubit.add_path_to_heuristics(*this);
-    }
-
-    for(const Resource::Resource& bit : bits){
-        bit.add_path_to_heuristics(*this);
     }
 
     n_nodes = data.size();
