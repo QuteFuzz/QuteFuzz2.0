@@ -82,7 +82,6 @@ size_t Block::make_resource_definitions(bool external, bool is_qubit, bool owned
         } else {
             target -= make_register_resource_definition(target, external, is_qubit, owned);
         }
-        std::cout << "Target: " << target << std::endl;
 
         type_choice = random_int(1);
     }
