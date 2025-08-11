@@ -2,18 +2,6 @@
 #include <ast.h>
 
 
-void Program_Spec::setup_builder(const std::string entry_name){
-    if(grammar->is_rule(entry_name)){
-        builder->set_entry(grammar->get_rule_pointer(entry_name));
-    } else {
-        std::cout << "Rule " << entry_name << " is not defined for grammar " << grammar->get_name() << std::endl;  
-    }
-}
-
-void Program_Spec::ast_to_program(fs::path output_dir, int num_programs){
-    builder->ast_to_program(output_dir, extension, num_programs);
-}
-
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
     // build all grammars
     try{
@@ -26,7 +14,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().stem() == TOKENS_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().stem() == Common::TOKENS_GRAMMAR_NAME)){
                     Grammar grammar(file);
                     grammar.build_grammar();
 
@@ -42,7 +30,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != Common::TOKENS_GRAMMAR_NAME)){
 
                     Grammar grammar(file);
                     grammar += commons_grammar;
@@ -50,7 +38,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;
-                    specs[name] = std::make_shared<Program_Spec>(grammar);
+                    generators[name] = std::make_shared<Generator>(grammar);
                     
                 }
 
@@ -59,7 +47,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             /* 
                 prepare directories
             */
-            output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
+            output_dir = grammars_dir.parent_path() / Common::OUTPUTS_FOLDER_NAME;
             
             if(!fs::exists(output_dir)){
                 fs::create_directory(output_dir);
@@ -80,8 +68,8 @@ void Run::set_grammar(){
     std::string grammar_name = tokens[0], entry_name = tokens[1];
 
     if(is_grammar(grammar_name)){
-        current_spec = specs[grammar_name];
-        current_spec->setup_builder(entry_name);
+        current_generator = generators[grammar_name];
+        current_generator->setup_builder(entry_name);
 
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
@@ -129,6 +117,44 @@ void Run::print_progress_bar(unsigned int current) {
     if (current == n) std::cout << std::endl;
 }
 
+void Run::help(){
+    std::cout << "-> Type enter to write to a file" << std::endl;
+    std::cout << "-> \"grammar_name grammar_entry\" : command to set grammar " << std::endl;
+    std::cout << "  These are the known grammar rules: " << std::endl;
+
+    for(const auto& generator : generators){
+        std::cout << generator.second << std::endl;
+    }
+}
+
+void Run::run_tests(){
+    int current = 0;
+    std::string results_path = (output_dir / "results.txt").string();
+    std::ofstream results_file(results_path);
+
+    for(auto& entry : fs::directory_iterator(output_dir)){
+
+        // check for directories to avoid running the results.txt file and interesting_circuits
+        if(entry.is_directory() && entry.path().filename() != "interesting_circuits"){
+
+            current++;
+
+            results_file << "Running test: " << entry.path().filename() << std::endl;
+            
+            fs::path program_path = entry.path() / ("circuit.py");
+            std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
+            
+            results_file << pipe_from_command(command) << std::endl;
+
+            print_progress_bar(current);                       
+        }              
+    }
+
+    results_file.close();
+
+    INFO("Test results written to " + results_path);
+}
+
 void Run::loop(){
 
     std::string current_command;
@@ -148,13 +174,13 @@ void Run::loop(){
         } else if (current_command == "quit"){
             break;
 
-        } else if(current_spec != nullptr){
+        } else if(current_generator != nullptr){
 
             if(current_command == "print"){
-                current_spec->print_grammar();
+                current_generator->print_grammar();
             
             } else if (current_command == "print_tokens"){
-                current_spec->print_tokens();
+                current_generator->print_tokens();
             
             } else if (current_command == "plot"){
                 Common::plot = !Common::plot;
@@ -171,9 +197,13 @@ void Run::loop(){
             } else if (current_command == "run_tests"){
                 run_tests();
 
+            } else if (current_command == "run_genetic"){
+                remove_all_in_dir(output_dir);
+                current_generator->run_genetic();
+
             } else if ((n_programs = safe_stoi(current_command))){
                 remove_all_in_dir(output_dir);
-                current_spec->ast_to_program(output_dir, n_programs.value_or(0));
+                current_generator->ast_to_program(output_dir, n_programs.value_or(0));
             }
 
         } else {

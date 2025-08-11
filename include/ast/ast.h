@@ -14,23 +14,25 @@ class Ast{
 
         ~Ast() = default;
 
-        int build_counter = 0;
-
-        void set_entry(const std::shared_ptr<Rule> _entry){
+        inline void set_entry(const std::shared_ptr<Rule> _entry){
             entry = _entry;
-        }   
+        }
+
+        inline bool entry_set(){return entry != nullptr;}
 
         void write_branch(std::shared_ptr<Node> parent, const Term& term);
 
         std::shared_ptr<Node> get_node_from_term(const std::shared_ptr<Node> parent, const Term& term);
 
+        inline void set_ast_counter(const int& counter){context.set_ast_counter(counter);}
+
         Result<Node> build();
 
-        virtual void ast_to_program(fs::path output_dir, const std::string& extension, int num_programs);
+        inline Dag::Dag& get_dag(){ return dag; }
 
-        void render_dag(const fs::path& current_circuit_dir);
+        inline void render_dag(const fs::path& current_circuit_dir){dag.render_dag(current_circuit_dir);}
 
-        int get_dag_score();
+        inline int get_dag_score(){return dag.score();}
 
     protected:
 
@@ -38,6 +40,7 @@ class Ast{
         std::shared_ptr<Node> dummy = std::make_shared<Node>("");
         
         Context::Context context;
+        Dag::Dag dag;
 };
 
 #endif

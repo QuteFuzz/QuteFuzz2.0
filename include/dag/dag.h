@@ -51,41 +51,40 @@ namespace Dag {
     };
 
     /// @brief Given a set of qubits, get DAG score using the path taken by each qubit
-    class Heuristics {
+    class Dag {
         
         public:
-            Heuristics(){}
+            Dag(){}
 
-            /// @brief Use qubit paths to construct useful data structures used to calculate graph theoretic metrics
-            /// @param qubits 
-            Heuristics(const Collection<Resource::Qubit>& qubits);
+            void make_dag(const Collection<Resource::Qubit>& qubits);
 
-            void add_edge(int source_node_id, int dest_node_id){
-                if(data.contains(source_node_id)){
-                    data.at(source_node_id).children.push_back(dest_node_id);
-                    data.at(source_node_id).out_degree += 1;
+            /// @brief Given 2 DAGs create child DAG that's a combination of both
+            /// TODO: Make this use both dags to create child
+            /// @param dag1 
+            /// @param dag2 
+            void make_dag(const Dag& dag1, const Dag& dag2);
 
-                } else {
-                    data[source_node_id] = {.in_degree = 0, .out_degree = 1, .children = {dest_node_id}}; 
-                }
-
-                if(data.contains(dest_node_id)){
-                    data.at(dest_node_id).in_degree += 1;
-                
-                } else {
-                    data[dest_node_id] = {.in_degree = 1, .out_degree = 0, .children = {}};
-                }
+            inline Collection<Resource::Qubit> get_qubits() const {
+                return qubits;
             }
 
-            friend std::ostream& operator<<(std::ostream& stream, const Heuristics& h){
+            void add_edge(int source_node_id, int dest_node_id);
+
+            void render_dag(const fs::path& current_circuit_dir);
+
+            int max_out_degree();
+
+            int score();
+
+            friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
                 stream << "=========================================" << std::endl;
                 stream << "                ADJ LIST                 " << std::endl; 
                 stream << "=========================================" << std::endl;
 
-                stream << "N_NODES: " << h.n_nodes << std::endl;
+                stream << "N_NODES: " << dag.n_nodes << std::endl;
 
-                for(const auto&[node, node_data] : h.data){
+                for(const auto&[node, node_data] : dag.data){
 
                     stream << node << " -> children: ";
 
@@ -99,21 +98,10 @@ namespace Dag {
                 return stream;
             }
 
-            int max_out_degree(){
-                int curr_max = 0;
-
-                for(const auto&[node, node_data] : data){
-                    curr_max = std::max(curr_max, node_data.out_degree);
-                }
-
-                return curr_max;
-            }
-
-            int score();
-
         private:
             size_t n_nodes = 0;
             std::unordered_map<int, Node_data> data;
+            Collection<Resource::Qubit> qubits;
 
     };
 
