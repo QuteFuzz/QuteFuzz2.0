@@ -127,7 +127,7 @@ namespace Resource {
 
             void extend_dot_string(std::ostringstream& ss) const;
 
-            void add_path_to_heuristics(Dag::Heuristics& h) const;
+            void add_path_to_dag(Dag::Dag& dag) const;
 
             std::vector<Dag::Edge> get_flow_path(){
                 return flow_path;

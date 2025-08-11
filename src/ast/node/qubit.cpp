@@ -47,7 +47,7 @@ void Resource::Qubit::extend_dot_string(std::ostringstream& ss) const {
     }
 }
 
-void Resource::Qubit::add_path_to_heuristics(Dag::Heuristics& h) const {
+void Resource::Qubit::add_path_to_dag(Dag::Dag& dag) const {
 
     if(flow_path_length >= 2){
 
@@ -55,7 +55,7 @@ void Resource::Qubit::add_path_to_heuristics(Dag::Heuristics& h) const {
             int current_node_id = flow_path.at(i).get_node_id();
             int next_node_id = flow_path.at(i+1).get_node_id();
 
-            h.add_edge(current_node_id, next_node_id);
+            dag.add_edge(current_node_id, next_node_id);
         }
     }
 }
