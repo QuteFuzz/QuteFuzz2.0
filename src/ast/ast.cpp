@@ -117,7 +117,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Simple_stmt>(str, hash);
 
 		case Common::circuit_id:
-			return std::make_shared<Integer>(std::to_string(build_counter));
+			return context.get_circuit_id();
 
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
@@ -322,65 +322,10 @@ Result<Node> Ast::build(){
 
 		write_branch(root_ptr, entry_as_term);
 
+		dag.make_dag(context.get_current_block()->get_qubits());
+
 		res.set_ok(*root_ptr);
 	}
 
 	return res;
-}
-
-void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int num_programs){
-
-	for(build_counter = 0; build_counter < num_programs; build_counter++){
-		fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
-		fs::create_directory(current_circuit_dir);
-		
-	    Result<Node> maybe_ast_root = build();
-
-		if(maybe_ast_root.is_ok()){
-			Node ast_root = maybe_ast_root.get_ok();
-
-			fs::path program_path = current_circuit_dir / ("circuit" + extension);
-			std::ofstream stream(program_path.string());
-
-			// render dag (main block)
-			if (Common::render_dags) {
-				render_dag(current_circuit_dir);
-			}
-
-			int dag_score = get_dag_score();
-
-			INFO("Dag score: " + std::to_string(dag_score));
-
-			// write program
-			stream << ast_root << std::endl;
-			INFO("Program written to " + program_path.string());
-			
-		} else {
-        	ERROR(maybe_ast_root.get_error());
-		}
-    }
-}
-
-int Ast::get_dag_score(){
-	return Dag::Heuristics(context.get_current_block()->get_qubits()).score();
-}
-
-void Ast::render_dag(const fs::path& current_circuit_dir){
-    std::ostringstream dot_string;
-
-    dot_string << "digraph G {\n";
-
-    for(const Resource::Qubit& qubit : context.get_current_block()->get_qubits()){
-        qubit.extend_dot_string(dot_string);
-    }
-
-    dot_string << "}\n";
-
-    fs::path dag_render_path = current_circuit_dir / "dag.png";
-
-    const std::string str = dag_render_path.string();
-    std::string command = "dot -Tpng -o " + str;
-    
-    pipe_to_command(command, dot_string.str());
-    INFO("Program DAG rendered to " + dag_render_path.string());
 }

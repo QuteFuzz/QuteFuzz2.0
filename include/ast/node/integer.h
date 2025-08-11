@@ -12,6 +12,10 @@ class Integer : public Node {
             Node(std::to_string(random_int(42)))
         {}
 
+        Integer(int i) : 
+            Node(std::to_string(i))
+        {}
+
     private:
 
 };

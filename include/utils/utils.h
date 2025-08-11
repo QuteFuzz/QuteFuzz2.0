@@ -23,16 +23,19 @@
 
 #define UNUSED(x) (void)(x)
 
+// colours
+#define RED(x) (std::string("\033[31m") + x + std::string("\033[0m"))
+#define YELLOW(x) (std::string("\033[33m") + x + std::string("\033[0m"))
+#define GREEN(x) (std::string("\033[32m") + x + std::string("\033[0m"))
+
 // location annotation
 #define ANNOT(x) (std::string("at ") + __FILE__ + "," + std::to_string(__LINE__) + ": " + (x))
 
 // logging
-#define ERROR(x) std::cerr << (std::string("[ERROR] ") + ANNOT(x)) << std::endl
-#define WARNING(x) std::cout << (std::string("[WARNING] ") + ANNOT(x)) << std::endl
-#define INFO(x) std::cout << (std::string("[INFO] ") + x) << std::endl
+#define ERROR(x) std::cerr << (std::string("[ERROR] ") + RED(ANNOT(x))) << std::endl
+#define WARNING(x) std::cout << (std::string("[WARNING] ") + YELLOW(ANNOT(x))) << std::endl
+#define INFO(x) std::cout << (std::string("[INFO] ") + GREEN(x)) << std::endl
 
-
-#define TOKENS_GRAMMAR_NAME "tokens"
 
 using U64 = uint64_t;
 
@@ -43,6 +46,8 @@ namespace fs = std::filesystem;
 U64 hash_rule_name(std::string rule_name);
 
 void lower(std::string& str);
+
+std::mt19937& seed();
 
 int random_int(int max, int min = 0);
 
@@ -65,7 +70,16 @@ std::string escape(const std::string& str);
 std::string random_hex_colour();
 
 namespace Common {
+    /*
+        names 
+    */
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circuit";
+    constexpr char OUTPUTS_FOLDER_NAME[] = "outputs";
+    constexpr char TOKENS_GRAMMAR_NAME[] = "tokens";
+
+    /*
+        ast parameters
+    */
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3;
     constexpr int MIN_BITS = 1;
@@ -74,10 +88,16 @@ namespace Common {
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
     constexpr int COMPOUND_STMT_DEPTH = 2;
 
+    /*
+        flags 
+    */
     extern bool plot;
     extern bool verbose;
     extern bool render_dags;
     
+    /*
+        ast node types
+    */
     enum Rule_hash : U64 {
         // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
@@ -173,7 +193,6 @@ namespace Common {
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
 
-        // Guppy rules
         main_block = 9115425723233342258ULL,
         main_block_def = 6816634947724795910ULL,
         block_args = 8098915444984821122ULL,

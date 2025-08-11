@@ -109,19 +109,23 @@ namespace Context {
 
 			int get_current_gate_num_bits();
 		
-			bool current_block_is_subroutine(){
+			inline bool current_block_is_subroutine(){
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
             }
 
-			void set_subroutines_node(std::shared_ptr<Node> _node){
+			inline void set_subroutines_node(std::shared_ptr<Node> _node){
 				subroutines_node = _node;
 			}
 
 			void set_current_gate_definition();
 
-			std::shared_ptr<Block> get_current_gate_definition() const {
+			inline std::shared_ptr<Block> get_current_gate_definition() const {
 				return current_gate_definition.value_or(std::make_shared<Block>(dummy_block));
 			}
+
+			inline void set_ast_counter(const int& counter){ast_counter = counter;}
+
+			inline std::shared_ptr<Integer> get_circuit_id(){return std::make_shared<Integer>(ast_counter);}
 
         private:
 			std::string current_block_owner;
@@ -132,6 +136,7 @@ namespace Context {
 			Variable dummy_var;
 
             int subroutine_counter = 0;
+			int ast_counter = 0;
 			
 			std::shared_ptr<Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Bit_definition> current_bit_definition;
