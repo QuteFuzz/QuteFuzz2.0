@@ -88,11 +88,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::arg_singular_qubit: {
-			return std::make_shared<Resource_list>(str, hash, 1, true);
+			return std::make_shared<Qubit_list>(str, hash, 1);
 		}
 
 		case Common::arg_register_qubits: {
-			return std::make_shared<Resource_list>(str, hash, context.get_current_arg()->get_qubit_def_size(), true);
+			return std::make_shared<Qubit_list>(str, hash, context.get_current_arg()->get_qubit_def_size());
 		}
 		
 		case Common::compound_stmt:
@@ -133,10 +133,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::gate_op_kind:
 			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
 
-		case Common::qubit_op: {
+		case Common::qubit_op:
 			context.reset(Context::QUBIT_OP);
-			return std::make_shared<Qubit_op>(str, hash, context.get_current_block()->get_can_apply_subroutines(), context.get_current_block()->num_owned_qubits() > 0);
-		}
+			return std::make_shared<Qubit_op>(str, hash, context.get_current_block());
 	
 		case Common::circuit_name:
 			return std::make_shared<Variable>(context.get_current_block_owner());
@@ -147,16 +146,18 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qubit_def_name:
 			return context.get_current_qubit_definition_name();
 
-		case Common::qubit_def_external: case Common::qubit_def_internal:
-			context.set_current_qubit_definition();
+		case Common::qubit_def_external: case Common::qubit_def_internal: {
+			if (*parent == Common::qubit_defs_external_owned || *parent == Common::qubit_defs_internal) {
+				context.set_current_qubit_definition_owned();
+			} else {
+				context.set_current_qubit_definition();
+			}
 			return context.get_current_qubit_definition();
+		}
 
-		case Common::qubit_defs_external: 
-			return context.make_qubit_definitions(str, hash, true, false);
-		case Common::qubit_defs_internal: 
-			 return context.make_qubit_definitions(str, hash, false, true);
+		case Common::qubit_defs_external: case Common::qubit_defs_internal:
 		case Common::qubit_defs_external_owned:
-			return context.make_qubit_definitions(str, hash, true, true);
+			return context.make_qubit_definitions(str, hash);
 
 		case Common::creg_size:
 			return context.get_current_bit_definition_size();
@@ -168,15 +169,13 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.set_current_bit_definition();
 			return context.get_current_bit_definition();
 
-		case Common::bit_defs_external: 
-			return context.make_bit_definitions(str, hash, true, true);
-		case Common::bit_defs_internal:
-			return context.make_bit_definitions(str, hash, false, true);
+		case Common::bit_defs_external: case Common::bit_defs_internal:
+			return context.make_bit_definitions(str, hash);
 
 		case Common::discard_internal_qubits: {
 			context.get_current_block()->qubit_def_pointer_reset();
-			size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
-			return context.get_discard_qubit_defs(str, hash, num_internal_qubit_defs);
+			size_t num_owned_qubit_defs = context.get_current_block()->num_owned_qubit_defs();
+			return context.get_discard_qubit_defs(str, hash, num_owned_qubit_defs);
 		}
 		
 		case Common::discard_internal_qubit:
@@ -185,12 +184,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::qubit_list: {
 			size_t num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Resource_list>(str, hash, num_qubits, true);
+			return std::make_shared<Qubit_list>(str, hash, num_qubits);
 		}
 
 		case Common::bit_list: {
 			size_t num_bits = context.get_current_gate_num_bits();
-			return std::make_shared<Resource_list>(str, hash, num_bits, false);
+			return std::make_shared<Bit_list>(str, hash, num_bits);
 		}
 
 		// qubit_def_list and qubit_def_size are a special cases used only for pytket->guppy conversion
@@ -363,7 +362,7 @@ void Ast::ast_to_program(fs::path output_dir, const std::string& extension, int 
 }
 
 int Ast::get_dag_score(){
-	return Dag::Heuristics(context.get_current_block()->get_qubits(), context.get_current_block()->get_bits()).score();
+	return Dag::Heuristics(context.get_current_block()->get_qubits()).score();
 }
 
 void Ast::render_dag(const fs::path& current_circuit_dir){
@@ -371,13 +370,9 @@ void Ast::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "digraph G {\n";
 
-    for(const Resource::Resource& qubit : context.get_current_block()->get_qubits()){
+    for(const Resource::Qubit& qubit : context.get_current_block()->get_qubits()){
         qubit.extend_dot_string(dot_string);
     }
-
-	for(const Resource::Resource& bit : context.get_current_block()->get_bits()){
-		bit.extend_dot_string(dot_string);
-	}
 
     dot_string << "}\n";
 

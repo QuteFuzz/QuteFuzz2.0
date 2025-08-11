@@ -8,14 +8,29 @@
 
 namespace Resource {
 
-    enum Resource_Type {
-        REGISTER_EXTERNAL,
-        REGISTER_INTERNAL,
-        SINGULAR_EXTERNAL,
-        SINGULAR_INTERNAL
+    enum class Scope {
+        EXTERNAL = 1 << 0,
+        INTERNAL = 1 << 1,
+        EXTERNAL_OWNED = 1 << 2,
     };
 
-    enum Resource_Classification {
+    inline U8 to_u8(Scope s){
+        return static_cast<U8>(s);
+    }
+
+    inline U8 operator|(Scope lhs, Scope rhs){
+        return to_u8(lhs) | to_u8(rhs);
+    }
+
+    inline bool is_external(Scope scope){
+        return scope == Scope::EXTERNAL || scope == Scope::EXTERNAL_OWNED;
+    }
+
+    inline bool is_owned(Scope scope){
+        return scope == Scope::EXTERNAL_OWNED || scope == Scope::INTERNAL;
+    }
+
+    enum Classification {
         QUBIT,
         BIT
     };
@@ -27,42 +42,23 @@ namespace Resource {
             Resource() :
                 Node("resource", hash_rule_name("resource")),
                 value(Singular_resource()),
-                type(SINGULAR_EXTERNAL),
-                resource_type(QUBIT)
+                scope(Scope::EXTERNAL)
             {}
 
-            Resource(Register_resource resource, bool external, bool owned) :
-                Node(resource.get_resource_classification() ? "qubit" : "bit", 
-                    hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
+            Resource(std::string str, U64 hash, Register_resource resource, Scope _scope) :
+                Node(str, hash),
                 value(resource),
-                type(external ? REGISTER_EXTERNAL : REGISTER_INTERNAL),
-                resource_type(resource.get_resource_classification() ? QUBIT : BIT),
-                owned(owned)
-            {
-                if (resource.get_resource_classification()) {
-                    constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
-                }
-            }
+                scope(_scope)
+            {}
 
-            Resource(Singular_resource resource, bool external, bool owned) :
-                Node(resource.get_resource_classification() ? "qubit" : "bit", 
-                    hash_rule_name(resource.get_resource_classification() ? "qubit" : "bit")),
+            Resource(std::string str, U64 hash, Singular_resource resource, Scope _scope) :
+                Node(str, hash),
                 value(resource),
-                type(external ? SINGULAR_EXTERNAL : SINGULAR_INTERNAL),
-                resource_type(resource.get_resource_classification() ? QUBIT : BIT),
-                owned(owned)
-            {
-                if (resource.get_resource_classification()) {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
-                } else {
-                    constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
-                }
-            }
+                scope(_scope)
+            {}
 
-            Resource_Type get_type(){
-                return type;
+            U8 get_scope(){
+                return to_u8(scope);
             }
 
             void reset(){
@@ -83,30 +79,22 @@ namespace Resource {
                 }, value);
             }
 
-            bool is_owned() const {
-                return owned;
-            }
-
-            void set_owned(bool _owned) {
-                owned = _owned;
-            }
-
             inline std::shared_ptr<Variable> get_name() const {
                 return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
                     return val.get_name();
                 }, value);
             }
 
-            inline bool is_qubit() const {
-                return ((resource_type == QUBIT));
+            inline bool is_external() const {
+                return scope == Scope::EXTERNAL || scope == Scope::EXTERNAL_OWNED;
             }
 
-            inline bool is_external() const {
-                return ((type == REGISTER_EXTERNAL) || (type == SINGULAR_EXTERNAL));
+            inline bool is_owned() const {
+                return scope == Scope::EXTERNAL_OWNED || scope == Scope::INTERNAL;
             }
 
             inline bool is_register_def() const {
-                return ((type == REGISTER_EXTERNAL) || (type == REGISTER_INTERNAL));
+                return std::holds_alternative<Register_resource>(value);
             }
 
             inline std::shared_ptr<Integer> get_index() const {
@@ -119,29 +107,74 @@ namespace Resource {
                 return std::make_shared<Integer>();
             }
 
-            std::vector<Dag::Edge> get_flow_path(){
-                return flow_path;
-            }
-
             std::string resolved_name() const override;
             
+        private:
+            std::variant<Register_resource, Singular_resource> value;
+            Scope scope;
+
+    };
+
+    class Qubit : public Resource {
+
+        public:
+            Qubit() : Resource() {}
+
+            Qubit(Register_qubit qubit, Scope scope) :
+                Resource("qubit", Common::qubit, qubit, scope)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
+            }
+
+            Qubit(Singular_qubit qubit, Scope scope) :
+                Resource("qubit", Common::qubit, qubit, scope)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
+            }
+
             void extend_flow_path(const std::shared_ptr<Node> node, size_t current_port);
 
             void extend_dot_string(std::ostringstream& ss) const;
 
             void add_path_to_heuristics(Dag::Heuristics& h) const;
-            
-        private:
-            std::variant<Register_resource, Singular_resource> value;
-            Resource_Type type;
-            Resource_Classification resource_type;
-            bool owned = false;
 
+            std::vector<Dag::Edge> get_flow_path(){
+                return flow_path;
+            }
+
+
+        private:
             std::vector<Dag::Edge> flow_path;
             std::string flow_path_colour = random_hex_colour();
             size_t flow_path_length = 0;
+
     };
 
+    class Bit : public Resource {
+
+        public:
+            Bit() : Resource() {}
+
+            Bit(Register_bit bit, Scope scope) :
+                Resource("bit", Common::bit, bit, scope)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
+            }
+
+            Bit(Singular_bit bit, Scope scope) :
+                Resource("bit", Common::bit, bit, scope)
+            {
+                constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
+            }
+
+        private:
+
+    };
+
+
 }
+
+#define ALL_SCOPES (to_u8(Resource::Scope::EXTERNAL) | to_u8(Resource::Scope::INTERNAL) | to_u8(Resource::Scope::EXTERNAL_OWNED))
+
 
 #endif

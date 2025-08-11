@@ -130,21 +130,39 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Resource_defs> Context::make_qubit_definitions(std::string& str, U64& hash, bool external, bool owned){
+    std::shared_ptr<Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
-        
-        size_t num_defs = current_block->make_resource_definitions(external, true, owned);
 
-        return std::make_shared<Resource_defs>(str, hash, num_defs, external, true);
+        Resource::Scope scope;
+
+        switch(hash){
+            case Common::qubit_defs_external: 
+                scope = Resource::Scope::EXTERNAL;
+                break;
+            case Common::qubit_defs_internal:
+                scope = Resource::Scope::INTERNAL;
+                break;
+            case Common::qubit_defs_external_owned:
+                scope = Resource::Scope::EXTERNAL_OWNED;
+                break;
+            default:
+                scope = Resource::Scope::EXTERNAL;
+                ERROR("Unknown qubit defs hash: " + std::to_string(hash));
+        }
+
+        size_t num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
+
+        return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
     }
 
-    std::shared_ptr<Resource_defs> Context::make_bit_definitions(std::string& str, U64& hash, bool external, bool owned){
+    std::shared_ptr<Bit_defs> Context::make_bit_definitions(std::string& str, U64& hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        // Currently, all bits are owned
-        size_t num_defs = current_block->make_resource_definitions(external, false, owned);
+        Resource::Scope scope = (hash == Common::bit_defs_external) ? Resource::Scope::EXTERNAL : Resource::Scope::INTERNAL;
 
-        return std::make_shared<Resource_defs>(str, hash, num_defs, external, false);
+        size_t num_defs = current_block->make_resource_definitions(scope, Resource::BIT);
+
+        return std::make_shared<Bit_defs>(str, hash, num_defs, scope);
     }
 
     std::optional<std::shared_ptr<Block>> Context::get_block(std::string owner){
@@ -159,7 +177,7 @@ namespace Context {
 
     void Context::set_current_arg(const std::string& str, const U64& hash){
         if((current_gate != nullptr) && current_gate_definition.has_value()){
-            std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_external_resource_def(true);
+            std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_qubit_def(Resource::Scope::EXTERNAL | Resource::Scope::EXTERNAL_OWNED);
             current_arg = std::make_shared<Arg>(str, hash, qubit_def);
         }
     }
@@ -169,26 +187,25 @@ namespace Context {
     }
 
     void Context::set_current_qubit(){
-        Resource::Resource* random_qubit = get_current_block()->get_random_resource(current_gate->get_string()=="measure_and_reset", true); 
+        U8 scope = (*current_gate == Common::measure_and_reset) ? Resource::Scope::INTERNAL|Resource::Scope::EXTERNAL_OWNED : ALL_SCOPES;
+
+        Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
         
         random_qubit->extend_flow_path(current_gate, current_port++);
 
-        current_qubit = std::make_shared<Resource::Resource>(*random_qubit);
+        current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
     }
 
     void Context::set_current_bit(){
-        Resource::Resource* random_bit = get_current_block()->get_random_resource(false, false);
-
-        random_bit->extend_flow_path(current_gate, current_port++);
-
-        current_bit = std::make_shared<Resource::Resource>(*random_bit);
+        Resource::Bit* random_bit = get_current_block()->get_random_bit();
+        current_bit = std::make_shared<Resource::Bit>(*random_bit);
     }
 
-    std::shared_ptr<Resource::Resource> Context::get_current_qubit(){
+    std::shared_ptr<Resource::Qubit> Context::get_current_qubit(){
         return current_qubit;
     }
 
-    std::shared_ptr<Resource::Resource> Context::get_current_bit(){
+    std::shared_ptr<Resource::Bit> Context::get_current_bit(){
         return current_bit;
     }
 
@@ -229,27 +246,27 @@ namespace Context {
     }
 
     void Context::set_current_qubit_definition(){
-        current_qubit_definition = get_current_block()->get_next_resource_def(true);
+        current_qubit_definition = get_current_block()->get_next_qubit_def();
     }
 
     void Context::set_current_bit_definition(){
-        current_bit_definition = get_current_block()->get_next_resource_def(false);
+        current_bit_definition = get_current_block()->get_next_bit_def();
     }
 
-    std::shared_ptr<Resource_definition> Context::get_current_qubit_definition(){
+    std::shared_ptr<Qubit_definition> Context::get_current_qubit_definition(){
         return current_qubit_definition;
     }
 
-    std::shared_ptr<Resource_definition> Context::get_current_bit_definition(){
+    std::shared_ptr<Bit_definition> Context::get_current_bit_definition(){
         return current_bit_definition;
     }
 
     void Context::set_current_qubit_definition_owned(){
-        current_qubit_definition = get_current_block()->get_next_owned_resource_def(true);
+        current_qubit_definition = get_current_block()->get_next_qubit_def(Resource::Scope::INTERNAL | Resource::Scope::EXTERNAL_OWNED);
     }
 
     void Context::set_current_bit_definition_owned(){
-        current_bit_definition = get_current_block()->get_next_owned_resource_def(false);
+        current_bit_definition = get_current_block()->get_next_bit_def(Resource::to_u8(Resource::Scope::INTERNAL));
     }
 
     std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){

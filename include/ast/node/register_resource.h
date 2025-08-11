@@ -14,13 +14,10 @@ class Register_resource : public Node {
             Node("Register_resource", hash_rule_name("register_resource"))
         {}
 
-        Register_resource(Variable _name, Integer _index, bool _is_qubit, bool _owned) : 
-            Node(_is_qubit ? "register_qubit" : "register_bit", 
-                 hash_rule_name(_is_qubit ? "register_qubit" : "register_bit")),
+        Register_resource(std::string str, U64 hash, Variable _name, Integer _index) : 
+            Node(str, hash),
             name(_name),
-            index(_index),
-            is_qubit(_is_qubit),
-            owned(_owned)
+            index(_index)
         {}
 
         void reset(){used = false;}
@@ -28,16 +25,6 @@ class Register_resource : public Node {
         void set_used(){used = true;}
         
         bool is_used(){return used;}
-
-        void set_owned(bool _owned) {
-            owned = _owned;
-        }
-
-        bool is_owned() const {
-            return owned;
-        }
-
-        bool get_resource_classification() const {return is_qubit;}
 
         inline std::shared_ptr<Variable> get_name() const {
             return std::make_shared<Variable>(name);
@@ -50,11 +37,29 @@ class Register_resource : public Node {
     private:
         Variable name;
         Integer index;
-        bool is_qubit = true;
         bool used = false;
-        bool owned = false;
+};
+
+class Register_qubit : public Register_resource {
+
+    public:
+        Register_qubit(Variable _name, Integer _index) : 
+            Register_resource("register_qubit", Common::register_qubit, _name, _index)
+        {}
+
+    private:
 
 };
 
+class Register_bit : public Register_resource {
+
+    public:
+        Register_bit(Variable _name, Integer _index) : 
+            Register_resource("register_bit", Common::register_bit, _name, _index)
+        {}
+
+    private:
+
+};
 
 #endif

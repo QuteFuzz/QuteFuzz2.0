@@ -6,6 +6,7 @@
 #include <variable.h>
 #include <integer.h>
 #include <collection.h>
+#include <resource.h>
 
 class Register_resource_definition : public Node {
 
@@ -13,16 +14,13 @@ class Register_resource_definition : public Node {
 
         /// @brief Dummy resource definition
         Register_resource_definition() : 
-            Node("Register_resource_definition", hash_rule_name("register_resource_definition"))
+            Node("")
         {}
 
-        Register_resource_definition(Variable _name, Integer _size, bool _is_qubit, bool _owned) : 
-            Node(_is_qubit ? "register_qubit_def" : "register_bit_def", 
-                 hash_rule_name(_is_qubit ? "register_qubit_def" : "register_bit_def")),
+        Register_resource_definition(Variable _name, Integer _size): 
+            Node("register_resource_def", hash_rule_name("register_resource_def")),
             name(_name),
-            size(_size),
-            resource_type(_is_qubit ? Resource::QUBIT : Resource::BIT),
-            owned(_owned)
+            size(_size)
         {}
 
         std::shared_ptr<Variable> get_name(){
@@ -33,36 +31,58 @@ class Register_resource_definition : public Node {
             return std::make_shared<Integer>(size);
         }
 
-        bool is_owned() const {
-            return owned;
-        }
+    protected:
+        Variable name;
+        Integer size;
+};
 
-        void set_owned(bool _owned) {
-            owned = _owned;
-        }
+class Register_qubit_definition : public Register_resource_definition {
 
-        /// @brief Add resources to the given vector from the register
-        /// @param output 
-        /// @param external
-        /// @param _is_qubit
-        void make_resources(Collection<Resource::Resource>& output, bool external, bool _is_qubit, bool _owned) const {
+    public:
+        Register_qubit_definition(Variable _name, Integer _size):
+            Register_resource_definition(
+                _name,
+                _size
+            )
+        {}
+
+        void make_resources(Collection<Resource::Qubit>& output, Resource::Scope scope) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){
-                Register_resource reg_resource(name, Integer(std::to_string(i)), _is_qubit, _owned);
+                Register_qubit reg_qubit(name, Integer(std::to_string(i)));
 
-                output.add(Resource::Resource(reg_resource, external, _owned));
+                output.add(Resource::Qubit(reg_qubit, scope));
             }
         }
 
     private:
-        Variable name;
-        Integer size;
-        Resource::Resource_Classification resource_type;
-        bool owned = false;
 
 };
 
+class Register_bit_definition : public Register_resource_definition {
+
+    public:
+        Register_bit_definition(Variable _name, Integer _size):
+            Register_resource_definition(
+                _name,
+                _size
+            )
+        {}
+
+        void make_resources(Collection<Resource::Bit>& output, Resource::Scope scope) const {
+            size_t reg_size = safe_stoi(size.get_string()).value();
+
+            for(size_t i = 0; i < reg_size; i++){
+                Register_bit reg_bit(name, Integer(std::to_string(i)));
+
+                output.add(Resource::Bit(reg_bit, scope));
+            }
+        }
+
+    private:
+
+};
 
 #endif
 

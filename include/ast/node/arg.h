@@ -14,7 +14,7 @@ class Arg : public Node {
         Arg(const std::string& str, const U64& hash, std::shared_ptr<Resource_definition> qubit_def):
             Node(str, hash)
         {
-            if(qubit_def->get_type() == Resource::SINGULAR_EXTERNAL){
+            if(!qubit_def->is_register_def()){
                 constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
                 qubit_def_size = 1;
             
