@@ -12,38 +12,36 @@ void Generator::setup_builder(const std::string entry_name){
     }
 }
 
-void Generator::ast_to_program(fs::path output_dir, int num_programs){
+void Generator::ast_to_program(fs::path output_dir, int build_counter, std::optional<Dag::Dag> dag){
 
-	for(int build_counter = 0; build_counter < num_programs; build_counter++){
-		fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
-		fs::create_directory(current_circuit_dir);
+    fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
+    fs::create_directory(current_circuit_dir);
 
-        builder->set_ast_counter(build_counter);
-		
-	    Result<Node> maybe_ast_root = builder->build();
+    builder->set_ast_counter(build_counter);
+    
+    Result<Node> maybe_ast_root = builder->build(dag);
 
-		if(maybe_ast_root.is_ok()){
-			Node ast_root = maybe_ast_root.get_ok();
+    if(maybe_ast_root.is_ok()){
+        Node ast_root = maybe_ast_root.get_ok();
 
-			fs::path program_path = current_circuit_dir / "circuit.py";
-			std::ofstream stream(program_path.string());
+        fs::path program_path = current_circuit_dir / "circuit.py";
+        std::ofstream stream(program_path.string());
 
-			// render dag (main block)
-			if (Common::render_dags) {
-				builder->render_dag(current_circuit_dir);
-			}
+        // render dag (main block)
+        if (Common::render_dags) {
+            builder->render_dag(current_circuit_dir);
+        }
 
-			int dag_score = builder->get_dag_score();
+        int dag_score = builder->get_dag_score();
 
-			INFO("Dag score: " + std::to_string(dag_score));
+        INFO("Dag score: " + std::to_string(dag_score));
 
-			// write program
-			stream << ast_root << std::endl;
-			INFO("Program written to " + program_path.string());
-			
-		} else {
-        	ERROR(maybe_ast_root.get_error());
-		}
+        // write program
+        stream << ast_root << std::endl;
+        INFO("Program written to " + YELLOW(program_path.string()));
+        
+    } else {
+        ERROR(maybe_ast_root.get_error());
     }
 }
 
@@ -76,26 +74,26 @@ std::pair<Scored_genome&, Scored_genome&> Generator::pick_parents(){
     return { population[first], population[second] };
 }
 
-
-/// @brief TODO: Genetic algoritm to generate final set of interesting circuits
-void Generator::run_genetic(){
+/// @brief Use genetic algorithm to maximize DAG score, producing final set of circuits that maximise this score
+/// @param output_dir 
+/// @param population_size 
+void Generator::run_genetic(fs::path output_dir, int population_size){
 
     // fill initial population
-    for(size_t i = 0; i < population_size; i++){
+    for(int i = 0; i < population_size; i++){
         
-        Result<Node> maybe_root = builder->build();
+        Result<Node> maybe_root = builder->build(std::nullopt);
 
         if(maybe_root.is_ok()){
-            population[i].genome = std::move(builder->get_dag());
-            population[i].dag_score = builder->get_dag_score();
+            population.push_back(Scored_genome{.genome = builder->get_dag(), .dag_score = builder->get_dag_score()});
         }
     }
 
-    INFO("Initial set of " + std::to_string(population_size) + " dags generated");
+    INFO("Initial set of " + std::to_string(population_size) + " dag(s) generated");
 
-    for(size_t i = 0; i < n_epochs; i++){
+    for(int epoch = 0; epoch < n_epochs; epoch++){
 
-        INFO("Epoch " + std::to_string(i));
+        INFO("Epoch " + std::to_string(epoch));
 
         // sort population by descending order of dag score
         std::sort(population.begin(), population.end(), [](Scored_genome& a, Scored_genome& b) {
@@ -106,7 +104,7 @@ void Generator::run_genetic(){
             Prepare for new epoch
         */
 
-        for(size_t j = 0; j < population_size; j++){
+        for(int j = 0; j < population_size; j++){
 
             // top performers go to next epoch as is, already in population in correct order due to sort 
             if(j > elitism * population_size){
@@ -117,7 +115,5 @@ void Generator::run_genetic(){
         }
     }
 
-    // convert final population into ASTs, then programs
-    // TODO
-
+    generate_programs_from_population(output_dir, population_size);
 }
