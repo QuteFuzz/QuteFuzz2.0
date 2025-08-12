@@ -229,17 +229,16 @@ class pytketTesting(Base):
             qubit_variables = []
             
             for qubit_def in qubit_defs_list:
-                if qubit_def > 0:
-                    qubit_array = [qubit() for _ in range(qubit_def)]
-                    qubit_variables.append(qubit_array)
-                else:
-                    single_qubit = qubit()
-                    qubit_variables.append(single_qubit)
+                qubit_array = [qubit() for _ in range(qubit_def)]
+                qubit_variables.append(qubit_array)
 
-            guppy_circuit(*qubit_variables)
-            for r in range(len(qubit_variables)):
+            creg_results = guppy_circuit(*qubit_variables)
+            for i in range(len(creg_results)):
+                result(f"creg{i}", creg_results[i])
+            for r in range(len(qubit_variables)-1, -1, -1):
                 if isinstance(qubit_variables[r], list):
-                    result(f"c{r}", measure_array(qubit_variables[r]))
+                    result(f"q{r}", measure_array(qubit_variables[r]))
+            
 
         try:
             # Getting guppy circuit results
@@ -249,8 +248,10 @@ class pytketTesting(Base):
                 runner.run_shots(Quest(), n_qubits=circuit.n_qubits, n_shots=10000)
             )
             counts_guppy = results.collated_counts()
+            print("Guppy counts:", counts_guppy)
             counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
             counts_guppy = self.preprocess_counts(counts_guppy)
+            
 
             # Getting uncompiled pytket circuit results
             backend = AerBackend()
@@ -259,6 +260,7 @@ class pytketTesting(Base):
             handle = backend.process_circuit(uncompiled_pytket_circ, n_shots=10000)
             result_pytket = backend.get_result(handle)
             counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+            print("Pytket counts:", result_pytket.get_counts())
 
             # Run the kstest on the two results
             ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)
@@ -368,6 +370,7 @@ class guppyTesting(Base):
 
             # If it's not a GuppyError, fall back to default hook
             print("Error during compilation:", e)
+            print("Exception :", traceback.format_exc())
             is_testcase_interesting = True
 
         # Dump files to a "interesting circuits" folder if found interesting testcase

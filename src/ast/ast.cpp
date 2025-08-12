@@ -199,7 +199,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::qubit_def_size: {
-			return context.get_current_qubit_definition_size_0_indexed();
+			return context.get_current_qubit_definition_size_including_single();
 		}
 
 		case Common::qubit_index:

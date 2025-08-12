@@ -5,8 +5,6 @@
 #include <resource_definition.h>
 #include <variable.h>
 #include <resource_defs.h>
-#include <discard_qubit_defs.h>
-#include <discard_qubit_def.h>
 #include <arg.h>
 #include <compound_stmt.h>
 #include <gate.h>
@@ -81,13 +79,13 @@ namespace Context {
 
 			void set_current_bit_definition_owned();
 
-			std::shared_ptr<Discard_qubit_def> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
+			std::shared_ptr<Node> get_current_qubit_definition_discard(const std::string& str, const U64& hash);
 
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
 			std::shared_ptr<Variable> get_current_qubit_definition_name();
 
-			std::shared_ptr<Integer> get_current_qubit_definition_size_0_indexed();
+			std::shared_ptr<Integer> get_current_qubit_definition_size_including_single();
 
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
@@ -97,7 +95,7 @@ namespace Context {
 
 			std::shared_ptr<Gate> get_current_gate();
 
-			std::shared_ptr<Discard_qubit_defs> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
+			std::shared_ptr<Node> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
 
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
 

@@ -37,7 +37,7 @@ qubit_def_external  = singular_qubit_def_external
 bit_def_external = singular_bit_def_external
                  | register_bit_def_external;
 
-singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "1" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
+singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
 register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_register" LPAREN '"' qubit_def_name '",' qreg_size RPAREN;
 
 singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
@@ -95,8 +95,8 @@ imports = "from sympy import Symbol" NEWLINE
 compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
 
 testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
-                # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run with statevector simulator
-                # | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy!
+                # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run statevector simulator with measures
+                # | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy since load_pytket doesn't like control flows
                 ;
 
 qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;

@@ -269,8 +269,12 @@ namespace Context {
         current_bit_definition = get_current_block()->get_next_bit_def(Resource::to_u8(Resource::Scope::INTERNAL));
     }
 
-    std::shared_ptr<Discard_qubit_def> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
-        return std::make_shared<Discard_qubit_def>(str, hash, current_qubit_definition);
+    std::shared_ptr<Node> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
+        if (current_qubit_definition->is_register_def()) {
+            return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_single_qubit, 0));
+        } else {
+            return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_qreg, 0));
+        }
     }
 
     std::shared_ptr<Integer> Context::get_current_qubit_definition_size(){
@@ -282,10 +286,10 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Integer> Context::get_current_qubit_definition_size_0_indexed(){
+    std::shared_ptr<Integer> Context::get_current_qubit_definition_size_including_single(){
         if(current_qubit_definition != nullptr && current_qubit_definition->is_external()){
             current_qubit_definition = get_current_block()->get_next_qubit_def(Resource::Scope::EXTERNAL | Resource::Scope::EXTERNAL_OWNED);
-            std::shared_ptr<Integer> result = current_qubit_definition->is_register_def() ? current_qubit_definition->get_size() : std::make_shared<Integer>("0");
+            std::shared_ptr<Integer> result = current_qubit_definition->is_register_def() ? current_qubit_definition->get_size() : std::make_shared<Integer>("1");
             return result;
         } else {
             WARNING("Current qubit definition not set or is singular but trying to get size! Using dummy instead");
@@ -328,8 +332,8 @@ namespace Context {
         return current_gate;
     }
 
-    std::shared_ptr<Discard_qubit_defs> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
-        return std::make_shared<Discard_qubit_defs>(str, hash, num_owned_qubit_defs);
+    std::shared_ptr<Node> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
+        return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_internal_qubit, num_owned_qubit_defs), Node::indentation_tracker);
     }
 
     std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){
