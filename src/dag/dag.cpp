@@ -72,5 +72,5 @@ void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
     std::string command = "dot -Tpng -o " + str;
     
     pipe_to_command(command, dot_string.str());
-    INFO("Program DAG rendered to " + dag_render_path.string());
+    INFO("Program DAG rendered to " + YELLOW(dag_render_path.string()));
 }

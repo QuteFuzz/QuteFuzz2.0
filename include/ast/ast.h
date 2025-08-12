@@ -26,9 +26,9 @@ class Ast{
 
         inline void set_ast_counter(const int& counter){context.set_ast_counter(counter);}
 
-        Result<Node> build();
+        Result<Node> build(std::optional<Dag::Dag> genome_dag);
 
-        inline Dag::Dag& get_dag(){ return dag; }
+        inline Dag::Dag get_dag(){ return dag; }
 
         inline void render_dag(const fs::path& current_circuit_dir){dag.render_dag(current_circuit_dir);}
 

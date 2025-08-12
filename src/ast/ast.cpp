@@ -321,7 +321,7 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node> Ast::build(){
+Result<Node> Ast::build(std::optional<Dag::Dag> genome_dag){
 	Result<Node> res;
 
 	if(entry == nullptr){

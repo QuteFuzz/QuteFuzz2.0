@@ -15,8 +15,7 @@ struct Generator {
 
         Generator(Grammar& _grammar): 
             grammar(std::make_shared<Grammar>(_grammar)),
-            builder(std::make_shared<Ast>()),
-            population(population_size)
+            builder(std::make_shared<Ast>())
         {}
 
         void setup_builder(const std::string entry_name);
@@ -38,16 +37,28 @@ struct Generator {
 
         std::pair<Scored_genome&, Scored_genome&> pick_parents();
 
-        void ast_to_program(fs::path output_dir, int num_programs);
+        void ast_to_program(fs::path output_dir, int build_counter, std::optional<Dag::Dag> dag);
 
-        void run_genetic();
+        inline void generate_random_programs(fs::path output_dir, int n_programs){
+            for(int build_counter = 0; build_counter < n_programs; build_counter++){
+                ast_to_program(output_dir, build_counter, std::nullopt);
+            }
+        }
+
+        void run_genetic(fs::path output_dir, int population_size);
+
 
     private:
+        inline void generate_programs_from_population(fs::path output_dir, int population_size){
+            for(int build_counter = 0; build_counter < population_size; build_counter++){
+                ast_to_program(output_dir, build_counter, population[build_counter].genome);
+            }
+        }
+
         std::shared_ptr<Grammar> grammar;
         std::shared_ptr<Ast> builder;
 
-        size_t population_size = 100;
-        size_t n_epochs = 100;
+        int n_epochs = 100;
         float elitism = 0.2;
 
         std::vector<Scored_genome> population;
