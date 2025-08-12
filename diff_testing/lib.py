@@ -249,10 +249,12 @@ class pytketTesting(Base):
                 runner.run_shots(Quest(), n_qubits=circuit.n_qubits, n_shots=10000)
             )
             counts_guppy = results.collated_counts()
-            counts_guppy = Counter({key[0][1]: value for key, value in counts_guppy.items()})
+            counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
+            counts_guppy = self.preprocess_counts(counts_guppy)
 
             # Getting uncompiled pytket circuit results
             backend = AerBackend()
+            pytket_circ_copy.measure_all()
             uncompiled_pytket_circ = backend.get_compiled_circuit(pytket_circ_copy, optimisation_level=0)
             handle = backend.process_circuit(uncompiled_pytket_circ, n_shots=10000)
             result_pytket = backend.get_result(handle)

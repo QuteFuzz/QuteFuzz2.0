@@ -283,8 +283,10 @@ namespace Context {
     }
 
     std::shared_ptr<Integer> Context::get_current_qubit_definition_size_0_indexed(){
-        if(current_qubit_definition != nullptr){
-            return (current_qubit_definition->is_register_def() && current_qubit_definition->is_external()) ? current_qubit_definition->get_size() : std::make_shared<Integer>("0");
+        if(current_qubit_definition != nullptr && current_qubit_definition->is_external()){
+            current_qubit_definition = get_current_block()->get_next_qubit_def(Resource::Scope::EXTERNAL | Resource::Scope::EXTERNAL_OWNED);
+            std::shared_ptr<Integer> result = current_qubit_definition->is_register_def() ? current_qubit_definition->get_size() : std::make_shared<Integer>("0");
+            return result;
         } else {
             WARNING("Current qubit definition not set or is singular but trying to get size! Using dummy instead");
             return std::make_shared<Integer>(dummy_int);

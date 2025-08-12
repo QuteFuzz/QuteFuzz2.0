@@ -96,7 +96,7 @@ compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
 
 testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
                 # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run with statevector simulator
-                # "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy!
+                # | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy!
                 ;
 
 qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;
