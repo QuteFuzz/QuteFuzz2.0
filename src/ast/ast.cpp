@@ -146,11 +146,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qubit_def_name:
 			return context.get_current_qubit_definition_name();
 
-		case Common::qubit_def_external: case Common::qubit_def_internal:
-			context.set_current_qubit_definition();
+		case Common::qubit_def_external: case Common::qubit_def_internal: {
+			if (*parent == Common::qubit_defs_external_owned || *parent == Common::qubit_defs_internal) {
+				context.set_current_qubit_definition_owned();
+			} else {
+				context.set_current_qubit_definition();
+			}
 			return context.get_current_qubit_definition();
+		}
 
 		case Common::qubit_defs_external: case Common::qubit_defs_internal:
+		case Common::qubit_defs_external_owned:
 			return context.make_qubit_definitions(str, hash);
 
 		case Common::creg_size:
@@ -168,8 +174,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::discard_internal_qubits: {
 			context.get_current_block()->qubit_def_pointer_reset();
-			size_t num_internal_qubit_defs = context.get_current_block()->num_internal_qubit_defs();
-			return context.get_discard_qubit_defs(str, hash, num_internal_qubit_defs);
+			size_t num_owned_qubit_defs = context.get_current_block()->num_owned_qubit_defs();
+			return context.get_discard_qubit_defs(str, hash, num_owned_qubit_defs);
 		}
 		
 		case Common::discard_internal_qubit:
@@ -193,7 +199,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::qubit_def_size: {
-			return context.get_current_qubit_definition_size_0_indexed();
+			return context.get_current_qubit_definition_size_including_single();
 		}
 
 		case Common::qubit_index:
@@ -266,6 +272,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::u3: case Common::u:
 			context.set_current_gate(str, 1, 0, 3);
+			return context.get_current_gate();
+		
+		case Common::Measure:
+			context.set_current_gate(str, 1, 1, 0);
 			return context.get_current_gate();
 
 		default:

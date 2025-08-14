@@ -28,6 +28,14 @@ struct Node_constraint {
             return branch.count_rule_occurances(rule) == occurances;
         }
 
+        Common::Rule_hash constraint_string() const {
+            return rule;
+        }
+
+        size_t get_occurances() const {
+            return occurances;
+        }
+
     private:
         Common::Rule_hash rule;
         size_t occurances = 0;
@@ -137,6 +145,17 @@ class Node {
         bool branch_satisfies_constraint(const Branch& branch){
             return !constraint.has_value() || constraint.value().passed(branch);
         }
+
+        #ifdef DEBUG
+        std::string get_debug_constraint_string() const {
+            if(constraint.has_value()){
+                std::string debug_string = std::to_string(constraint.value().constraint_string()) + " with occurances: " + std::to_string(constraint.value().get_occurances());
+                return debug_string;
+            } else {
+                return "no constraint";
+            }
+        }
+        #endif
 
     protected:
         std::string string;

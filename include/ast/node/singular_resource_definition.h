@@ -39,7 +39,7 @@ class Singular_qubit_definition : public Singular_resource_definition {
         
         {}
 
-        void make_resources(Collection<Resource::Qubit>& output, Resource::Scope scope) const {
+        void make_resources(Collection<Resource::Qubit>& output, U8 scope) const {
             Singular_qubit singular_qubit(name);
             output.add(Resource::Qubit(singular_qubit, scope));
         }
@@ -57,7 +57,7 @@ class Singular_bit_definition : public Singular_resource_definition {
             )
         {}
 
-        void make_resources(Collection<Resource::Bit>& output, Resource::Scope scope) const {
+        void make_resources(Collection<Resource::Bit>& output, U8 scope) const {
             Singular_bit singular_bit(name);
             output.add(Resource::Bit(singular_bit, scope));
         }

@@ -48,8 +48,16 @@ class Block : public Node {
             return qubits.get_num_internal();
         }
 
+        inline size_t num_owned_qubits() const {
+            return qubits.get_num_owned();
+        }
+
         inline size_t num_internal_qubit_defs() const {
             return qubit_defs.get_num_internal();
+        }
+
+        inline size_t num_owned_qubit_defs() const {
+            return qubit_defs.get_num_owned();
         }
 
         inline size_t num_external_qubit_defs() const {
@@ -124,11 +132,11 @@ class Block : public Node {
 
         std::shared_ptr<Bit_definition> get_next_bit_def(U8 scope_filter = ALL_SCOPES);
 
-        size_t make_register_resource_definition(int max_size, Resource::Scope scope, Resource::Classification classification, size_t& total_definitions);
+        size_t make_register_resource_definition(int max_size, U8 scope, Resource::Classification classification, size_t& total_definitions);
 
-        size_t make_singular_resource_definition(Resource::Scope scope, Resource::Classification classification, size_t& total_definitions);
+        size_t make_singular_resource_definition(U8 scope, Resource::Classification classification, size_t& total_definitions);
 
-        size_t make_resource_definitions(Resource::Scope scope, Resource::Classification classification);
+        size_t make_resource_definitions(U8 scope, Resource::Classification classification);
 
     private:
         std::string owner;

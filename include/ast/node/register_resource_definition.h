@@ -46,7 +46,7 @@ class Register_qubit_definition : public Register_resource_definition {
             )
         {}
 
-        void make_resources(Collection<Resource::Qubit>& output, Resource::Scope scope) const {
+        void make_resources(Collection<Resource::Qubit>& output, U8 scope) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){
@@ -70,7 +70,7 @@ class Register_bit_definition : public Register_resource_definition {
             )
         {}
 
-        void make_resources(Collection<Resource::Bit>& output, Resource::Scope scope) const {
+        void make_resources(Collection<Resource::Bit>& output, U8 scope) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){

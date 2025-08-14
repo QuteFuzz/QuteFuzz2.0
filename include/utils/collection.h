@@ -26,6 +26,10 @@ struct Collection {
                 num_internal += 1;
             }
 
+            if(elem.is_owned()){
+                num_owned += 1;
+            }
+
             coll.push_back(elem);
         }
 
@@ -45,6 +49,10 @@ struct Collection {
 
         size_t get_num_external() const {
             return num_external;
+        }
+
+        size_t get_num_owned() const {
+            return num_owned;
         }
 
         size_t get_total() const {
@@ -72,7 +80,7 @@ struct Collection {
         std::vector<T> coll = {};
         size_t num_internal = 0;
         size_t num_external = 0;
-
+        size_t num_owned = 0;
 };
 
 

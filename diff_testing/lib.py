@@ -39,11 +39,11 @@ from pytket.extensions.qiskit import AerStateBackend
 from qiskit import QuantumCircuit, transpile
 
 # Guppylang imports
-from guppylang import guppy, array, qubit
+from guppylang import guppy
 from guppylang import enable_experimental_features
 from guppylang.std.quantum import *
 from guppylang.std.qsystem import *
-from guppylang.std.builtins import result
+from guppylang.std.builtins import result, array
 enable_experimental_features()
 from selene_sim import build, Quest
 from hugr.qsystem.result import QsysResult
@@ -229,38 +229,38 @@ class pytketTesting(Base):
             qubit_variables = []
             
             for qubit_def in qubit_defs_list:
-                if qubit_def > 0:
-                    qubit_array = [qubit() for _ in range(qubit_def)]
-                    qubit_variables.append(qubit_array)
-                else:
-                    single_qubit = qubit()
-                    qubit_variables.append(single_qubit)
-            
-            r = guppy_circuit(*qubit_variables)
-            result("c", r)
+                qubit_array = [qubit() for _ in range(qubit_def)]
+                qubit_variables.append(qubit_array)
 
-            for var in qubit_variables:
-                if isinstance(var, list):
-                    discard_array(var)
-                else:
-                    discard(var)
+            creg_results = guppy_circuit(*qubit_variables)
+            for i in range(len(creg_results)):
+                result(f"creg{i}", creg_results[i])
+            for r in range(len(qubit_variables)-1, -1, -1):
+                if isinstance(qubit_variables[r], list):
+                    result(f"q{r}", measure_array(qubit_variables[r]))
+            
 
         try:
             # Getting guppy circuit results
-            compiled_circ = guppy.compile(main)
+            compiled_circ = main.compile()
             runner = build(compiled_circ)
             results = QsysResult(
                 runner.run_shots(Quest(), n_qubits=circuit.n_qubits, n_shots=10000)
             )
             counts_guppy = results.collated_counts()
-            counts_guppy = Counter({key[0][1]: value for key, value in counts_guppy.items()})
+            print("Guppy counts:", counts_guppy)
+            counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
+            counts_guppy = self.preprocess_counts(counts_guppy)
+            
 
             # Getting uncompiled pytket circuit results
             backend = AerBackend()
+            pytket_circ_copy.measure_all()
             uncompiled_pytket_circ = backend.get_compiled_circuit(pytket_circ_copy, optimisation_level=0)
             handle = backend.process_circuit(uncompiled_pytket_circ, n_shots=10000)
             result_pytket = backend.get_result(handle)
             counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+            print("Pytket counts:", result_pytket.get_counts())
 
             # Run the kstest on the two results
             ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)
@@ -276,8 +276,19 @@ class pytketTesting(Base):
                 self.plot_histogram(counts_pytket, "Pytket Circuit Results", 0, circuit_number)
 
         except Exception as e:
-            print("Error during guppy compilation:", e)
-            print("Exception :", traceback.format_exc())
+            from guppylang_internals.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang_internals.diagnostic import DiagnosticsRenderer
+                from guppylang_internals.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+            else:
+                # If it's not a GuppyError, fall back to default hook
+                print("Error during compilation:", e)
+                print("Exception :", traceback.format_exc())
 
 class qiskitTesting(Base):
     def __init__(self):
@@ -334,7 +345,7 @@ class guppyTesting(Base):
         timeout_seconds = 60
         
         def compile_circuit():
-            return guppy.compile(circuit)
+            return circuit.compile()
         
         # Run the compile with timeout using ThreadPoolExecutor
         try:
@@ -346,10 +357,10 @@ class guppyTesting(Base):
             print(f"Compilation timed out after {timeout_seconds} seconds")
             is_testcase_interesting = True
         except Exception as e:
-            from guppylang.error import GuppyError
+            from guppylang_internals.error import GuppyError
             if isinstance(e, GuppyError):
-                from guppylang.diagnostic import DiagnosticsRenderer
-                from guppylang.engine import DEF_STORE
+                from guppylang_internals.diagnostic import DiagnosticsRenderer
+                from guppylang_internals.engine import DEF_STORE
 
                 renderer = DiagnosticsRenderer(DEF_STORE.sources)
                 renderer.render_diagnostic(e.error)
@@ -359,6 +370,7 @@ class guppyTesting(Base):
 
             # If it's not a GuppyError, fall back to default hook
             print("Error during compilation:", e)
+            print("Exception :", traceback.format_exc())
             is_testcase_interesting = True
 
         # Dump files to a "interesting circuits" folder if found interesting testcase
