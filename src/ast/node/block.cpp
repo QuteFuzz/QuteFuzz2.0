@@ -77,7 +77,7 @@ std::shared_ptr<Bit_definition> Block::get_next_bit_def(U8 scope_filter){
     }
 }
 
-size_t Block::make_register_resource_definition(int max_size, Resource::Scope scope, Resource::Classification classification, size_t& total_definitions){
+size_t Block::make_register_resource_definition(int max_size, U8 scope, Resource::Classification classification, size_t& total_definitions){
 
     size_t size;
 
@@ -110,7 +110,7 @@ size_t Block::make_register_resource_definition(int max_size, Resource::Scope sc
     return size;
 }
 
-size_t Block::make_singular_resource_definition(Resource::Scope scope, Resource::Classification classification, size_t& total_definitions){
+size_t Block::make_singular_resource_definition(U8 scope, Resource::Classification classification, size_t& total_definitions){
     if (classification == Resource::QUBIT) {
         Singular_qubit_definition def (
             Variable("qubit" + std::to_string(qubit_defs.get_total()))
@@ -135,15 +135,15 @@ size_t Block::make_singular_resource_definition(Resource::Scope scope, Resource:
     return 1;
 }
 
-size_t Block::make_resource_definitions(Resource::Scope scope, Resource::Classification classification){
+size_t Block::make_resource_definitions(U8 scope, Resource::Classification classification){
     int type_choice = random_int(1);
 
     #ifdef DEBUG
     INFO("Creating resource definitions");
     #endif
     
-    int target_num_qubits = (scope == Resource::Scope::EXTERNAL || scope == Resource::Scope::EXTERNAL_OWNED) ? target_num_qubits_external : target_num_qubits_internal;
-    int target_num_bits = (scope == Resource::Scope::EXTERNAL || scope == Resource::Scope::EXTERNAL_OWNED) ? target_num_bits_external : target_num_bits_internal;
+    int target_num_qubits = (Resource::is_external(scope)) ? target_num_qubits_external : target_num_qubits_internal;
+    int target_num_bits = (Resource::is_external(scope)) ? target_num_bits_external : target_num_bits_internal;
 
     int target = (classification == Resource::QUBIT) ? target_num_qubits : target_num_bits;
 
