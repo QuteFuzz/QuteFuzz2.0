@@ -3,7 +3,7 @@
 <p align="center" width="100%">
     <img width="25%" src="etc/qutefuzz.png">
 
-A front-end agnostic tool for fuzzing quantum compilers. 
+A tool for fuzzing quantum compilers. 
 
 See wiki for more details.
 
