@@ -112,6 +112,8 @@ namespace Common {
         sdg = 9383135583349391919ULL,
         t = 12638201494206808739ULL,
         tdg = 6262443406867765286ULL,
+        v = 12638203693230065161ULL,
+        vdg = 7571990343028037872ULL,
         phasedxpowgate = 11832025932794728373ULL,
         project_z = 2608459580584910443ULL,
         measure_and_reset = 15416528854723921477ULL,
@@ -134,6 +136,7 @@ namespace Common {
 
         // OTHER GATES
         u = 12638200394695180528ULL,
+        barrier = 11527731894837406848ULL,
 
         // RULE NAMES
         block = 1505885265403634530ULL,
@@ -152,7 +155,6 @@ namespace Common {
         qubit_op = 7363837753828900628ULL,
         gate_op = 17845938762380861480ULL,
         subroutine_op = 4275855153236832595ULL,
-        measurement_op = 5371156234969671235ULL,
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,

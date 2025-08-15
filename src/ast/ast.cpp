@@ -131,7 +131,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 
 		case Common::gate_op_kind:
-			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params());
+			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
 
 		case Common::qubit_op:
 			context.reset(Context::QUBIT_OP);
@@ -184,6 +184,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::qubit_list: {
 			size_t num_qubits = context.get_current_gate_num_qubits();
+			std::cout << "Current gate name " << context.get_current_gate()->get_string() << std::endl;
 			return std::make_shared<Qubit_list>(str, hash, num_qubits);
 		}
 
@@ -195,7 +196,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		// qubit_def_list and qubit_def_size are a special cases used only for pytket->guppy conversion
 		case Common::qubit_def_list: {
 			context.get_current_block()->qubit_def_pointer_reset();
-			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_external_qubit_defs()));
+			return std::make_shared<Node>(str, hash, Node_constraint({Common::qubit_def_size}, {context.get_current_block()->num_external_qubit_defs()}));
 		}
 
 		case Common::qubit_def_size: {
@@ -244,8 +245,16 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_current_gate();
 		}
 
+		case Common::gate_name: {
+			if (context.get_current_block()->num_owned_qubits() == 0 || context.get_current_block()->total_num_bits() == 0) {
+				return std::make_shared<Node>(str, hash, Node_constraint({Common::Measure}, {0}));
+			}
+			return std::make_shared<Node>(str, hash);
+		}
+
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 		case Common::tdg: case Common::s: case Common::sdg: case Common::project_z: case Common::measure_and_reset:
+		case Common::v: case Common::vdg:
 			context.set_current_gate(str, 1, 0, 0);
 			return context.get_current_gate();
 
@@ -277,6 +286,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::Measure:
 			context.set_current_gate(str, 1, 1, 0);
 			return context.get_current_gate();
+
+		case Common::barrier: {
+			int random_barrier_width = random_int(context.get_current_block()->total_num_qubits(), 1);
+			context.set_current_gate(str, random_barrier_width, 0, 0);
+			return context.get_current_gate();
+		}
 
 		default:
 			return std::make_shared<Node>(str, hash);

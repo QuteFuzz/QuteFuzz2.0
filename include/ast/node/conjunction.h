@@ -14,7 +14,7 @@ class Conjunction : public Node {
         Conjunction(std::string str, U64 hash) :
             Node(str, hash)         
         {
-            constraint = std::make_optional<Node_constraint>(Common::inversion, 2);
+            constraint = std::make_optional<Node_constraint>(Node_constraint({Common::inversion}, {2}));
         }
 
         void print(std::ostream& stream) const override {

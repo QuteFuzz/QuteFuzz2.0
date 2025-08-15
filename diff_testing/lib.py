@@ -27,6 +27,7 @@ import matplotlib.ticker as ticker
 import traceback
 import pathlib
 import shutil
+import subprocess
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 # Pytket imports
@@ -34,6 +35,7 @@ from pytket.circuit import Circuit
 from pytket.passes import *
 from pytket.extensions.qiskit import AerBackend
 from pytket.extensions.qiskit import AerStateBackend
+from pytket.extensions.quantinuum import QuantinuumBackend, QuantinuumAPIOffline, Language
 
 # Qiskit imports
 from qiskit import QuantumCircuit, transpile
@@ -47,6 +49,10 @@ from guppylang.std.builtins import result, array
 enable_experimental_features()
 from selene_sim import build, Quest
 from hugr.qsystem.result import QsysResult
+
+# QIR imports
+from hugr_qir.hugr_to_qir import hugr_to_qir
+from qirrunner import run, OutputHandler
 
 
 class Base():
@@ -111,7 +117,7 @@ class Base():
         if circuit_source_path.exists():
             try:
                 shutil.copy2(circuit_source_path, circuit_dest_path)
-                print(f"Circuit file saved to: {circuit_dest_path}")
+                print(f"Interesting circuit saved to: {circuit_dest_path}")
             except Exception as e:
                 print(f"Error copying circuit file: {e}")
         else:
@@ -184,7 +190,7 @@ class pytketTesting(Base):
 
         except Exception as e:
             print("Exception :", traceback.format_exc())
-            is_testcase_interesting = True
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
 
         # Dump files to a "interesting circuits" folder if found interesting testcase
         if is_testcase_interesting:
@@ -338,11 +344,8 @@ class guppyTesting(Base):
         super().__init__()
 
     def ks_diff_test(self, circuit : Any, circuit_number : int) -> None:
-        '''
-        Compiles guppy circuit
-        '''
-        is_testcase_interesting = False
-        timeout_seconds = 60
+
+        timeout_seconds = 30
         
         def compile_circuit():
             return circuit.compile()
@@ -355,7 +358,7 @@ class guppyTesting(Base):
                 
         except FuturesTimeoutError:
             print(f"Compilation timed out after {timeout_seconds} seconds")
-            is_testcase_interesting = True
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
         except Exception as e:
             from guppylang_internals.error import GuppyError
             if isinstance(e, GuppyError):
@@ -371,11 +374,71 @@ class guppyTesting(Base):
             # If it's not a GuppyError, fall back to default hook
             print("Error during compilation:", e)
             print("Exception :", traceback.format_exc())
-            is_testcase_interesting = True
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            
 
-        # Dump files to a "interesting circuits" folder if found interesting testcase
-        if is_testcase_interesting:
-            print(f"Interesting circuit found: {circuit_number}")
-            interesting_dir = self.OUTPUT_DIR / "interesting_circuits"
-            self.save_interesting_circuit(circuit_number, interesting_dir)
+    def guppy_qir_diff_test(self, circuit : Any, circuit_number : int) -> None:
+
+        try:
+            hugr = circuit.compile()
+            # Circuit compiled successfully, now differential test hugr
+            # Running hugr on selene
+            runner = build(hugr)
+            results = QsysResult(
+                runner.run_shots(Quest(), n_qubits=3, n_shots=1000)
+            )
+            counts_guppy = results.collated_counts()
+            print("Guppy counts:", counts_guppy)
+            counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
+            counts_guppy = self.preprocess_counts(counts_guppy)
+
+            # Converting hugr to qir with hugr-qir and writing it to a file
+            qir = hugr_to_qir(hugr, emit_text=True, validate_qir=True)
+            circuit_dir = self.OUTPUT_DIR / f"circuit{circuit_number}"
+            circuit_dir.mkdir(parents=True, exist_ok=True)
+            ll_file_path = circuit_dir / "circuit.ll"
+            qir_bc_file_path = circuit_dir / "circuit.bc"
+
+            with open(ll_file_path, 'w') as qir_file:
+                qir_file.write(qir)
+
+            # Convert to bitcode using llvm-as
+            subprocess.run(['llvm-as-14', str(ll_file_path), '-o', str(qir_bc_file_path)], 
+                            check=True, capture_output=True)
+            print(f"QIR bitcode written to: {qir_bc_file_path}")
+
+            qir_handler = OutputHandler()
+            run(str(qir_bc_file_path), shots=1000, output_fn=qir_handler.handle)
+            qir_results = qir_handler.get_output()
+            print("QIR results:", qir_results)
+            counts_qir = self.preprocess_counts(qir_results.get_shots())
+
+            # Run the kstest on the two results
+            ks_value = self.ks_test(counts_guppy, counts_qir, 1000)
+            print(f"Guppy vs QIR ks-test p-value: {ks_value}")
+
+            if ks_value < 0.05:
+                print(f"Interesting circuit found: {circuit_number}")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+
+            if self.plot:
+                self.plot_histogram(counts_guppy, "Guppy Circuit Results", 0, circuit_number)
+                self.plot_histogram(counts_qir, "Guppy-QIR Circuit Results", 0, circuit_number)
+                
+        except Exception as e:
+            from guppylang_internals.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang_internals.diagnostic import DiagnosticsRenderer
+                from guppylang_internals.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+                return
+
+            # If it's not a GuppyError, fall back to default hook
+            print("Error during compilation:", e)
+            print("Exception :", traceback.format_exc())
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
 

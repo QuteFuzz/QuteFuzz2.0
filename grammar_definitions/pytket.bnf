@@ -48,18 +48,17 @@ compound_stmt = qubit_op;
 qubit_op =
     gate_op
     | subroutine_op
-    # | measurement_op
     ;
 
 gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list COMMA SPACE bit_list "])";
-measurement_op = circuit_name DOT Measure LPAREN qubit_list COMMA bit_list RPAREN;
 
 gate_name   = X | Y | Z | CX | CY | CZ | Rx | Ry | Rz
-            | H | T | S | CH ;
+            | H | T | S | CH | Measure;
 
 gate_op_kind =
     LPAREN qubit_list RPAREN 
+    | LPAREN qubit_list COMMA bit_list RPAREN
     | LPAREN float_list COMMA qubit_list RPAREN
     | LPAREN qubit_list COMMA "condition_bits=[" bit RBRACK COMMA condition_value RPAREN
     ;
