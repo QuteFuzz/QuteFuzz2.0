@@ -187,7 +187,7 @@ namespace Context {
     }
 
     void Context::set_current_qubit(){
-        U8 scope = (*current_gate == Common::measure_and_reset) ? OWNED_SCOPE : ALL_SCOPES;
+        U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
 
         Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
         
@@ -271,9 +271,9 @@ namespace Context {
 
     std::shared_ptr<Node> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
         if (current_qubit_definition->is_register_def()) {
-            return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_single_qubit, 0));
+            return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_single_qubit}, {0}));
         } else {
-            return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_qreg, 0));
+            return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_qreg}, {0}));
         }
     }
 
@@ -333,7 +333,7 @@ namespace Context {
     }
 
     std::shared_ptr<Node> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
-        return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_internal_qubit, num_owned_qubit_defs), Node::indentation_tracker);
+        return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_internal_qubit}, {size_t(num_owned_qubit_defs)}), Node::indentation_tracker);
     }
 
     std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){

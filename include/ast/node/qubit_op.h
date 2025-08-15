@@ -11,14 +11,9 @@ class Qubit_op : public Node {
             Node(str, hash)
         {
             bool can_use_subroutine = current_block->get_can_apply_subroutines();
-			bool can_measure = current_block->num_internal_qubits() > 0;
 
-            if(!can_use_subroutine && !can_measure){
-                constraint = std::make_optional<Node_constraint>(Common::gate_op, 1);
-            } else if (can_use_subroutine && !can_measure){
-                constraint = std::make_optional<Node_constraint>(Common::measurement_op, 0);
-            } else if (!can_use_subroutine && can_measure){
-                constraint = std::make_optional<Node_constraint>(Common::subroutine_op, 0);
+            if(!can_use_subroutine){
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::subroutine_op}, {0}));
             }
         }
 

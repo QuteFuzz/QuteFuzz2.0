@@ -15,11 +15,11 @@ class Arg : public Node {
             Node(str, hash)
         {
             if(!qubit_def->is_register_def()){
-                constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::arg_singular_qubit}, {1}));
                 qubit_def_size = 1;
             
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::arg_register_qubits, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::arg_register_qubits}, {1}));
                 qubit_def_size = std::stoi(qubit_def->get_size()->get_string());
             }
 

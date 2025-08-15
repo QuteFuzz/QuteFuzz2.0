@@ -128,11 +128,10 @@ atom: NUMBER;
 
 qubit_op  = gate_op
             | subroutine_op
-            | measurement_op;
+            ;
 
 gate_op = gate_name gate_op_kind;
 subroutine_op = subroutine LPAREN arguments RPAREN;
-measurement_op = measure_and_reset LPAREN qubit_list RPAREN
                 #| "measure_array" LPAREN arg_register_qubits RPAREN
                 ;
 
@@ -165,8 +164,8 @@ discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN
                 | "measure" LPAREN qubit_def_name RPAREN
                 ;
 
-gate_name = x | y | z | h | cx | toffoli | rz | rx | ry
-    | t | tdg | s | sdg | ch | crz | project_z
+gate_name = x | y | z | h | cx | cy | cz | toffoli | rz | rx | ry | v | vdg
+    | t | tdg | s | sdg | ch | crz | project_z | barrier | measure_and_reset
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
@@ -179,7 +178,7 @@ register_qubit = qubit_name "[" qubit_index "]";
 
 imports = "from guppylang.decorator import guppy " NEWLINE
         "from guppylang.std.angles import angle, pi " NEWLINE
-        "from guppylang.std.builtins import array, owned, py, comptime, result, owned " NEWLINE
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned, barrier" NEWLINE
         "from guppylang.std.quantum import * " NEWLINE
         "from guppylang.std.qsystem import * " NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
@@ -187,4 +186,5 @@ imports = "from guppylang.decorator import guppy " NEWLINE
 
 compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
 
-testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE;
+testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE
+                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE;

@@ -114,13 +114,13 @@ namespace Resource {
             Qubit(Register_qubit qubit, U8 scope) :
                 Resource("qubit", Common::qubit, qubit, scope)
             {
-                constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::register_qubit}, {1}));
             }
 
             Qubit(Singular_qubit qubit, U8 scope) :
                 Resource("qubit", Common::qubit, qubit, scope)
             {
-                constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::singular_qubit}, {1}));
             }
 
             void extend_flow_path(const std::shared_ptr<Node> node, size_t current_port);
@@ -149,13 +149,13 @@ namespace Resource {
             Bit(Register_bit bit, U8 scope) :
                 Resource("bit", Common::bit, bit, scope)
             {
-                constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::register_bit}, {1}));
             }
 
             Bit(Singular_bit bit, U8 scope) :
                 Resource("bit", Common::bit, bit, scope)
             {
-                constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::singular_bit}, {1}));
             }
 
         private:

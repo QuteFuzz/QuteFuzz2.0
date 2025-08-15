@@ -12,9 +12,9 @@ class Qubit_defs : public Node {
             Node(str, hash, indentation_tracker)
         {
             if(Resource::is_external(scope)){
-                constraint = std::make_optional<Node_constraint>(Common::qubit_def_external, num_defs);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::qubit_def_external}, {num_defs}));
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::qubit_def_internal, num_defs);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::qubit_def_internal}, {num_defs}));
             }
 
         }
@@ -31,9 +31,9 @@ class Bit_defs : public Node {
             Node(str, hash, indentation_tracker)
         {
             if(Resource::is_external(scope)){
-                constraint = std::make_optional<Node_constraint>(Common::bit_def_external, num_defs);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::bit_def_external}, {num_defs}));
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::bit_def_internal, num_defs);
+                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::bit_def_internal}, {num_defs}));
             }
 
         }
