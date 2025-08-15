@@ -17,7 +17,6 @@ namespace Token {
         RULE_START,
         RULE_END,
         SYNTAX,
-        PROB_SET_FLAG,
         RANGE,
         LPAREN,
         LBRACK,
@@ -48,8 +47,6 @@ namespace Token {
                     stream << "SEPARATOR "; break;
                 case SYNTAX:
                     stream << "SYNTAX "; break;
-                case PROB_SET_FLAG:
-                    stream << "PROB SET FLAG "; break;
                 case RANGE:
                     stream << "RANGE "; break;
                 case LPAREN:
@@ -91,7 +88,6 @@ namespace Lexer {
     const std::string RULE_ENTRY_1 = R"(=)";
     const std::string RULE_ENTRY_2 = R"(:)";
     const std::string SEPARATOR = R"(\|)";
-    const std::string PROB_SET_FLAG = R"(equal_prob)";
     const std::string COMMENT = R"(#)";
     const std::string MULTI_COMMENT_START = R"(\(\*)";
     const std::string MULTI_COMMENT_END = R"(\*\))";
@@ -109,7 +105,7 @@ namespace Lexer {
 
     const std::string OR_EXPAND = "(" + LBRACK + ".*?" + RBRACK + ")";
 
-    const std::string FULL_REGEX = "(" + PROB_SET_FLAG + "|" + OR_EXPAND + "|" +  RULE + "|" + ANGLE_RULE + "|" + DIGIT + "|" + SYNTAX + "|" + SEPARATOR + "|" + \
+    const std::string FULL_REGEX = "(" + OR_EXPAND + "|" +  RULE + "|" + ANGLE_RULE + "|" + DIGIT + "|" + SYNTAX + "|" + SEPARATOR + "|" + \
             RULE_ENTRY_1 + "|" + RULE_ENTRY_2 + "|" + COMMENT + "|" + MULTI_COMMENT_START + "|" + \
             MULTI_COMMENT_END + "|" + RULE_END + "|" + RANGE + "|" + LPAREN + "|" + RPAREN + "|" + \
             LBRACK + "|" + RBRACK + "|" + LBRACE + "|" + RBRACE + "|" + \
