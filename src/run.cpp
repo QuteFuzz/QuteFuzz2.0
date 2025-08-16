@@ -206,7 +206,7 @@ void Run::loop(){
                 remove_all_in_dir(output_dir);
 
                 if(run_genetic){
-                    current_generator->run_genetic(output_dir, n_programs.value_or(2));
+                    current_generator->run_genetic(output_dir, n_programs.value_or(0));
 
                 } else {
                     current_generator->generate_random_programs(output_dir, n_programs.value_or(0));

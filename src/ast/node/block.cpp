@@ -165,3 +165,44 @@ size_t Block::make_resource_definitions(U8 scope, Resource::Classification class
 
     return total_num_definitions;
 }
+
+/// @brief Given set of qubits from genome, create qubit definitions from those qubits
+/// @param scope 
+/// @param qubits 
+/// @return 
+size_t Block::make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits){
+    size_t num_definitions = 0;
+
+    qubits = _qubits;
+
+    // only create definitions from qubits matching the scope
+    for(const Resource::Qubit& qubit : _qubits){
+        if(qubit.get_scope() & scope){
+            num_definitions += qubit_to_qubit_def(scope, qubit);
+        }
+    }
+    
+    return num_definitions;
+}
+
+/// @brief Add qubit to set of qubit defs in block, merge with register as required
+/// @param qubit 
+size_t Block::qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit){
+    for(Qubit_definition& qubit_def : qubit_defs){
+        if(qubit_def.defines(qubit)){
+            qubit_def.increase_size();
+            return 0;
+        }
+    }
+
+    if(qubit.is_register_def()){
+        Register_qubit_definition qubit_def(qubit);
+        qubit_defs.add(Qubit_definition(qubit_def, scope));
+
+    } else {
+        Singular_qubit_definition qubit_def(qubit);
+        qubit_defs.add(Qubit_definition(qubit_def, scope));
+    }
+
+    return 1;
+}

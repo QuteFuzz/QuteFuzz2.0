@@ -7,6 +7,9 @@
 #include <grammar.h>
 #include <node.h>
 #include <context.h>
+#include <dag.h>
+
+struct Genome;
 
 class Ast{
     public:
@@ -26,13 +29,11 @@ class Ast{
 
         inline void set_ast_counter(const int& counter){context.set_ast_counter(counter);}
 
-        Result<Node> build(std::optional<Dag::Dag> genome_dag);
+        Result<Node> build(const std::optional<Genome>& genome);
 
-        inline Dag::Dag get_dag(){ return dag; }
+        Genome genome();
 
         inline void render_dag(const fs::path& current_circuit_dir){dag.render_dag(current_circuit_dir);}
-
-        inline int get_dag_score(){return dag.score();}
 
     protected:
 

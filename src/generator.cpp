@@ -12,14 +12,14 @@ void Generator::setup_builder(const std::string entry_name){
     }
 }
 
-void Generator::ast_to_program(fs::path output_dir, int build_counter, std::optional<Dag::Dag> dag){
+void Generator::ast_to_program(fs::path output_dir, int build_counter,  std::optional<Genome> genome){
 
     fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
     fs::create_directory(current_circuit_dir);
 
     builder->set_ast_counter(build_counter);
     
-    Result<Node> maybe_ast_root = builder->build(dag);
+    Result<Node> maybe_ast_root = builder->build(genome);
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
@@ -32,7 +32,13 @@ void Generator::ast_to_program(fs::path output_dir, int build_counter, std::opti
             builder->render_dag(current_circuit_dir);
         }
 
-        int dag_score = builder->get_dag_score();
+        int dag_score;
+
+        if(genome.has_value()){
+            dag_score = genome.value().dag_score;
+        } else {
+            dag_score = builder->genome().dag_score;
+        }
 
         INFO("Dag score: " + std::to_string(dag_score));
 
@@ -47,7 +53,7 @@ void Generator::ast_to_program(fs::path output_dir, int build_counter, std::opti
 
 /// @brief It's possible that 2 parents that were picked before will be picked again, that's fine
 /// @return 
-std::pair<Scored_genome&, Scored_genome&> Generator::pick_parents(){
+std::pair<Genome&, Genome&> Generator::pick_parents(){
 
     std::vector<size_t> indices(population.size());
     std::iota(indices.begin(), indices.end(), 0);
@@ -79,24 +85,33 @@ std::pair<Scored_genome&, Scored_genome&> Generator::pick_parents(){
 /// @param population_size 
 void Generator::run_genetic(fs::path output_dir, int population_size){
 
-    // fill initial population
+    if(!population_size) return;
+
+    /*
+        Fill initial DAG population
+    */
+    population.clear();
+
     for(int i = 0; i < population_size; i++){
         
         Result<Node> maybe_root = builder->build(std::nullopt);
 
         if(maybe_root.is_ok()){
-            population.push_back(Scored_genome{.genome = builder->get_dag(), .dag_score = builder->get_dag_score()});
+            population.push_back(builder->genome());
         }
     }
 
-    INFO("Initial set of " + std::to_string(population_size) + " dag(s) generated");
+    INFO(YELLOW("Initial set of " + std::to_string(population_size) + " dag(s) generated"));
 
+    /*
+        Run genetic algorithm
+    */
     for(int epoch = 0; epoch < n_epochs; epoch++){
 
         INFO("Epoch " + std::to_string(epoch));
 
         // sort population by descending order of dag score
-        std::sort(population.begin(), population.end(), [](Scored_genome& a, Scored_genome& b) {
+        std::sort(population.begin(), population.end(), [](Genome& a, Genome& b) {
             return a.dag_score > b.dag_score;
         });
 
@@ -108,12 +123,22 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
 
             // top performers go to next epoch as is, already in population in correct order due to sort 
             if(j > elitism * population_size){
-                std::pair<Scored_genome&, Scored_genome&> parents = pick_parents();
-                population[j].genome.make_dag(parents.first.genome, parents.second.genome);
-                population[j].dag_score = population[j].genome.score();
+                std::pair<Genome&, Genome&> parents = pick_parents();
+                population[j].dag.make_dag(parents.first.dag, parents.second.dag);
+                population[j].dag_score = population[j].dag.score();
             }
         }
     }
 
-    generate_programs_from_population(output_dir, population_size);
+    INFO(YELLOW("Run genetic algorithm for " + std::to_string(n_epochs) + " epochs"));
+
+    /*
+        Generate programs from final DAGs
+    */
+    for(int build_counter = 0; build_counter < (int)population.size(); build_counter++){
+        ast_to_program(output_dir, build_counter, std::make_optional<Genome>(population[build_counter]));
+    }
+
+    INFO(YELLOW("Generated " + std::to_string(population_size) + " program(s)"));
+
 }

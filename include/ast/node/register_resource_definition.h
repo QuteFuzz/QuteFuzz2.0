@@ -17,18 +17,22 @@ class Register_resource_definition : public Node {
             Node("")
         {}
 
-        Register_resource_definition(Variable _name, Integer _size): 
+        Register_resource_definition(const Variable& _name, const Integer& _size): 
             Node("register_resource_def", hash_rule_name("register_resource_def")),
             name(_name),
             size(_size)
         {}
 
-        std::shared_ptr<Variable> get_name(){
+        std::shared_ptr<Variable> get_name() const {
             return std::make_shared<Variable>(name);
         }
 
-        std::shared_ptr<Integer> get_size(){
+        std::shared_ptr<Integer> get_size() const {
             return std::make_shared<Integer>(size);
+        }
+
+        inline void increase_size(){
+            size++;
         }
 
     protected:
@@ -39,14 +43,21 @@ class Register_resource_definition : public Node {
 class Register_qubit_definition : public Register_resource_definition {
 
     public:
-        Register_qubit_definition(Variable _name, Integer _size):
+        Register_qubit_definition(const Variable& _name, const Integer& _size):
             Register_resource_definition(
                 _name,
                 _size
             )
         {}
 
-        void make_resources(Collection<Resource::Qubit>& output, U8 scope) const {
+        Register_qubit_definition(const Resource::Qubit& qubit) :
+            Register_resource_definition(
+                *qubit.get_name(),
+                Integer(1)
+            )
+        {}
+
+        void make_resources(Collection<Resource::Qubit>& output, const U8& scope) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){
@@ -63,14 +74,21 @@ class Register_qubit_definition : public Register_resource_definition {
 class Register_bit_definition : public Register_resource_definition {
 
     public:
-        Register_bit_definition(Variable _name, Integer _size):
+        Register_bit_definition(const Variable& _name, const Integer& _size):
             Register_resource_definition(
                 _name,
                 _size
             )
         {}
 
-        void make_resources(Collection<Resource::Bit>& output, U8 scope) const {
+        Register_bit_definition(const Resource::Bit& bit) :
+            Register_resource_definition(
+                *bit.get_name(),
+                Integer(1)
+            )
+        {}
+
+        void make_resources(Collection<Resource::Bit>& output, const U8& scope) const {
             size_t reg_size = safe_stoi(size.get_string()).value();
 
             for(size_t i = 0; i < reg_size; i++){

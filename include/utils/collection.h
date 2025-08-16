@@ -10,7 +10,11 @@ class Qubit_definition;
 class Bit_definition;
 
 template<typename T>
-concept Allowed_Type = std::is_same_v<T, Resource::Qubit> || std::is_same_v<T, Resource::Bit> || std::is_same_v<T, Qubit_definition> || std::is_same_v<T, Bit_definition>;
+concept Allowed_Type = 
+    std::is_same_v<T, Resource::Qubit> ||
+    std::is_same_v<T, Resource::Bit> || 
+    std::is_same_v<T, Qubit_definition> || 
+    std::is_same_v<T, Bit_definition>;
 
 template<Allowed_Type T>
 struct Collection {
@@ -67,13 +71,17 @@ struct Collection {
             }
         }
 
-        auto begin() const {
+        std::vector<T>::iterator begin(){
             return coll.begin();
         }
 
-        auto end() const {
+        std::vector<T>::iterator end(){
             return coll.end();
         }
+
+        std::vector<T>::const_iterator begin() const {return coll.begin();}
+
+        std::vector<T>::const_iterator end() const {return coll.end();}
 
     private:
     

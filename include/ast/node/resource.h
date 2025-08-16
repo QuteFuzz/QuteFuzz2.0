@@ -36,19 +36,19 @@ namespace Resource {
                 scope(EXTERNAL_SCOPE)
             {}
 
-            Resource(std::string str, U64 hash, Register_resource resource, U8 _scope) :
+            Resource(std::string str, U64 hash, const Register_resource& resource, const U8& _scope) :
                 Node(str, hash),
                 value(resource),
                 scope(_scope)
             {}
 
-            Resource(std::string str, U64 hash, Singular_resource resource, U8 _scope) :
+            Resource(std::string str, U64 hash, const Singular_resource& resource, const U8& _scope) :
                 Node(str, hash),
                 value(resource),
                 scope(_scope)
             {}
 
-            U8 get_scope(){
+            U8 get_scope() const {
                 return scope;
             }
 
@@ -99,6 +99,8 @@ namespace Resource {
             }
 
             std::string resolved_name() const override;
+
+            
             
         private:
             std::variant<Register_resource, Singular_resource> value;
@@ -111,13 +113,13 @@ namespace Resource {
         public:
             Qubit() : Resource() {}
 
-            Qubit(Register_qubit qubit, U8 scope) :
+            Qubit(const Register_qubit& qubit, const U8& scope) :
                 Resource("qubit", Common::qubit, qubit, scope)
             {
                 constraint = std::make_optional<Node_constraint>(Common::register_qubit, 1);
             }
 
-            Qubit(Singular_qubit qubit, U8 scope) :
+            Qubit(const Singular_qubit& qubit, const U8& scope) :
                 Resource("qubit", Common::qubit, qubit, scope)
             {
                 constraint = std::make_optional<Node_constraint>(Common::singular_qubit, 1);
@@ -146,13 +148,13 @@ namespace Resource {
         public:
             Bit() : Resource() {}
 
-            Bit(Register_bit bit, U8 scope) :
+            Bit(const Register_bit& bit, const U8& scope) :
                 Resource("bit", Common::bit, bit, scope)
             {
                 constraint = std::make_optional<Node_constraint>(Common::register_bit, 1);
             }
 
-            Bit(Singular_bit bit, U8 scope) :
+            Bit(const Singular_bit& bit, const U8& scope) :
                 Resource("bit", Common::bit, bit, scope)
             {
                 constraint = std::make_optional<Node_constraint>(Common::singular_bit, 1);

@@ -4,8 +4,8 @@
 #include <grammar.h>
 #include <ast.h>
 
-struct Scored_genome {
-    Dag::Dag genome;
+struct Genome {
+    Dag::Dag dag;
     int dag_score;
 };
 
@@ -35,9 +35,9 @@ struct Generator {
             grammar->print_tokens();
         }
 
-        std::pair<Scored_genome&, Scored_genome&> pick_parents();
+        std::pair<Genome&, Genome&> pick_parents();
 
-        void ast_to_program(fs::path output_dir, int build_counter, std::optional<Dag::Dag> dag);
+        void ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome);
 
         inline void generate_random_programs(fs::path output_dir, int n_programs){
             for(int build_counter = 0; build_counter < n_programs; build_counter++){
@@ -49,19 +49,13 @@ struct Generator {
 
 
     private:
-        inline void generate_programs_from_population(fs::path output_dir, int population_size){
-            for(int build_counter = 0; build_counter < population_size; build_counter++){
-                ast_to_program(output_dir, build_counter, population[build_counter].genome);
-            }
-        }
-
         std::shared_ptr<Grammar> grammar;
         std::shared_ptr<Ast> builder;
 
         int n_epochs = 100;
         float elitism = 0.2;
 
-        std::vector<Scored_genome> population;
+        std::vector<Genome> population;
 
 };
 

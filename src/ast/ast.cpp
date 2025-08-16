@@ -1,5 +1,7 @@
 #include <ast.h>
 
+#include <sstream>
+
 #include <result.h>
 #include <block.h>
 #include <gate.h>
@@ -8,7 +10,6 @@
 #include <float.h>
 #include <float_list.h>
 #include <resource_list.h>
-#include <sstream>
 #include <arguments.h>
 #include <resource_defs.h>
 #include <qubit_op.h>
@@ -20,6 +21,8 @@
 #include <conjunction.h>
 #include <compare_op_bitwise_or_pair_child.h>
 #include <expression.h>
+
+#include <generator.h>
 
 std::string Node::indentation_tracker = "";
 
@@ -321,7 +324,7 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node> Ast::build(std::optional<Dag::Dag> genome_dag){
+Result<Node> Ast::build(const std::optional<Genome>& genome){
 	Result<Node> res;
 
 	if(entry == nullptr){
@@ -335,12 +338,23 @@ Result<Node> Ast::build(std::optional<Dag::Dag> genome_dag){
 
 		std::shared_ptr<Node> root_ptr = get_node_from_term(dummy, entry_as_term);
 
+		context.set_genome(genome);
+
 		write_branch(root_ptr, entry_as_term);
 
-		dag.make_dag(context.get_current_block()->get_qubits());
+		if(genome.has_value()){
+			dag = genome.value().dag;
+		} else {
+			std::shared_ptr<Block> current_block = context.get_current_block();
+			dag.make_dag(current_block->get_qubits());
+		}
 
 		res.set_ok(*root_ptr);
 	}
 
 	return res;
+}
+
+Genome Ast::genome(){
+	return Genome{.dag = dag, .dag_score = dag.score()};
 }
