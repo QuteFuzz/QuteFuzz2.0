@@ -15,12 +15,12 @@ class Singular_resource_definition : public Node {
             Node()
         {}
 
-        Singular_resource_definition(Variable _name) : 
+        Singular_resource_definition(const Variable& _name) : 
             Node("singular_resource_def", hash_rule_name("singular_resource_def")),
             name(_name)
         {}
 
-        std::shared_ptr<Variable> get_name(){
+        std::shared_ptr<Variable> get_name() const {
             return std::make_shared<Variable>(name);
         }
 
@@ -32,11 +32,17 @@ class Singular_resource_definition : public Node {
 class Singular_qubit_definition : public Singular_resource_definition {
     
     public:
-        Singular_qubit_definition(Variable _name) : 
+        Singular_qubit_definition(const Variable& _name) : 
             Singular_resource_definition(
                 _name
             )
         
+        {}
+
+        Singular_qubit_definition(const Resource::Qubit& qubit) :
+            Singular_resource_definition(
+                *qubit.get_name()
+            )
         {}
 
         void make_resources(Collection<Resource::Qubit>& output, U8 scope) const {
@@ -51,9 +57,15 @@ class Singular_qubit_definition : public Singular_resource_definition {
 class Singular_bit_definition : public Singular_resource_definition {
     
     public:
-        Singular_bit_definition(Variable _name) : 
+        Singular_bit_definition(const Variable& _name) : 
             Singular_resource_definition(
                 _name
+            )
+        {}
+
+        Singular_bit_definition(const Resource::Bit& bit) :
+            Singular_resource_definition(
+                *bit.get_name()
             )
         {}
 

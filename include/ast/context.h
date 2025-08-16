@@ -9,6 +9,8 @@
 #include <compound_stmt.h>
 #include <gate.h>
 
+struct Genome;
+
 
 namespace Context {
 
@@ -125,6 +127,8 @@ namespace Context {
 
 			inline std::shared_ptr<Integer> get_circuit_id(){return std::make_shared<Integer>(ast_counter);}
 
+			void set_genome(const std::optional<Genome>& _genome);
+
         private:
 			std::string current_block_owner;
             std::vector<std::shared_ptr<Block>> blocks;
@@ -150,6 +154,8 @@ namespace Context {
 			std::optional<std::shared_ptr<Block>> current_gate_definition = std::nullopt; // not all gates have definitions
 
 	        size_t compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
+
+			std::shared_ptr<Genome> genome;
     };
 
 }

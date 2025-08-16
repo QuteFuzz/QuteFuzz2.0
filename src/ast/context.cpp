@@ -1,4 +1,5 @@
 #include <context.h>
+#include <generator.h>
 
 namespace Context {
 
@@ -8,6 +9,7 @@ namespace Context {
             subroutines_node = nullptr;
             subroutine_counter = 0;
             Node::node_counter = 0;
+            genome = nullptr;
             blocks.clear();
 
         } else if (l == BLOCK){
@@ -150,8 +152,15 @@ namespace Context {
                 ERROR("Unknown qubit defs hash: " + std::to_string(hash));
         }
 
-        size_t num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
+        size_t num_defs;
 
+        if(genome != nullptr){
+            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
+        
+        } else {
+            num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
+        }
+        
         return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
     }
 
@@ -375,5 +384,12 @@ namespace Context {
     void Context::set_current_gate_definition(){
         current_gate_definition = get_block(current_gate->get_string());
     }
+
+    void Context::set_genome(const std::optional<Genome>& _genome){
+        if(_genome.has_value()){
+            genome = std::make_shared<Genome>(_genome.value());
+        }
+    }
+
 
 }

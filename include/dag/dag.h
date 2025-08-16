@@ -4,9 +4,6 @@
 #include <node.h>
 #include <collection.h>
 
-namespace Resource {
-    class Qubit;
-}
 
 namespace Dag {
 
@@ -56,7 +53,7 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& qubits);
+            void make_dag(const Collection<Resource::Qubit>& _qubits);
 
             /// @brief Given 2 DAGs create child DAG that's a combination of both
             /// TODO: Make this use both dags to create child

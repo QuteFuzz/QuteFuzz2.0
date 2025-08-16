@@ -14,7 +14,7 @@ class Register_resource : public Node {
             Node("Register_resource", hash_rule_name("register_resource"))
         {}
 
-        Register_resource(std::string str, U64 hash, Variable _name, Integer _index) : 
+        Register_resource(std::string str, U64& hash, const Variable& _name, const Integer& _index) : 
             Node(str, hash),
             name(_name),
             index(_index)
@@ -43,7 +43,7 @@ class Register_resource : public Node {
 class Register_qubit : public Register_resource {
 
     public:
-        Register_qubit(Variable _name, Integer _index) : 
+        Register_qubit(const Variable& _name, const Integer& _index) : 
             Register_resource("register_qubit", Common::register_qubit, _name, _index)
         {}
 
@@ -54,7 +54,7 @@ class Register_qubit : public Register_resource {
 class Register_bit : public Register_resource {
 
     public:
-        Register_bit(Variable _name, Integer _index) : 
+        Register_bit(const Variable& _name, const Integer& _index) : 
             Register_resource("register_bit", Common::register_bit, _name, _index)
         {}
 

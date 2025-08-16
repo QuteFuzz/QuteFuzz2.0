@@ -116,11 +116,11 @@ class Block : public Node {
             }
         }
 
-        Collection<Resource::Qubit> get_qubits(){
+        inline Collection<Resource::Qubit> get_qubits(){
             return qubits;
         }
 
-        Collection<Resource::Bit> get_bits(){
+        inline Collection<Resource::Bit> get_bits(){
             return bits;
         }
 
@@ -137,6 +137,10 @@ class Block : public Node {
         size_t make_singular_resource_definition(U8 scope, Resource::Classification classification, size_t& total_definitions);
 
         size_t make_resource_definitions(U8 scope, Resource::Classification classification);
+
+        size_t make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits);
+
+        size_t qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit);
 
     private:
         std::string owner;
