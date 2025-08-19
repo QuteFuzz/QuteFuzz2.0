@@ -94,7 +94,7 @@ namespace Context {
 
 			std::shared_ptr<Variable> get_current_bit_definition_name();
 
-			void set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params);
+			void set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL);
 
 			std::shared_ptr<Gate> get_current_gate();
 

@@ -177,6 +177,8 @@ class Node {
 
         virtual unsigned int get_n_ports() const {return 1;}
 
+        inline bool is_subroutine() const {return hash == Common::subroutine;}
+
     protected:
         std::string string;
         U64 hash;

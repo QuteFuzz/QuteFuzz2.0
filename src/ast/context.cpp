@@ -333,8 +333,8 @@ namespace Context {
         }
     }
 
-    void Context::set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params){
-        current_gate = std::make_shared<Gate>(str, num_qubits, num_bits, num_params);
+    void Context::set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash){
+        current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
     }
 
     std::shared_ptr<Gate> Context::get_current_gate(){
