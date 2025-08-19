@@ -14,7 +14,7 @@ class Register_resource : public Node {
             Node("Register_resource", hash_rule_name("register_resource"))
         {}
 
-        Register_resource(std::string str, U64& hash, const Variable& _name, const Integer& _index) : 
+        Register_resource(std::string str, U64 hash, const Variable& _name, const Integer& _index) : 
             Node(str, hash),
             name(_name),
             index(_index)

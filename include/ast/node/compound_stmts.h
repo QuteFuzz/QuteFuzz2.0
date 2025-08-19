@@ -7,8 +7,8 @@ class Compound_stmts : public Node {
 
     public:
 
-        Compound_stmts(std::string str, U64 hash, int num_statements):
-            Node(str, hash)
+        Compound_stmts(int num_statements):
+            Node("compound_stmts", Common::compound_stmts)
         {
             constraint = std::make_optional<Node_constraint>(Common::compound_stmt, num_statements);
         }

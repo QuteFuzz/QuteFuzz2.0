@@ -7,6 +7,7 @@
 #include <resource_defs.h>
 #include <arg.h>
 #include <compound_stmt.h>
+#include <compound_stmts.h>
 #include <gate.h>
 
 struct Genome;
@@ -102,6 +103,8 @@ namespace Context {
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
 
 			std::shared_ptr<Compound_stmt> get_compound_stmt(const std::string& str, const U64& hash);
+
+			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
 
 			int get_current_gate_num_params();
 
