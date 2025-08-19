@@ -354,6 +354,21 @@ namespace Context {
         return std::make_shared<Compound_stmt>(str, hash, compound_stmt_depth);
     }
 
+    std::shared_ptr<Compound_stmts> Context::get_compound_stmts(std::shared_ptr<Node> parent){
+        // if compound statements are under main circuit
+        if(*parent == Common::body){
+            set_can_apply_subroutines();
+        }
+
+        if(genome != nullptr){
+            return std::make_shared<Compound_stmts>(genome->dag.n_compound_statements());
+        
+        } else {
+            return std::make_shared<Compound_stmts>(WILDCARD_MAX);
+        }
+    }
+
+
     int Context::get_current_gate_num_params(){
         if(current_gate != nullptr){
             return current_gate->get_num_params();

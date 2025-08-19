@@ -33,7 +33,7 @@ class Ast{
 
         Genome genome();
 
-        inline void render_dag(const fs::path& current_circuit_dir){dag.render_dag(current_circuit_dir);}
+        inline void render_dag(const fs::path& current_circuit_dir){std::cout << dag << std::endl; dag.render_dag(current_circuit_dir);}
 
     protected:
 

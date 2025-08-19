@@ -73,11 +73,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Node>(str, hash);
 
 		case Common::compound_stmts:
-			if(*parent == Common::body){
-				context.set_can_apply_subroutines();
-			}
-
-			return std::make_shared<Compound_stmts>(str, hash, WILDCARD_MAX);
+			return context.get_compound_stmts(parent);
 		
 		case Common::arguments: {
 			context.set_current_gate_definition();

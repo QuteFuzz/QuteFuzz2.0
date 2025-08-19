@@ -52,10 +52,9 @@ void Resource::Qubit::add_path_to_dag(Dag::Dag& dag) const {
     if(flow_path_length >= 2){
 
         for(size_t i = 0; i < flow_path_length-1; i++){
-            int current_node_id = flow_path.at(i).get_node_id();
-            int next_node_id = flow_path.at(i+1).get_node_id();
-
-            dag.add_edge(current_node_id, next_node_id);
+            dag.add_edge(flow_path.at(i), std::make_optional<int>(flow_path.at(i+1).get_node_id()), id);
         }
+
+        dag.add_edge(flow_path.at(flow_path_length-1), std::nullopt, id);
     }
 }

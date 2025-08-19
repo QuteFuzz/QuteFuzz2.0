@@ -175,6 +175,8 @@ class Node {
         }
         #endif
 
+        virtual unsigned int get_n_ports() const {return 1;}
+
     protected:
         std::string string;
         U64 hash;
