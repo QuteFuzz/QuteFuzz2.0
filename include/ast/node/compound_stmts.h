@@ -10,7 +10,7 @@ class Compound_stmts : public Node {
         Compound_stmts(std::string str, U64 hash, int num_statements):
             Node(str, hash)
         {
-            constraint = std::make_optional<Node_constraint>(Common::compound_stmt, num_statements);
+            constraint = std::make_optional<Node_constraint>(Common::compound_stmt, size_t(num_statements));
         }
 
     private:

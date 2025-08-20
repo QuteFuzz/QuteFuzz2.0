@@ -19,26 +19,41 @@ enum Node_kind {
 struct Node_constraint {
 
     public:
-        Node_constraint(Common::Rule_hash _rule, size_t _occurances): 
-            rule(_rule),
-            occurances(_occurances)
+        Node_constraint(Common::Rule_hash _rule, size_t _occurances):
+            rules({_rule}),
+            occurances({_occurances})
+        {}
+
+        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<size_t> _occurances): 
+            rules(std::move(_rules)),
+            occurances(std::move(_occurances))
         {}
 
         bool passed(const Branch& branch){
-            return branch.count_rule_occurances(rule) == occurances;
+            // Count the number of occurances of each rule in the branch and return true if they match the expected occurances
+            for(size_t i = 0; i < rules.size(); i++){
+                if(branch.count_rule_occurances(rules[i]) != occurances[i]){
+                    return false;
+                }
+            }
+            return true;
         }
 
-        Common::Rule_hash constraint_string() const {
-            return rule;
+        Common::Rule_hash constraint_string(int index) const {
+            return rules[index];
         }
 
-        size_t get_occurances() const {
-            return occurances;
+        size_t get_occurances(int index) const {
+            return occurances[index];
+        }
+
+        size_t rules_size() const {
+            return rules.size();
         }
 
     private:
-        Common::Rule_hash rule;
-        size_t occurances = 0;
+        std::vector<Common::Rule_hash> rules;
+        std::vector<size_t> occurances = {0};
 
 };
 
@@ -149,7 +164,10 @@ class Node {
         #ifdef DEBUG
         std::string get_debug_constraint_string() const {
             if(constraint.has_value()){
-                std::string debug_string = std::to_string(constraint.value().constraint_string()) + " with occurances: " + std::to_string(constraint.value().get_occurances());
+                std::string debug_string;
+                for (size_t i = 0; i < constraint.value().rules_size(); i++){
+                    debug_string += std::to_string(constraint.value().constraint_string(i)) + " with occurances: " + std::to_string(constraint.value().get_occurances(i)) + " ";
+                }
                 return debug_string;
             } else {
                 return "no constraint";

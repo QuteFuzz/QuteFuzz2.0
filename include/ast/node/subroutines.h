@@ -11,7 +11,7 @@ class Subroutines : public Node {
         Subroutines(std::string str, U64 hash):
             Node(str, hash)
         {
-            constraint = std::make_optional<Node_constraint>(Common::block, random_int(Common::MAX_SUBROUTINES));            
+            constraint = std::make_optional<Node_constraint>(Common::block, size_t(random_int(Common::MAX_SUBROUTINES)));
         }
 
     private:
