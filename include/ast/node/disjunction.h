@@ -13,7 +13,7 @@ class Disjunction : public Node {
         Disjunction(std::string str, U64 hash) :
             Node(str, hash)         
         {
-            constraint = std::make_optional<Node_constraint>(Node_constraint({Common::conjunction}, {2}));
+            constraint = std::make_optional<Node_constraint>(Common::conjunction, 2);
         }
 
         void print(std::ostream& stream) const override {

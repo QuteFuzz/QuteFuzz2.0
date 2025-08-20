@@ -19,6 +19,11 @@ enum Node_kind {
 struct Node_constraint {
 
     public:
+        Node_constraint(Common::Rule_hash _rule, size_t _occurances):
+            rules({_rule}),
+            occurances({_occurances})
+        {}
+
         Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<size_t> _occurances): 
             rules(std::move(_rules)),
             occurances(std::move(_occurances))

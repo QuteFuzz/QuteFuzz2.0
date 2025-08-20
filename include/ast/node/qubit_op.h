@@ -13,7 +13,7 @@ class Qubit_op : public Node {
             bool can_use_subroutine = current_block->get_can_apply_subroutines();
 
             if(!can_use_subroutine){
-                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::subroutine_op}, {0}));
+                constraint = std::make_optional<Node_constraint>(Common::subroutine_op, 0);
             }
         }
 

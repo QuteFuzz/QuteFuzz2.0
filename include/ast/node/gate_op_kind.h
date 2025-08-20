@@ -15,10 +15,10 @@ class Gate_op_kind : public Node {
             bool has_bits = num_bits > 0;
 
             if(has_gate_params && !has_bits){
-                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::float_list}, {1}));
+                constraint = std::make_optional<Node_constraint>(Common::float_list, 1);
 
             } else if (!has_gate_params && has_bits){
-                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::bit_list}, {1}));
+                constraint = std::make_optional<Node_constraint>(Common::bit_list, 1);
 
             } else if (!has_gate_params && !has_bits) {
                 constraint = std::make_optional<Node_constraint>(Node_constraint({Common::float_list, Common::bit_list}, {0, 0}));

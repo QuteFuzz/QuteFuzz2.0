@@ -11,7 +11,7 @@ class Compound_stmt : public Node {
             Node(str, hash, indentation_tracker)
         {
             if(compound_stmt_depth == 0){
-                constraint = std::make_optional<Node_constraint>(Node_constraint({Common::qubit_op}, {1}));
+                constraint = std::make_optional<Node_constraint>(Common::qubit_op, 1);
             }
         }
 
