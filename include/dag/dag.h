@@ -81,11 +81,26 @@ namespace Dag {
             int max_out_degree();
 
             int score();
-
-            unsigned int n_compound_statements(){
+            
+            /// @brief Each node is either a qubit op, or an if_stmt (TODO), both are compound statements
+            /// @return 
+            inline unsigned int n_compound_statements() const {
                 return n_nodes;
             }
 
+            /// @brief How many nodes are subroutines?
+            /// @return 
+            inline unsigned int n_subroutines() const {
+                return subroutines.size();
+            }
+
+            /// @brief Get subroutine node from DAG to use to create definition in AST. If there's no subroutines in the DAG,
+            /// the part of the AST where this function is called will never be reached, return dummy
+            /// @return 
+            std::shared_ptr<Node> get_next_subroutine(){
+                return subroutines.size() ? subroutines.at(next_sub_pointer++) : dummy; 
+            }
+            
             friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
                 stream << "=========================================" << std::endl;
@@ -93,6 +108,8 @@ namespace Dag {
                 stream << "=========================================" << std::endl;
 
                 stream << "N_NODES: " << dag.n_nodes << std::endl;
+                stream << "N_SUBROUTINES: " << dag.n_subroutines() << std::endl;
+                stream << "N_COMPOUND_STATEMENTS: " << dag.n_compound_statements() << std::endl;
 
                 for(const auto&[node, node_data] : dag.nodewise_data){
 
@@ -112,6 +129,10 @@ namespace Dag {
             unsigned int n_nodes = 0;
             std::unordered_map<std::shared_ptr<Node>, Node_data> nodewise_data;
             Collection<Resource::Qubit> qubits;
+
+            std::vector<std::shared_ptr<Node>> subroutines;
+            std::shared_ptr<Node> dummy;
+            unsigned int next_sub_pointer = 0;
 
     };
 

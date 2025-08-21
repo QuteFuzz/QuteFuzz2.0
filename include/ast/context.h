@@ -9,6 +9,7 @@
 #include <compound_stmt.h>
 #include <compound_stmts.h>
 #include <gate.h>
+#include <subroutines.h>
 
 struct Genome;
 
@@ -34,9 +35,9 @@ namespace Context {
 
             void set_can_apply_subroutines(bool flag = true);
 
-            size_t get_max_defined_qubits();
+            unsigned int get_max_external_qubits();
 
-			size_t get_max_defined_bits();
+			unsigned int get_max_external_bits();
 
 			std::shared_ptr<Block> get_current_block() const;
 
@@ -116,9 +117,7 @@ namespace Context {
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
             }
 
-			inline void set_subroutines_node(std::shared_ptr<Node> _node){
-				subroutines_node = _node;
-			}
+			std::shared_ptr<Subroutines> get_subroutines_node();
 
 			void set_current_gate_definition();
 
@@ -131,6 +130,12 @@ namespace Context {
 			inline std::shared_ptr<Integer> get_circuit_id(){return std::make_shared<Integer>(ast_counter);}
 
 			void set_genome(const std::optional<Genome>& _genome);
+
+			inline void print_block_info() const {		
+				for(const std::shared_ptr<Block>& block : blocks){
+					block->print_info();
+				}
+			}
 
         private:
 			std::string current_block_owner;
@@ -152,7 +157,7 @@ namespace Context {
 
 			std::shared_ptr<Arg> current_arg;
 
-			std::shared_ptr<Node> subroutines_node = nullptr;
+			std::shared_ptr<Subroutines> subroutines_node = nullptr;
 			
 			std::optional<std::shared_ptr<Block>> current_gate_definition = std::nullopt; // not all gates have definitions
 

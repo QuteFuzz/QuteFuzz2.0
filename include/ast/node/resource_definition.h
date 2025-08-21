@@ -23,8 +23,8 @@ class Resource_definition : public Node {
 
         Resource_definition(const Singular_resource_definition& def, const U8& _scope) :
             Node("resource_def", hash_rule_name("resource_def")),
-        value(def), 
-        scope(_scope)
+            value(def), 
+            scope(_scope)
         {}
 
         U8 get_scope() const { return scope; }
@@ -35,7 +35,7 @@ class Resource_definition : public Node {
             }, value);
         }
 
-        inline std::shared_ptr<Integer> get_size(){                
+        inline std::shared_ptr<Integer> get_size() const {                
             if(is_register_def()){
                 return std::get<Register_resource_definition>(value).get_size();   
             }

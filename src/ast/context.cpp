@@ -47,7 +47,7 @@ namespace Context {
         current_block->set_can_apply_subroutines(false);
     }
 
-    size_t Context::get_max_defined_qubits(){
+    unsigned int Context::get_max_external_qubits(){
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
@@ -57,7 +57,7 @@ namespace Context {
         return res;
     }
 
-    size_t Context::get_max_defined_bits(){
+    unsigned int Context::get_max_external_bits(){
         size_t res = Common::MIN_BITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
@@ -100,33 +100,32 @@ namespace Context {
     }
 
     std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
-
-        int target_num_qubits_external;
-        int target_num_qubits_internal;
-        int target_num_bits_external;
-        int target_num_bits_internal;
+        std::shared_ptr<Block> current_block;
 
         if(current_block_is_subroutine()){
-            current_block_owner = "sub"+std::to_string(subroutine_counter++);
-            target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
-            target_num_qubits_internal = random_int(Common::MAX_QUBITS-target_num_qubits_external);
-            target_num_bits_external = random_int(Common::MAX_BITS, Common::MIN_BITS);
-            target_num_bits_internal = random_int(Common::MAX_BITS-target_num_bits_external);
+
+            if(genome == nullptr){
+                current_block_owner = "sub"+std::to_string(subroutine_counter++);
+                current_block = std::make_shared<Block>(str, hash, current_block_owner);
+
+            } else {
+                std::shared_ptr<Node> subroutine = genome->dag.get_next_subroutine();
+
+                std::cout << YELLOW("setting block from DAG ") << std::endl;
+                std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
+                std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
+
+                current_block_owner = subroutine->get_string();
+                current_block = std::make_shared<Block>(str, hash,current_block_owner, subroutine->get_n_ports());
+            }
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            //This is assuming that the main circuit either has all its qubits defined internally or externally, not both
-            int max_qubits = get_max_defined_qubits();
-            int max_bits = get_max_defined_bits();
-            target_num_qubits_external = max_qubits;
-            target_num_qubits_internal = max_qubits;
-            target_num_bits_external = max_bits;
-            target_num_bits_internal = max_bits;
+            current_block = std::make_shared<Block>(str, hash, Common::TOP_LEVEL_CIRCUIT_NAME);
 
             subroutine_counter = 0;
         }
 
-        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits_external, target_num_qubits_internal, target_num_bits_external, target_num_bits_internal);
         blocks.push_back(current_block);
 
         return current_block;
@@ -154,7 +153,7 @@ namespace Context {
 
         size_t num_defs;
 
-        if(genome != nullptr){
+        if((genome != nullptr) && (current_block->is_subroutine() == false)){
             num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
         
         } else {
@@ -366,6 +365,19 @@ namespace Context {
         } else {
             return std::make_shared<Compound_stmts>(WILDCARD_MAX);
         }
+    }
+
+    std::shared_ptr<Subroutines> Context::get_subroutines_node(){
+
+        unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
+
+        if(genome != nullptr){
+            n_blocks = genome->dag.n_subroutines();
+        }
+
+        subroutines_node = std::make_shared<Subroutines>(n_blocks);
+
+        return subroutines_node;
     }
 
 

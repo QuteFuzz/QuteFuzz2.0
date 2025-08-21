@@ -121,13 +121,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 			
-		case Common::subroutines: {
-			std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(str, hash);
-			
-			context.set_subroutines_node(node);
-
-			return node;
-		}
+		case Common::subroutines:
+			return context.get_subroutines_node();			
 
 		case Common::gate_op_kind:
 			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
@@ -239,7 +234,13 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			int num_sub_bits = subroutine->num_external_bits();
 
 			subroutine->qubit_def_pointer_reset();
-			context.set_current_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_external_qubit_defs());				
+
+			/*
+				create gate from subroutine
+				- the hash of the node will be Common::subroutine, and the string will be the name of the block defining this subroutine
+				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
+			*/
+			context.set_current_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_external_qubit_defs(), hash);				
 		
 			return context.get_current_gate();
 		}
@@ -344,6 +345,8 @@ Result<Node> Ast::build(const std::optional<Genome>& genome){
 			std::shared_ptr<Block> current_block = context.get_current_block();
 			dag.make_dag(current_block->get_qubits());
 		}
+
+		context.print_block_info();
 
 		res.set_ok(*root_ptr);
 	}

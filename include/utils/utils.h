@@ -10,6 +10,7 @@
 #include <variant>
 #include <regex>
 #include <random>
+#include <set>
 #include <filesystem>
 #include <unordered_map>
 #include <algorithm>

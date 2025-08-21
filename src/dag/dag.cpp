@@ -4,6 +4,8 @@
 
 void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
     nodewise_data.clear();
+    subroutines.clear();
+    next_sub_pointer = 0;
 
     qubits = _qubits;
     
@@ -37,6 +39,15 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     if(maybe_dest_node_id.has_value()) nodewise_data.at(source_node).children.push_back(maybe_dest_node_id.value());
 
     nodewise_data[source_node].inputs[source_node_input_port] = qubit_id;
+
+    if(source_node->is_subroutine()) {
+
+        for(const std::shared_ptr<Node>& subroutine : subroutines){
+            if(subroutine->get_string() == source_node->get_string()) return;
+        }
+
+        subroutines.push_back(source_node);
+    }
 }
 
 int Dag::Dag::max_out_degree(){

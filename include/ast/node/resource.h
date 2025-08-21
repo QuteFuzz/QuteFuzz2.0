@@ -8,9 +8,9 @@
 
 namespace Resource {
 
-    #define EXTERNAL_SCOPE (1 << 0)
-    #define INTERNAL_SCOPE (1 << 1)
-    #define OWNED_SCOPE (1 << 2)
+    #define EXTERNAL_SCOPE (1UL << 0)
+    #define INTERNAL_SCOPE (1UL << 1)
+    #define OWNED_SCOPE (1UL << 2)
     #define ALL_SCOPES (EXTERNAL_SCOPE | INTERNAL_SCOPE | OWNED_SCOPE)
 
     inline bool is_external(U8 scope){
