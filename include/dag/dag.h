@@ -44,8 +44,10 @@ namespace Dag {
     };
 
     struct Node_data{
-        std::vector<int> inputs; // each index is a port into the node, the value at each port is the id of the qubit entering that port
-        std::vector<int> children; 
+        std::shared_ptr<Node> node;
+
+        std::vector<unsigned int> inputs; // each index is a port into the node, the value at each port is the id for the qubit entering that port
+        std::vector<unsigned int> children; // node ids of child nodes
 
         inline unsigned int in_degree() const {
             return inputs.size();
@@ -100,7 +102,22 @@ namespace Dag {
             std::shared_ptr<Node> get_next_subroutine(){
                 return subroutines.size() ? subroutines.at(next_sub_pointer++) : dummy; 
             }
-            
+
+            std::shared_ptr<Resource::Qubit> get_next_node(){
+                return n_nodes ? nodewise_data.at(next_node_pointer++) : dummy;
+            }
+
+            inline std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Node> node){
+                
+                for(unsigned int i = 0; i < nodewise_data.size(); i++){
+                    if(nodewise_data[i].node->get_id() == node->get_id()){
+                        return std::make_optional<unsigned int>(i);   
+                    }
+                }
+
+                return std::nullopt;
+            }
+
             friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
                 stream << "=========================================" << std::endl;
@@ -111,12 +128,12 @@ namespace Dag {
                 stream << "N_SUBROUTINES: " << dag.n_subroutines() << std::endl;
                 stream << "N_COMPOUND_STATEMENTS: " << dag.n_compound_statements() << std::endl;
 
-                for(const auto&[node, node_data] : dag.nodewise_data){
+                for(const auto& node_data : dag.nodewise_data){
 
-                    stream << node->get_id() << " -> children: ";
+                    stream << node_data.node->get_id() << " -> children: ";
 
-                    for(const int& child : node_data.children){
-                        stream << child << ", ";
+                    for(const unsigned int& child_id : node_data.children){
+                        stream << child_id << ", ";
                     }
 
                     stream << "in_degree: " << node_data.in_degree() << ", out_degree: " << node_data.out_degree() << std::endl;
@@ -125,10 +142,21 @@ namespace Dag {
                 return stream;
             }
 
+            inline void reset(){
+                n_nodes = 0;
+                nodewise_data.clear();
+                subroutines.clear();
+                next_sub_pointer = 0;
+                next_node_pointer = 0;
+            }
+
         private:
             unsigned int n_nodes = 0;
-            std::unordered_map<std::shared_ptr<Node>, Node_data> nodewise_data;
+            std::vector<Node_data> nodewise_data;
+
             Collection<Resource::Qubit> qubits;
+            std::shared_ptr<Resource::Qubit> dummy_qubit;
+            unsigned int next_node_pointer = 0;
 
             std::vector<std::shared_ptr<Node>> subroutines;
             std::shared_ptr<Node> dummy;

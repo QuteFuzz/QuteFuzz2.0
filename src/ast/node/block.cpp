@@ -162,7 +162,9 @@ unsigned int Block::make_resource_definitions(U8 scope, Resource::Classification
     }
 
     #ifdef DEBUG
-    INFO("Creating resource definitions, target num resources = " + std::to_string(target_num_resources));
+    std::cout << YELLOW("Creating resource definitions for " + owner + ", target num resources = " + std::to_string(target_num_resources)) << std::endl;
+    std::cout << YELLOW("scope is external classification is qubit") << std::endl;
+    std::cout << YELLOW(std::to_string((scope_is_external << 1) | classificaton_is_qubit)) << std::endl;
     #endif
 
     while(target_num_resources > 0){
@@ -238,12 +240,19 @@ void Block::print_info() const {
 
     std::cout << std::endl;
     std::cout << "Qubit definitions " << std::endl;
+
+    if(owner == Common::TOP_LEVEL_CIRCUIT_NAME){
+        std::cout << YELLOW("Qubit defs may not match target if block is built to match DAG") << std::endl;
+    }
+
     for(const Qubit_definition& qubit_def : qubit_defs){
         std::cout << "name: " << qubit_def.get_name()->get_string() << " " ;
 
         if(qubit_def.is_register_def()){
             std::cout << "size: " << qubit_def.get_size()->get_string();
         }
+
+        std::cout << " Scope: " << (qubit_def.is_external() ? "external" : "internal"); 
 
         std::cout << std::endl;
     }

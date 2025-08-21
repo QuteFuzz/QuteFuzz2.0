@@ -177,7 +177,9 @@ class Node {
 
         virtual unsigned int get_n_ports() const {return 1;}
 
-        inline bool is_subroutine() const {return hash == Common::subroutine;}
+        /// @brief Is this node a subroutine generated in the AST?
+        /// @return 
+        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
 
     protected:
         std::string string;

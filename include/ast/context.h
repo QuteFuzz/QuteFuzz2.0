@@ -112,7 +112,9 @@ namespace Context {
 			int get_current_gate_num_qubits();
 
 			int get_current_gate_num_bits();
-		
+			
+			/// @brief Is the current block being generated a subroutine?
+			/// @return 
 			inline bool current_block_is_subroutine(){
                 return (subroutines_node != nullptr) && (subroutines_node->build_state() == NB_BUILD);
             }

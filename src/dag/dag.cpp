@@ -3,21 +3,17 @@
 #include <dag.h>
 
 void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
-    nodewise_data.clear();
-    subroutines.clear();
-    next_sub_pointer = 0;
+    reset();
 
     qubits = _qubits;
     
     for(const Resource::Qubit& qubit : qubits){
         qubit.add_path_to_dag(*this);
     }
-
-    n_nodes = nodewise_data.size();
 }
 
 void Dag::Dag::make_dag(const Dag& dag1, const Dag& dag2){
-    nodewise_data.clear();
+    reset();
 
     qubits = dag1.get_qubits();
     UNUSED(dag2);
@@ -29,18 +25,22 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     unsigned int source_node_input_port = edge.get_dest_port();
     std::shared_ptr<Node> source_node = edge.get_node();
 
-    if(nodewise_data.contains(source_node) == false){
-        nodewise_data[source_node] = Node_data{.inputs = {}, .children = {}};
+    std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
+    unsigned int pos = maybe_pos.value_or(n_nodes);
 
+    if(maybe_pos.has_value() == false){
+        nodewise_data.push_back(Node_data{.node = source_node, .inputs = {}, .children = {}});
+        
         // reserve memory for inputs depending on number of ports this gate has
-        nodewise_data.at(source_node).inputs.resize(source_node->get_n_ports(), 0);
+        nodewise_data.at(pos).inputs.resize(source_node->get_n_ports(), 0);
+        n_nodes += 1;
     }
 
-    if(maybe_dest_node_id.has_value()) nodewise_data.at(source_node).children.push_back(maybe_dest_node_id.value());
+    if(maybe_dest_node_id.has_value()) nodewise_data.at(pos).children.push_back(maybe_dest_node_id.value());
 
-    nodewise_data[source_node].inputs[source_node_input_port] = qubit_id;
+    nodewise_data.at(pos).inputs[source_node_input_port] = qubit_id;
 
-    if(source_node->is_subroutine()) {
+    if(source_node->is_subroutine_gate()) {
 
         for(const std::shared_ptr<Node>& subroutine : subroutines){
             if(subroutine->get_string() == source_node->get_string()) return;
@@ -53,8 +53,8 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
 int Dag::Dag::max_out_degree(){
     unsigned int curr_max = 0;
 
-    for(const auto&[node, node_data] : nodewise_data){
-        curr_max = std::max(curr_max, node_data.out_degree());
+    for(const auto&data : nodewise_data){
+        curr_max = std::max(curr_max, data.out_degree());
     }
 
     return curr_max;

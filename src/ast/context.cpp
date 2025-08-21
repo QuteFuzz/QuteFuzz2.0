@@ -116,7 +116,7 @@ namespace Context {
                 std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
 
                 current_block_owner = subroutine->get_string();
-                current_block = std::make_shared<Block>(str, hash,current_block_owner, subroutine->get_n_ports());
+                current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
             }
 
         } else {
@@ -153,7 +153,7 @@ namespace Context {
 
         size_t num_defs;
 
-        if((genome != nullptr) && (current_block->is_subroutine() == false)){
+        if((genome != nullptr) && !current_block_is_subroutine()){
             num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
         
         } else {
