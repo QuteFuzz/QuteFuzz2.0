@@ -38,10 +38,6 @@ class Branch {
 
         inline void set_recursive_flag(){recursive = true;}
 
-        void assign_prob(const float _prob){prob = _prob;}
-
-        float get_prob() const {return prob;}
-
         void add(const Term& term);
 
         size_t size() const {return terms.size();}
@@ -72,7 +68,6 @@ class Branch {
         bool recursive = false;
 
         std::vector<Term> terms;
-        float prob = 0.0;
 };
 
 

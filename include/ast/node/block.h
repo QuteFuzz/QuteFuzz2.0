@@ -6,6 +6,41 @@
 #include <resource.h>
 #include <collection.h>
 
+/*
+    Blocks contain external and internal qubits, external and internal bits, which are set targets that must be satisfied
+    It is not a guarantee that any block will have both internal and external qubits, so the targets are set such that any block 
+    will have external qubits = (MIN_QUBITS, MAX_QUBITS) and internal qubits = (MIN_QUBITS, MAX_QUBITS) separately, 
+    instead of external qubits + internal qubits = (MIN_QUBITS, MAX_QUBITS)
+
+    See example below, if using  external qubits + internal qubits = (MIN_QUBITS, MAX_QUBITS)
+
+    =======================================
+                BLOCK INFO               
+    =======================================
+    Owner: main_circuit
+    Target num qubits 
+    EXTERNAL: 3
+    INTERNAL: 1
+    Target num bits 
+    EXTERNAL: 1
+    INTERNAL: 1
+
+    Qubit definitions 
+    Qubit defs may not match target if block is built to match DAG
+    name: qreg0 size: 1 Scope: internal
+    =======================================
+    @guppy.comptime
+    def main_circuit() -> None:
+            qreg0 = array(qubit() for _ in range(1))
+            if 0 <= 0  and 0 > 0   or 0 <= 0  and 0 == 0   :
+                    if 0 <= 0  and 0 == 0   or 0 >= 0  and 0 <= 0   :
+                            project_z(qreg0[0])
+                            cy(qreg0[0], 
+
+    the block set a target for internal qubits of 1, and external of 3. But since this is guppy, only internal definitions are created, and therefore this stalls in 
+    an infinite loop while picking a random qubit
+*/
+
 class Block : public Node {
 
     public:
@@ -15,14 +50,32 @@ class Block : public Node {
             owner("dummy")
         {}
 
-        Block(std::string str, U64 hash, std::string owner_name, int _target_num_qubits_external, int _target_num_qubits_internal, 
-            int _target_num_bits_external, int _target_num_bits_internal) : 
+        /// @brief Generating a random block from scratch
+        /// @param str 
+        /// @param hash 
+        /// @param owner_name 
+        Block(std::string str, U64 hash, std::string owner_name) :
             Node(str, hash),
             owner(owner_name), 
-            target_num_qubits_external(_target_num_qubits_external),
-            target_num_qubits_internal(_target_num_qubits_internal),
-            target_num_bits_external(_target_num_bits_external),
-            target_num_bits_internal(_target_num_bits_internal) {}
+            target_num_qubits_external(random_int(Common::MAX_QUBITS, Common::MIN_QUBITS)),
+            target_num_qubits_internal(random_int(Common::MAX_QUBITS, Common::MIN_QUBITS)),
+            target_num_bits_external(random_int(Common::MAX_BITS, Common::MIN_BITS)),
+            target_num_bits_internal(random_int(Common::MAX_BITS, Common::MIN_BITS)) 
+        {}
+
+        /// @brief Generating a block with a specific number of external qubits (generating from DAG)
+        /// @param str 
+        /// @param hash 
+        /// @param owner_name 
+        /// @param num_external_qubits 
+        Block(std::string str, U64 hash, std::string owner_name, unsigned int num_external_qubits) :
+            Node(str, hash),
+            owner(owner_name), 
+            target_num_qubits_external(num_external_qubits),
+            target_num_qubits_internal(random_int(Common::MAX_QUBITS, Common::MIN_QUBITS)),
+            target_num_bits_external(random_int(Common::MAX_BITS, Common::MIN_BITS)),
+            target_num_bits_internal(random_int(Common::MAX_BITS, Common::MIN_BITS)) 
+        {}
 
         inline bool owned_by(std::string other){return other == owner;}
 
@@ -120,11 +173,11 @@ class Block : public Node {
             }
         }
 
-        Collection<Resource::Qubit> get_qubits(){
+        inline Collection<Resource::Qubit> get_qubits(){
             return qubits;
         }
 
-        Collection<Resource::Bit> get_bits(){
+        inline Collection<Resource::Bit> get_bits(){
             return bits;
         }
 
@@ -136,18 +189,25 @@ class Block : public Node {
 
         std::shared_ptr<Bit_definition> get_next_bit_def(U8 scope_filter = ALL_SCOPES);
 
-        size_t make_register_resource_definition(int max_size, U8 scope, Resource::Classification classification, size_t& total_definitions);
+        unsigned int make_register_resource_definition(unsigned int max_size, U8 scope, Resource::Classification classification, unsigned int& total_definitions);
 
-        size_t make_singular_resource_definition(U8 scope, Resource::Classification classification, size_t& total_definitions);
+        unsigned int make_singular_resource_definition(U8 scope, Resource::Classification classification, unsigned int& total_definitions);
 
-        size_t make_resource_definitions(U8 scope, Resource::Classification classification);
+        unsigned int make_resource_definitions(U8 scope, Resource::Classification classification);
+
+        unsigned int make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits);
+
+        unsigned int qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit);
+
+        void print_info() const;
 
     private:
         std::string owner;
-        int target_num_qubits_external = Common::MIN_QUBITS;
-        int target_num_qubits_internal = 0;
-        int target_num_bits_external = Common::MIN_BITS;
-        int target_num_bits_internal = 0;
+
+        unsigned int target_num_qubits_external = Common::MIN_QUBITS;
+        unsigned int target_num_qubits_internal = 0;
+        unsigned int target_num_bits_external = Common::MIN_BITS;
+        unsigned int target_num_bits_internal = 0;
         
         bool can_apply_subroutines = true;
 
@@ -157,8 +217,8 @@ class Block : public Node {
         Collection<Resource::Bit> bits;
         Collection<Bit_definition> bit_defs;
 
-        size_t qubit_def_pointer = 0;
-        size_t bit_def_pointer = 0;
+        unsigned int qubit_def_pointer = 0;
+        unsigned int bit_def_pointer = 0;
 
         Resource::Qubit dummy_qubit;
         Resource::Bit dummy_bit;

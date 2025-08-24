@@ -1,4 +1,5 @@
 #include <context.h>
+#include <generator.h>
 
 namespace Context {
 
@@ -8,7 +9,10 @@ namespace Context {
             subroutines_node = nullptr;
             subroutine_counter = 0;
             Node::node_counter = 0;
+
             blocks.clear();
+
+            genome = std::nullopt;
 
         } else if (l == BLOCK){
             compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
@@ -16,6 +20,8 @@ namespace Context {
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
             get_current_block()->bit_flag_reset();
+        
+        } else if (l == COMPOUND_STMT) {
             current_port = 0;
         }
     }
@@ -45,7 +51,7 @@ namespace Context {
         current_block->set_can_apply_subroutines(false);
     }
 
-    size_t Context::get_max_defined_qubits(){
+    unsigned int Context::get_max_external_qubits(){
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
@@ -55,7 +61,7 @@ namespace Context {
         return res;
     }
 
-    size_t Context::get_max_defined_bits(){
+    unsigned int Context::get_max_external_bits(){
         size_t res = Common::MIN_BITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
@@ -98,33 +104,34 @@ namespace Context {
     }
 
     std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
+        std::shared_ptr<Block> current_block;
 
-        int target_num_qubits_external;
-        int target_num_qubits_internal;
-        int target_num_bits_external;
-        int target_num_bits_internal;
+        reset(BLOCK);
 
         if(current_block_is_subroutine()){
-            current_block_owner = "sub"+std::to_string(subroutine_counter++);
-            target_num_qubits_external = random_int(Common::MAX_QUBITS, Common::MIN_QUBITS);
-            target_num_qubits_internal = random_int(Common::MAX_QUBITS-target_num_qubits_external);
-            target_num_bits_external = random_int(Common::MAX_BITS, Common::MIN_BITS);
-            target_num_bits_internal = random_int(Common::MAX_BITS-target_num_bits_external);
+
+            if(genome.has_value()){
+                std::shared_ptr<Node> subroutine = genome.value().dag.get_next_subroutine_gate();
+
+                std::cout << YELLOW("setting block from DAG ") << std::endl;
+                std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
+                std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
+
+                current_block_owner = subroutine->get_string();
+                current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
+
+            } else {
+                current_block_owner = "sub"+std::to_string(subroutine_counter++);
+                current_block = std::make_shared<Block>(str, hash, current_block_owner);
+            }
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            //This is assuming that the main circuit either has all its qubits defined internally or externally, not both
-            int max_qubits = get_max_defined_qubits();
-            int max_bits = get_max_defined_bits();
-            target_num_qubits_external = max_qubits;
-            target_num_qubits_internal = max_qubits;
-            target_num_bits_external = max_bits;
-            target_num_bits_internal = max_bits;
+            current_block = std::make_shared<Block>(str, hash, Common::TOP_LEVEL_CIRCUIT_NAME);
 
             subroutine_counter = 0;
         }
 
-        std::shared_ptr<Block> current_block = std::make_shared<Block>(str, hash, current_block_owner, target_num_qubits_external, target_num_qubits_internal, target_num_bits_external, target_num_bits_internal);
         blocks.push_back(current_block);
 
         return current_block;
@@ -150,8 +157,15 @@ namespace Context {
                 ERROR("Unknown qubit defs hash: " + std::to_string(hash));
         }
 
-        size_t num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
+        size_t num_defs;
 
+        if(genome.has_value() && !current_block_is_subroutine()){
+            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
+        
+        } else {
+            num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
+        }
+        
         return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
     }
 
@@ -175,10 +189,10 @@ namespace Context {
         return std::nullopt;
     }
 
-    void Context::set_current_arg(const std::string& str, const U64& hash){
+    void Context::set_current_arg(){
         if((current_gate != nullptr) && current_gate_definition.has_value()){
             std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_qubit_def(EXTERNAL_SCOPE | OWNED_SCOPE);
-            current_arg = std::make_shared<Arg>(str, hash, qubit_def);
+            current_arg = std::make_shared<Arg>(qubit_def);
         }
     }
 
@@ -191,7 +205,7 @@ namespace Context {
 
         Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
         
-        random_qubit->extend_flow_path(current_gate, current_port++);
+        random_qubit->extend_flow_path(current_compound_stmt, current_port++);
 
         current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
     }
@@ -324,8 +338,8 @@ namespace Context {
         }
     }
 
-    void Context::set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params){
-        current_gate = std::make_shared<Gate>(str, num_qubits, num_bits, num_params);
+    void Context::set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash){
+        current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
     }
 
     std::shared_ptr<Gate> Context::get_current_gate(){
@@ -333,7 +347,7 @@ namespace Context {
     }
 
     std::shared_ptr<Node> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
-        return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_internal_qubit}, {size_t(num_owned_qubit_defs)}), Node::indentation_tracker);
+        return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_internal_qubit, num_owned_qubit_defs), Node::indentation_tracker);
     }
 
     std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){
@@ -341,9 +355,52 @@ namespace Context {
         return std::make_shared<Node>(str, hash);
     }
 
-    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(const std::string& str, const U64& hash){
-        return std::make_shared<Compound_stmt>(str, hash, compound_stmt_depth);
+    void Context::set_current_compound_stmt(){
+        reset(COMPOUND_STMT);
+
+
+
+        current_compound_stmt = std::make_shared<Compound_stmt>(compound_stmt_depth);
     }
+
+    std::shared_ptr<Compound_stmt> Context::get_current_compound_stmt(){
+        return current_compound_stmt;
+    }
+
+    std::shared_ptr<Compound_stmts> Context::get_compound_stmts(std::shared_ptr<Node> parent){
+        
+        /*
+            this check is to make sure we only call the function for the compound statements rule in the circuit body, as opposed to each nested
+            call within the body in control flow
+        */
+        if(*parent == Common::body){
+            set_can_apply_subroutines();
+        }
+
+        /*
+            set number of compound statements the main circuit needs in order to match the DAG. Only main circuit is considered because DAG 
+            is only for the main circuit
+        */
+        if(genome.has_value() && !current_block_is_subroutine()){
+            return std::make_shared<Compound_stmts>(genome->dag.n_compound_statements());
+        
+        } else {
+            return std::make_shared<Compound_stmts>(WILDCARD_MAX);
+        }
+    }
+
+    std::shared_ptr<Subroutines> Context::get_subroutines_node(){
+        unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
+
+        if(genome.has_value()){
+            n_blocks = genome.value().dag.n_subroutines();
+        }
+
+        subroutines_node = std::make_shared<Subroutines>(n_blocks);
+
+        return subroutines_node;
+    }
+
 
     int Context::get_current_gate_num_params(){
         if(current_gate != nullptr){
@@ -375,5 +432,10 @@ namespace Context {
     void Context::set_current_gate_definition(){
         current_gate_definition = get_block(current_gate->get_string());
     }
+
+    void Context::set_genome(const std::optional<Genome>& _genome){
+        genome = _genome;
+    }
+
 
 }

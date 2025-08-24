@@ -11,15 +11,13 @@
 
 *)
 
-program = imports NEWLINE subroutines NEWLINE main_block NEWLINE compiler_call;
+program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
 
 subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
 
 block     = block_def NEWLINE qubit_defs_external_owned bit_defs_external NEWLINE body NEWLINE;
 
 block_def = circuit_name " = Circuit()";
-
-main_block = block;
 
 main_block_def = block_def;
 
@@ -45,17 +43,13 @@ register_bit_def_external = bit_def_name EQUALS circuit_name ".add_c_register" L
 
 compound_stmt = qubit_op;
 
-qubit_op =
-    gate_op
-    | subroutine_op
-    ;
+qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
 
 gate_op = circuit_name DOT gate_name gate_op_kind;
-subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list COMMA SPACE bit_list "])";
+subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list COMMA SPACE bit_list "])";
 
 gate_name   = X | Y | Z | CX | CY | CZ | Rx | Ry | Rz
-            | H | T | S | CH | Measure;
-
+            | H | T | S | CH | subroutine | Measure;
 gate_op_kind =
     LPAREN qubit_list RPAREN 
     | LPAREN qubit_list COMMA bit_list RPAREN

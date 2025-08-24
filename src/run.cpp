@@ -158,6 +158,7 @@ void Run::run_tests(){
 void Run::loop(){
 
     std::string current_command;
+    bool run_genetic = false;
 
     while(true){
         std::cout << "> ";
@@ -184,26 +185,34 @@ void Run::loop(){
             
             } else if (current_command == "plot"){
                 Common::plot = !Common::plot;
-                INFO("Plot mode is now " + (Common::plot ? "enabled" : "disabled"));
+                INFO("Plot mode is now " + FLAG_STATUS(Common::plot));
             
             } else if (current_command == "verbose"){
                 Common::verbose = !Common::verbose;
-                INFO("Verbose mode is now " + (Common::verbose ? "enabled" : "disabled"));
+                INFO("Verbose mode is now " + FLAG_STATUS(Common::verbose));
 
             } else if (current_command == "render_dags"){
                 Common::render_dags = !Common::render_dags;
-                INFO("DAG render " + (Common::render_dags ? "enabled" : "disabled"));
+                INFO("DAG render " + FLAG_STATUS(Common::render_dags));
 
             } else if (current_command == "run_tests"){
                 run_tests();
 
-            } else if (current_command == "run_genetic"){
-                remove_all_in_dir(output_dir);
-                current_generator->run_genetic();
+            } else if (current_command == "genetic"){
+                run_genetic = !run_genetic;
+                INFO("Genetic generation mode " + FLAG_STATUS(run_genetic));
 
             } else if ((n_programs = safe_stoi(current_command))){
                 remove_all_in_dir(output_dir);
-                current_generator->ast_to_program(output_dir, n_programs.value_or(0));
+
+                if(run_genetic){
+                    current_generator->run_genetic(output_dir, n_programs.value_or(0));
+
+                } else {
+                    current_generator->generate_random_programs(output_dir, n_programs.value_or(0));
+
+                }
+
             }
 
         } else {

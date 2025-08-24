@@ -8,10 +8,10 @@ class Subroutines : public Node {
     public:
         using Node::Node;
 
-        Subroutines(std::string str, U64 hash):
-            Node(str, hash)
+        Subroutines(unsigned int n_blocks):
+            Node("subroutines", Common::subroutines)
         {
-            constraint = std::make_optional<Node_constraint>(Common::block, size_t(random_int(Common::MAX_SUBROUTINES)));
+            add_constraint(Common::block, n_blocks);
         }
 
     private:

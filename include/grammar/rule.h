@@ -34,8 +34,6 @@ class Rule {
 
         bool is_empty() const {return branches.empty();}
 
-        void assign_prob(const float _prob);
-
         Branch pick_branch(std::shared_ptr<Node> parent);
 
         inline void mark_as_common(){common = true;} 

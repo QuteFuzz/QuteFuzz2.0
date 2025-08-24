@@ -12,7 +12,7 @@ class Singular_resource : public Node {
         {}
 
         // Initialize singular resource with node and hash rule name based on input type
-        Singular_resource(std::string str, U64 hash, Variable _name) : 
+        Singular_resource(std::string str, U64 hash, const Variable& _name) : 
             Node(str, hash),
             name(_name)
         {}
@@ -35,7 +35,7 @@ class Singular_resource : public Node {
 class Singular_qubit : public Singular_resource {
 
     public:
-        Singular_qubit(Variable _name):
+        Singular_qubit(const Variable& _name):
             Singular_resource("singular_qubit", Common::singular_qubit ,_name)
         {}
 
@@ -46,7 +46,7 @@ class Singular_qubit : public Singular_resource {
 class Singular_bit : public Singular_resource {
 
     public:
-        Singular_bit(Variable _name):
+        Singular_bit(const Variable& _name):
             Singular_resource("singular_bit", Common::singular_bit, _name)
         {}
 

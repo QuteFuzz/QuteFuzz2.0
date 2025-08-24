@@ -230,8 +230,6 @@ void Grammar::build_grammar(){
 
                 break;
 
-            case Token::PROB_SET_FLAG: assign_equal_probs = true; break;
-
             case Token::OPTIONAL: case Token::ZERO_OR_MORE: case Token::ONE_OR_MORE:
                 extend_current_branches(token);
                 break;
@@ -274,13 +272,4 @@ void Grammar::print_rules() const {
     for(const auto& p : rule_pointers){
         std::cout << p.first << " ";
     }
-}
-
-/// @brief Assigns all branches in the current rule equal probabilites
-void Grammar::assign_equal_probabilities(){
-    float prob = 1.0 / (float)current_rule->size();
-
-    // std::cout << current_rule->get_name() << " " << prob << std::endl;
-
-    current_rule->assign_prob(prob);
 }

@@ -24,8 +24,6 @@ class Grammar{
 
         std::shared_ptr<Rule> get_rule_pointer(std::string rule_name);
 
-        void assign_equal_probabilities();
-
         inline void reset_current_branches(){current_branches.clear();}
         
         inline void add_current_branches_to_rule(){
@@ -47,11 +45,10 @@ class Grammar{
             }
         }
 
-        /// we just completed a rule, add the current branch to the rule, and assign probabilities for branches of this rule
+        /// we just completed a rule, add the current branch to the rule
         /// Called at end of rule, and at each branch seprator
         inline void complete_rule(){
             add_current_branches_to_rule();
-            assign_equal_probabilities();
         }
 
         inline void increment_nesting_depth_base(){
@@ -61,7 +58,7 @@ class Grammar{
             }
         }
 
-        bool is_wilcard(const Token::Token& token) const {
+        inline bool is_wilcard(const Token::Token& token) const {
             return (token.kind ==  Token::OPTIONAL) || (token.kind == Token::ZERO_OR_MORE) || (token.kind == Token::ONE_OR_MORE);
         }
 
@@ -124,8 +121,6 @@ class Grammar{
 
         unsigned int nesting_depth_base = 0;
         unsigned int nesting_depth = nesting_depth_base;
-
-        bool assign_equal_probs = false;
 
         std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
         

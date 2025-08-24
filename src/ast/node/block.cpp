@@ -77,9 +77,15 @@ std::shared_ptr<Bit_definition> Block::get_next_bit_def(U8 scope_filter){
     }
 }
 
-size_t Block::make_register_resource_definition(int max_size, U8 scope, Resource::Classification classification, size_t& total_definitions){
+/// @brief Make a register resource definition, whose size is bounded by `max_size`
+/// @param max_size 
+/// @param scope 
+/// @param classification 
+/// @param total_definitions 
+/// @return number of resources created from this definition
+unsigned int Block::make_register_resource_definition(unsigned int max_size, U8 scope, Resource::Classification classification, unsigned int& total_definitions){
 
-    size_t size;
+    unsigned int size;
 
     if(max_size > 1) size = random_int(max_size, 1);
     else size = max_size;
@@ -110,7 +116,12 @@ size_t Block::make_register_resource_definition(int max_size, U8 scope, Resource
     return size;
 }
 
-size_t Block::make_singular_resource_definition(U8 scope, Resource::Classification classification, size_t& total_definitions){
+/// @brief Make singular resource definition 
+/// @param scope 
+/// @param classification 
+/// @param total_definitions 
+/// @return 1, since there's one qubit created from a singular resource definition
+unsigned int Block::make_singular_resource_definition(U8 scope, Resource::Classification classification, unsigned int& total_definitions){
     if (classification == Resource::QUBIT) {
         Singular_qubit_definition def (
             Variable("qubit" + std::to_string(qubit_defs.get_total()))
@@ -135,33 +146,116 @@ size_t Block::make_singular_resource_definition(U8 scope, Resource::Classificati
     return 1;
 }
 
-size_t Block::make_resource_definitions(U8 scope, Resource::Classification classification){
-    int type_choice = random_int(1);
+unsigned int Block::make_resource_definitions(U8 scope, Resource::Classification classification){
+
+    unsigned int target_num_resources = 0, total_num_definitions = 0;
+
+    bool scope_is_external = Resource::is_external(scope);
+    bool classificaton_is_qubit = (classification == Resource::QUBIT);
+    
+    switch((scope_is_external << 1) | classificaton_is_qubit){
+        case 0b00: target_num_resources = target_num_bits_internal; break;
+        case 0b01: target_num_resources = target_num_qubits_internal; break;
+        case 0b10: target_num_resources = target_num_bits_external; break;
+        case 0b11: target_num_resources = target_num_qubits_external; break;
+        default: ERROR("Scope and classification failed to pick target num of resources!");
+    }
 
     #ifdef DEBUG
-    INFO("Creating resource definitions");
+    std::cout << YELLOW("Creating resource definitions for " + owner + ", target num resources = " + std::to_string(target_num_resources)) << std::endl;
+    std::cout << YELLOW("scope is external classification is qubit") << std::endl;
+    std::cout << YELLOW(std::to_string((scope_is_external << 1) | classificaton_is_qubit)) << std::endl;
     #endif
-    
-    int target_num_qubits = (Resource::is_external(scope)) ? target_num_qubits_external : target_num_qubits_internal;
-    int target_num_bits = (Resource::is_external(scope)) ? target_num_bits_external : target_num_bits_internal;
 
-    int target = (classification == Resource::QUBIT) ? target_num_qubits : target_num_bits;
-
-    size_t total_num_definitions = 0;
-
-    while(target > 0){
+    while(target_num_resources > 0){
         /*
             Use singular qubit or qubit register
         */
-        if(type_choice){
-            target -= make_singular_resource_definition(scope, classification, total_num_definitions);
+        if(random_int(1)){
+            target_num_resources -= make_singular_resource_definition(scope, classification, total_num_definitions);
 
         } else {
-            target -= make_register_resource_definition(target, scope, classification, total_num_definitions);
+            target_num_resources -= make_register_resource_definition(target_num_resources, scope, classification, total_num_definitions);
         }
-
-        type_choice = random_int(1);
     }
 
     return total_num_definitions;
+}
+
+/// @brief Given set of qubits from genome, create qubit definitions from those qubits. Note that the preset targets for the block are ignored
+/// @param scope 
+/// @param qubits 
+/// @return 
+unsigned int Block::make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits){
+    unsigned int num_definitions = 0;
+
+    qubits = _qubits;
+
+    // only create definitions from qubits matching the scope
+    for(const Resource::Qubit& qubit : _qubits){
+        if(qubit.get_scope() & scope){
+            num_definitions += qubit_to_qubit_def(scope, qubit);
+        }
+    }
+    
+    return num_definitions;
+}
+
+/// @brief Add qubit to set of qubit defs in block, merge with register as required
+/// @param qubit 
+unsigned int Block::qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit){
+    for(Qubit_definition& qubit_def : qubit_defs){
+        if(qubit_def.defines(qubit)){
+            qubit_def.increase_size();
+            return 0;
+        }
+    }
+
+    if(qubit.is_register_def()){
+        Register_qubit_definition qubit_def(qubit);
+        qubit_defs.add(Qubit_definition(qubit_def, scope));
+
+    } else {
+        Singular_qubit_definition qubit_def(qubit);
+        qubit_defs.add(Qubit_definition(qubit_def, scope));
+    }
+
+    return 1;
+}
+
+void Block::print_info() const {
+
+    std::cout << "=======================================" << std::endl;
+    std::cout << "              BLOCK INFO               " << std::endl;
+    std::cout << "=======================================" << std::endl;
+    std::cout << "Owner: " << owner << std::endl;
+
+    std::cout << "Target num qubits " << std::endl;
+    std::cout << " EXTERNAL: " << target_num_qubits_external << std::endl;
+    std::cout << " INTERNAL: " << target_num_qubits_internal << std::endl;
+
+    std::cout << "Target num bits " << std::endl;
+    std::cout << " EXTERNAL: " << target_num_bits_external << std::endl;
+    std::cout << " INTERNAL: " << target_num_bits_internal << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "Qubit definitions " << std::endl;
+
+    if(owner == Common::TOP_LEVEL_CIRCUIT_NAME){
+        std::cout << YELLOW("Qubit defs may not match target if block is built to match DAG") << std::endl;
+    }
+
+    for(const Qubit_definition& qubit_def : qubit_defs){
+        std::cout << "name: " << qubit_def.get_name()->get_string() << " " ;
+
+        if(qubit_def.is_register_def()){
+            std::cout << "size: " << qubit_def.get_size()->get_string();
+        }
+
+        std::cout << " Scope: " << (qubit_def.is_external() ? "external" : "internal"); 
+
+        std::cout << std::endl;
+    }
+    std::cout << "=======================================" << std::endl;
+
 }

@@ -25,9 +25,6 @@ void Lexer::Lexer::lex(){
             } else if (string_is(matched_string, COMMENT)){
                 break;
 
-            } else if (string_is(matched_string, PROB_SET_FLAG)){
-                tokens.push_back(Token::Token{.kind = Token::PROB_SET_FLAG, .value = matched_string});
-
             } else if (string_is(matched_string, RANGE)){
                 tokens.push_back(Token::Token{.kind = Token::RANGE, .value = matched_string});
                 

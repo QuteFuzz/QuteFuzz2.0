@@ -2,47 +2,62 @@
 #include <collection.h>
 #include <dag.h>
 
+std::string Dag::Edge::get_node_resolved_name() const {
+    return "\"" + node->resolved_name() + "\"";
+}
+
+int Dag::Edge::get_node_id() const {
+    return node->get_id();
+}
+
 void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
-    data.clear();
+    reset();
 
     qubits = _qubits;
     
     for(const Resource::Qubit& qubit : qubits){
         qubit.add_path_to_dag(*this);
     }
-
-    n_nodes = data.size();
 }
 
-void Dag::Dag::make_dag(const Dag& dag1, const Dag& dag2){
-    data.clear();
-
-    qubits = dag1.get_qubits();
-    UNUSED(dag2);
-}
-
-void Dag::Dag::add_edge(int source_node_id, int dest_node_id){
-    if(data.contains(source_node_id)){
-        data.at(source_node_id).children.push_back(dest_node_id);
-        data.at(source_node_id).out_degree += 1;
-
-    } else {
-        data[source_node_id] = {.in_degree = 0, .out_degree = 1, .children = {dest_node_id}}; 
-    }
-
-    if(data.contains(dest_node_id)){
-        data.at(dest_node_id).in_degree += 1;
+std::optional<unsigned int> Dag::Dag::nodewise_data_contains(std::shared_ptr<Compound_stmt> node){
     
-    } else {
-        data[dest_node_id] = {.in_degree = 1, .out_degree = 0, .children = {}};
+    for(unsigned int i = 0; i < nodewise_data.size(); i++){
+        if(nodewise_data[i].node->get_id() == node->get_id()){
+            return std::make_optional<unsigned int>(i);   
+        }
     }
+
+    return std::nullopt;
+}
+
+
+void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id){
+
+    unsigned int source_node_input_port = edge.get_dest_port();
+    std::shared_ptr<Compound_stmt> source_node = edge.get_node();
+
+    std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
+    unsigned int pos = maybe_pos.value_or(n_nodes);
+
+    if(maybe_pos.has_value() == false){
+        nodewise_data.push_back(Node_data{.node = source_node, .inputs = {}, .children = {}});
+        
+        // reserve memory for inputs depending on number of ports this gate has
+        nodewise_data.at(pos).inputs.resize(source_node->get_n_ports(), 0);
+        n_nodes += 1;
+    }
+
+    if(maybe_dest_node_id.has_value()) nodewise_data.at(pos).children.push_back(maybe_dest_node_id.value());
+
+    nodewise_data.at(pos).inputs[source_node_input_port] = qubit_id;
 }
 
 int Dag::Dag::max_out_degree(){
-    int curr_max = 0;
+    unsigned int curr_max = 0;
 
-    for(const auto&[node, node_data] : data){
-        curr_max = std::max(curr_max, node_data.out_degree);
+    for(const auto&data : nodewise_data){
+        curr_max = std::max(curr_max, data.out_degree());
     }
 
     return curr_max;
@@ -72,5 +87,5 @@ void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
     std::string command = "dot -Tpng -o " + str;
     
     pipe_to_command(command, dot_string.str());
-    INFO("Program DAG rendered to " + dag_render_path.string());
+    INFO("Program DAG rendered to " + YELLOW(dag_render_path.string()));
 }

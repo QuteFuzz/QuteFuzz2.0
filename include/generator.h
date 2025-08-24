@@ -3,11 +3,8 @@
 
 #include <grammar.h>
 #include <ast.h>
-
-struct Scored_genome {
-    Dag::Dag genome;
-    int dag_score;
-};
+#include <genome.h>
+#include <dag.h>
 
 struct Generator {
 
@@ -15,8 +12,7 @@ struct Generator {
 
         Generator(Grammar& _grammar): 
             grammar(std::make_shared<Grammar>(_grammar)),
-            builder(std::make_shared<Ast>()),
-            population(population_size)
+            builder(std::make_shared<Ast>())
         {}
 
         void setup_builder(const std::string entry_name);
@@ -36,21 +32,25 @@ struct Generator {
             grammar->print_tokens();
         }
 
-        std::pair<Scored_genome&, Scored_genome&> pick_parents();
+        Dag::Dag crossover(const Dag::Dag& dag1, const Dag::Dag& dag2);
 
-        void ast_to_program(fs::path output_dir, int num_programs);
+        std::pair<Genome&, Genome&> pick_parents();
 
-        void run_genetic();
+        void ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome);
+
+        void generate_random_programs(fs::path output_dir, int n_programs);
+
+        void run_genetic(fs::path output_dir, int population_size);
+
 
     private:
         std::shared_ptr<Grammar> grammar;
         std::shared_ptr<Ast> builder;
 
-        size_t population_size = 100;
-        size_t n_epochs = 100;
+        int n_epochs = 100;
         float elitism = 0.2;
 
-        std::vector<Scored_genome> population;
+        std::vector<Genome> population;
 
 };
 

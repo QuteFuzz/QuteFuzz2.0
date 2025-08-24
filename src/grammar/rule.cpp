@@ -10,13 +10,6 @@ void Rule::print(std::ostream& os) const {
     os << " common: " << common;
 }
 
-void Rule::assign_prob(const float _prob){
-    for(Branch& b : branches){
-        b.assign_prob(_prob);
-    }
-}
-
-
 /// @brief need to have this check and store pointers to recursive branches separately
 /// @param branch 
 void Rule::add(const Branch& branch){

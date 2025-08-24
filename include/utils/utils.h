@@ -10,6 +10,7 @@
 #include <variant>
 #include <regex>
 #include <random>
+#include <set>
 #include <filesystem>
 #include <unordered_map>
 #include <algorithm>
@@ -35,6 +36,9 @@
 #define ERROR(x) std::cerr << (std::string("[ERROR] ") + RED(ANNOT(x))) << std::endl
 #define WARNING(x) std::cout << (std::string("[WARNING] ") + YELLOW(ANNOT(x))) << std::endl
 #define INFO(x) std::cout << (std::string("[INFO] ") + GREEN(x)) << std::endl
+
+// flag status
+#define FLAG_STATUS(x) (x ? YELLOW("enabled") : YELLOW("disabled"))
 
 
 using U64 = uint64_t;

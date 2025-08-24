@@ -19,12 +19,12 @@ enum Node_kind {
 struct Node_constraint {
 
     public:
-        Node_constraint(Common::Rule_hash _rule, size_t _occurances):
+        Node_constraint(Common::Rule_hash _rule, unsigned int _occurances):
             rules({_rule}),
             occurances({_occurances})
         {}
 
-        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<size_t> _occurances): 
+        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<unsigned int> _occurances): 
             rules(std::move(_rules)),
             occurances(std::move(_occurances))
         {}
@@ -39,11 +39,11 @@ struct Node_constraint {
             return true;
         }
 
-        Common::Rule_hash constraint_string(int index) const {
+        Common::Rule_hash get_rule(unsigned int index) const {
             return rules[index];
         }
 
-        size_t get_occurances(int index) const {
+        size_t get_occurances(unsigned int index) const {
             return occurances[index];
         }
 
@@ -51,9 +51,14 @@ struct Node_constraint {
             return rules.size();
         }
 
+        void add(const Common::Rule_hash& rule, unsigned int n_occurances){
+            rules.push_back(rule);
+            occurances.push_back(n_occurances);    
+        }
+
     private:
         std::vector<Common::Rule_hash> rules;
-        std::vector<size_t> occurances = {0};
+        std::vector<unsigned int> occurances = {0};
 
 };
 
@@ -90,7 +95,7 @@ class Node {
 
         virtual ~Node() = default;
 
-        void add_child(const std::shared_ptr<Node> child){
+        inline void add_child(const std::shared_ptr<Node> child){
             children.push_back(child);
         }
 
@@ -137,7 +142,7 @@ class Node {
             return children;
         }
 
-        std::shared_ptr<Node> child_at(size_t index) const {
+        inline std::shared_ptr<Node> child_at(size_t index) const {
             if(index < children.size()){
                 return children.at(index);
             } else {
@@ -161,19 +166,59 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
+        void check_constraint(const Common::Rule_hash& rule, const unsigned int& n_occurances){
+            if(n_occurances > WILDCARD_MAX){
+                ERROR("Constraint on " + std::to_string(rule) + " cannot be satified! Given " + std::to_string(n_occurances) + " but max = " + std::to_string(WILDCARD_MAX));
+            }
+        }
+
+        void set_constraint(std::vector<Common::Rule_hash> rules, std::vector<unsigned int> occurances){
+            if(rules.size() != occurances.size()){
+                ERROR("Hashes vector must be the same size as occurances vector!");
+            }
+
+            constraint = std::make_optional<Node_constraint>(rules, occurances);
+        }
+
+        void add_constraint(const Common::Rule_hash& rule, unsigned int n_occurances){
+            if(constraint.has_value()){
+                constraint.value().add(rule, n_occurances);
+            } else {
+                constraint = std::make_optional<Node_constraint>(rule, n_occurances);
+            }
+        }
+
         #ifdef DEBUG
         std::string get_debug_constraint_string() const {
             if(constraint.has_value()){
                 std::string debug_string;
-                for (size_t i = 0; i < constraint.value().rules_size(); i++){
-                    debug_string += std::to_string(constraint.value().constraint_string(i)) + " with occurances: " + std::to_string(constraint.value().get_occurances(i)) + " ";
+
+                for(size_t i = 0; i < constraint.value().rules_size(); i++){
+                    unsigned int n_occurances = constraint.value().get_occurances(i);
+                    
+                    debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(n_occurances) + " ";
+                    
+                    if(n_occurances > (unsigned int)WILDCARD_MAX){
+                        debug_string += RED("(Cannot be satisfied! Max = " + std::to_string(WILDCARD_MAX) + ")");
+                    }
                 }
+
                 return debug_string;
+            
             } else {
                 return "no constraint";
+            
             }
         }
         #endif
+
+        virtual unsigned int get_n_ports() const {return 1;}
+
+        /// @brief Is this node a subroutine call generated in the AST?
+        /// @return 
+        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
+
+        std::shared_ptr<Node> find(const U64 _hash) const ;
 
     protected:
         std::string string;
@@ -184,6 +229,8 @@ class Node {
         std::string indentation_str;
         std::vector<std::shared_ptr<Node>> children;
         Node_build_state state = NB_BUILD;
+    
+    private:
         std::optional<Node_constraint> constraint;
 };
 

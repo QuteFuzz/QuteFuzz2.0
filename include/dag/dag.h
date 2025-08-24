@@ -3,10 +3,7 @@
 
 #include <node.h>
 #include <collection.h>
-
-namespace Resource {
-    class Qubit;
-}
+#include <compound_stmt.h>
 
 namespace Dag {
 
@@ -15,23 +12,23 @@ namespace Dag {
         public:
             Edge(){}
 
-            Edge(size_t _src_port, size_t _dest_port, std::shared_ptr<Node> _node): 
+            Edge(unsigned int _src_port, unsigned int _dest_port, std::shared_ptr<Compound_stmt> _node): 
                 src_port(_src_port),
                 dest_port(_dest_port),
                 node(_node)
             {}
 
-            size_t get_dest_port(){
+            inline std::shared_ptr<Compound_stmt> get_node() const {
+                return node;
+            }
+
+            inline unsigned int get_dest_port() const {
                 return dest_port;
             }
 
-            std::string get_node_resolved_name() const {
-                return "\"" + node->resolved_name() + "\"";
-            }
+            std::string get_node_resolved_name() const;
 
-            int get_node_id() const {
-                return node->get_id();
-            }
+            int get_node_id() const;
 
             friend std::ostream& operator<<(std::ostream& stream, const Edge& edge) {
                 stream << " -> " << edge.get_node_resolved_name() << "[label=\"" << std::to_string(edge.src_port) << ", " << std::to_string(edge.dest_port) << "\"";
@@ -39,15 +36,24 @@ namespace Dag {
             }
 
         private:
-            size_t src_port;
-            size_t dest_port;
-            std::shared_ptr<Node> node;
+            unsigned int src_port;
+            unsigned int dest_port;
+            std::shared_ptr<Compound_stmt> node;
     };
 
     struct Node_data{
-        int in_degree;
-        int out_degree;
-        std::vector<int> children;
+        std::shared_ptr<Compound_stmt> node;
+
+        std::vector<unsigned int> inputs; // each index is a port into the node, the value at each port is the id for the qubit entering that port
+        std::vector<unsigned int> children; // node ids of child nodes
+
+        inline unsigned int in_degree() const {
+            return inputs.size();
+        }
+
+        inline unsigned int out_degree() const {
+            return children.size();
+        }
     };
 
     /// @brief Given a set of qubits, get DAG score using the path taken by each qubit
@@ -56,53 +62,97 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& qubits);
-
-            /// @brief Given 2 DAGs create child DAG that's a combination of both
-            /// TODO: Make this use both dags to create child
-            /// @param dag1 
-            /// @param dag2 
-            void make_dag(const Dag& dag1, const Dag& dag2);
+            void make_dag(const Collection<Resource::Qubit>& _qubits);
 
             inline Collection<Resource::Qubit> get_qubits() const {
                 return qubits;
             }
 
-            void add_edge(int source_node_id, int dest_node_id);
+            void add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id);
 
             void render_dag(const fs::path& current_circuit_dir);
 
             int max_out_degree();
 
             int score();
+            
+            /// @brief Each node is a compound statement, so just count nodes to tell you how many you need in the AST for the main circuit
+            /// TODO: Fix control flow DAG representation, to allow correct compound statement counting at circuit level, as well as subroutine call tracking
+            /// std::min added to prevent inf loop when converting guppy DAG into AST
+            /// @return 
+            inline unsigned int n_compound_statements() const {
+                return std::min(n_nodes, (unsigned int)WILDCARD_MAX);
+            }
+
+            unsigned int n_subroutines() const {
+               return subroutine_gates.size();
+            }
+
+            inline std::shared_ptr<Compound_stmt> get_next_node(){
+                if(node_pointer < n_nodes){
+                    return nodewise_data.at(node_pointer++).node;
+                } else {
+                    return dummy_node;
+                }
+            }
+
+            inline std::shared_ptr<Gate> get_next_subroutine_gate(){
+                if(sub_pointer < subroutine_gates.size()){
+                    return subroutine_gates.at(sub_pointer++);
+                } else {
+                    return dummy_gate;
+                }
+            }
+
+            std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Compound_stmt> node);
+
+            unsigned int n_compound_statements(){
+                return n_nodes;
+            }
 
             friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
                 stream << "=========================================" << std::endl;
-                stream << "                ADJ LIST                 " << std::endl; 
+                stream << "                DAG INFO                 " << std::endl; 
                 stream << "=========================================" << std::endl;
 
                 stream << "N_NODES: " << dag.n_nodes << std::endl;
+                stream << "N_SUBROUTINES: " << dag.n_subroutines() << std::endl;
 
-                for(const auto&[node, node_data] : dag.data){
+                for(const auto& node_data : dag.nodewise_data){
 
-                    stream << node << " -> children: ";
+                    stream << node_data.node->get_id() << " -> children: ";
 
-                    for(const int& child : node_data.children){
-                        stream << child << ", ";
+                    for(const unsigned int& child_id : node_data.children){
+                        stream << child_id << ", ";
                     }
 
-                    stream << "in_degree: " << node_data.in_degree << ", out_degree: " << node_data.out_degree << std::endl;
+                    stream << "in_degree: " << node_data.in_degree() << ", out_degree: " << node_data.out_degree() << std::endl;
                 }
 
                 return stream;
             }
 
+            inline void reset(){
+                n_nodes = 0;
+                nodewise_data.clear();
+                node_pointer = 0;
+                subroutine_gates.clear();
+                sub_pointer = 0;
+            }
+
         private:
-            size_t n_nodes = 0;
-            std::unordered_map<int, Node_data> data;
+            unsigned int n_nodes = 0;
+            std::vector<Node_data> nodewise_data;
+            unsigned int node_pointer = 0;
+            std::vector<std::shared_ptr<Gate>> subroutine_gates;
+            unsigned int sub_pointer = 0;
+
             Collection<Resource::Qubit> qubits;
 
+            std::shared_ptr<Resource::Qubit> dummy_qubit;
+            std::shared_ptr<Compound_stmt> dummy_node;
+            std::shared_ptr<Gate> dummy_gate;
     };
 
 };

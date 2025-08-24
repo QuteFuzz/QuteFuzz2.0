@@ -10,10 +10,10 @@
 class Disjunction : public Node {
 
     public:
-        Disjunction(std::string str, U64 hash) :
-            Node(str, hash)         
+        Disjunction() :
+            Node("disjunction", Common::disjunction)         
         {
-            constraint = std::make_optional<Node_constraint>(Common::conjunction, 2);
+            add_constraint(Common::conjunction, 2);
         }
 
         void print(std::ostream& stream) const override {
