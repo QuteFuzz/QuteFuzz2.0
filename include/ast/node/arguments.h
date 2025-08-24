@@ -7,10 +7,10 @@ class Arguments : public Node {
 
     public:
 
-        Arguments(std::string str, U64 hash, int num_arguments):
-            Node(str, hash)
+        Arguments(unsigned int num_arguments):
+            Node("arguments", Common::arguments)
         {
-            constraint = std::make_optional<Node_constraint>(Common::arg, size_t(num_arguments));
+            add_constraint(Common::arg, num_arguments);
         }
 
     private:

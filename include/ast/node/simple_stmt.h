@@ -7,8 +7,8 @@ class Simple_stmt : public Node {
 
     public:
 
-        Simple_stmt(std::string str, U64 hash):
-            Node(str, hash, indentation_tracker)
+        Simple_stmt():
+            Node("simple_stmt", Common::simple_stmt, indentation_tracker)
         {}
 
     private:

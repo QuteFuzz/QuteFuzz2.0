@@ -83,9 +83,9 @@ class Qubit_definition : public Resource_definition {
             )
         {
             if (Resource::is_external(scope)) {
-                constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_external, 1);
+                add_constraint(Common::register_qubit_def_external, 1);
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::register_qubit_def_internal, 1);
+                add_constraint(Common::register_qubit_def_internal, 1);
             }
         }
 
@@ -96,9 +96,9 @@ class Qubit_definition : public Resource_definition {
             )
         {
             if (Resource::is_external(scope)) {
-                constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_external, 1);
+                add_constraint(Common::singular_qubit_def_external, 1);
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::singular_qubit_def_internal, 1);
+                add_constraint(Common::singular_qubit_def_internal, 1);
             }
         }
 
@@ -118,9 +118,9 @@ class Bit_definition : public Resource_definition {
             )
         {
             if (Resource::is_external(scope)) {
-                constraint = std::make_optional<Node_constraint>(Common::register_bit_def_external, 1);
+                add_constraint(Common::register_bit_def_external, 1);
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::register_bit_def_internal, 1);
+                add_constraint(Common::register_bit_def_internal, 1);
             }
         }
 
@@ -131,9 +131,9 @@ class Bit_definition : public Resource_definition {
             )
         {
             if (Resource::is_external(scope)) {
-                constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_external, 1);
+                add_constraint(Common::singular_bit_def_external, 1);
             } else {
-                constraint = std::make_optional<Node_constraint>(Common::singular_bit_def_internal, 1);
+                add_constraint(Common::singular_bit_def_internal, 1);
             }
         }
 

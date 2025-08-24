@@ -7,10 +7,10 @@ class Compound_stmts : public Node {
 
     public:
 
-        Compound_stmts(int num_statements):
+        Compound_stmts(unsigned int num_statements):
             Node("compound_stmts", Common::compound_stmts)
         {
-            constraint = std::make_optional<Node_constraint>(Common::compound_stmt, size_t(num_statements));
+            add_constraint(Common::compound_stmt, num_statements);
         }
 
     private:

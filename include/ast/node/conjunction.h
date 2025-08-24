@@ -11,10 +11,10 @@
 class Conjunction : public Node {
 
     public:
-        Conjunction(std::string str, U64 hash) :
-            Node(str, hash)         
+        Conjunction() :
+            Node("conjuction",  Common::conjunction)         
         {
-            constraint = std::make_optional<Node_constraint>(Common::inversion, 2);
+            add_constraint(Common::inversion, 2);
         }
 
         void print(std::ostream& stream) const override {

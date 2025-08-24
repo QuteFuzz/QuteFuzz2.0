@@ -11,8 +11,8 @@ class Expression : public Node {
 
     public:
 
-        Expression(std::string str, U64 hash):
-            Node(str, hash)
+        Expression():
+            Node("expression", Common::expression)
         {}
 
         void print(std::ostream& stream) const override {

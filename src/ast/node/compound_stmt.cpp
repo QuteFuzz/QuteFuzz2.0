@@ -6,7 +6,7 @@ Compound_stmt::Compound_stmt(int compound_stmt_depth):
     Node("compound_stmt", Common::compound_stmt, indentation_tracker)
 {
     if(compound_stmt_depth == 0){
-        constraint = std::make_optional<Node_constraint>(Common::qubit_op, 1);
+        add_constraint(Common::qubit_op, 1);
     }
 }
 

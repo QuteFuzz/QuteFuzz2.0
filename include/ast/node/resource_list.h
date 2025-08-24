@@ -6,10 +6,10 @@
 class Qubit_list : public Node {
 
     public:
-        Qubit_list(std::string str, U64 hash, size_t num_qubits_in_list):
-            Node(str, hash)
+        Qubit_list(unsigned int num_qubits_in_list):
+            Node("qubit_list", Common::qubit_list)
         {
-            constraint = std::make_optional<Node_constraint>(Common::qubit, num_qubits_in_list);
+            add_constraint(Common::qubit, num_qubits_in_list);
         }
 
     private:
@@ -19,10 +19,10 @@ class Qubit_list : public Node {
 class Bit_list : public Node {
 
     public:
-        Bit_list(std::string str, U64 hash, size_t num_bits_in_list):
-            Node(str, hash)
+        Bit_list(unsigned int num_bits_in_list):
+            Node("bit_list", Common::bit_list)
         {
-            constraint = std::make_optional<Node_constraint>(Common::bit, num_bits_in_list);
+            add_constraint(Common::bit, num_bits_in_list);
         }
 
     private:

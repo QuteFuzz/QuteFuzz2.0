@@ -41,9 +41,9 @@ register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_regist
 singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
 register_bit_def_external = bit_def_name EQUALS circuit_name ".add_c_register" LPAREN '"' bit_def_name '",' creg_size RPAREN;
 
-compound_stmt = qubit_op; # | measure;
+compound_stmt = qubit_op;
 
-qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to compound stmt
+qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
 
 gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list COMMA SPACE bit_list "])";

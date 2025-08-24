@@ -11,7 +11,7 @@ class Subroutines : public Node {
         Subroutines(unsigned int n_blocks):
             Node("subroutines", Common::subroutines)
         {
-            constraint = std::make_optional<Node_constraint>(Common::block, n_blocks);            
+            add_constraint(Common::block, n_blocks);
         }
 
     private:

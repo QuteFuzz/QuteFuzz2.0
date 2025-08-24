@@ -41,9 +41,7 @@ singular_qubit_def_internal = qubit_def_name EQUALS "qubit" LPAREN RPAREN;
 register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for _ in range" LPAREN qreg_size RPAREN RPAREN;
 
 compound_stmt = qubit_op
-                | if_stmt
-                | measurement_op
-                ;
+                | if_stmt;
 
 if_stmt =
     'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
@@ -127,7 +125,7 @@ primary:
 
 atom: NUMBER;
 
-qubit_op  = gate_op | subroutine_op;  # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to compound stmt
+qubit_op  = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
 
 gate_op = gate_name gate_op_kind;
 subroutine_op = gate_name LPAREN arguments RPAREN;
