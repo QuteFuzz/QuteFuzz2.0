@@ -10,9 +10,7 @@
 #include <compound_stmts.h>
 #include <gate.h>
 #include <subroutines.h>
-
-struct Genome;
-
+#include <genome.h>
 
 namespace Context {
 
@@ -20,6 +18,7 @@ namespace Context {
         PROGRAM,
 		BLOCK,
         QUBIT_OP,
+		COMPOUND_STMT,
     };
 
     struct Context {
@@ -59,9 +58,24 @@ namespace Context {
 
 			std::shared_ptr<Resource::Bit> get_current_bit();
 
-			void set_current_arg(const std::string& str, const U64& hash);
+			inline std::shared_ptr<Resource::Qubit> new_qubit(){
+				set_current_qubit();
+				return get_current_qubit();
+			}
+
+			inline std::shared_ptr<Resource::Bit> new_bit(){
+				set_current_bit();
+				return get_current_bit();
+			}
+		
+			void set_current_arg();
 
 			std::shared_ptr<Arg> get_current_arg();
+
+			inline std::shared_ptr<Arg> new_arg(){
+				set_current_arg();
+				return get_current_arg();
+			}
 
 			std::shared_ptr<Integer> get_current_qubit_index();
 
@@ -78,6 +92,16 @@ namespace Context {
 			std::shared_ptr<Qubit_definition> get_current_qubit_definition();
 
 			std::shared_ptr<Bit_definition> get_current_bit_definition();
+
+			inline std::shared_ptr<Qubit_definition> new_qubit_definition(){
+				set_current_qubit_definition();
+				return get_current_qubit_definition();
+			}
+
+			inline std::shared_ptr<Bit_definition> new_bit_definiition(){
+				set_current_bit_definition();
+				return get_current_bit_definition();
+			}
 
 			void set_current_qubit_definition_owned();
 
@@ -99,11 +123,23 @@ namespace Context {
 
 			std::shared_ptr<Gate> get_current_gate();
 
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL){
+				set_current_gate(str, num_qubits, num_bits, num_params, hash);
+				return get_current_gate();
+			}
+
 			std::shared_ptr<Node> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
 
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
 
-			std::shared_ptr<Compound_stmt> get_compound_stmt(const std::string& str, const U64& hash);
+			void set_current_compound_stmt();
+
+			std::shared_ptr<Compound_stmt> get_current_compound_stmt();
+
+			inline std::shared_ptr<Compound_stmt> new_compound_stmt(){
+				set_current_compound_stmt();
+				return get_current_compound_stmt();
+			} 
 
 			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
 
@@ -155,6 +191,7 @@ namespace Context {
 			std::shared_ptr<Resource::Qubit> current_qubit;
 			std::shared_ptr<Resource::Bit> current_bit;
 			std::shared_ptr<Gate> current_gate;
+			std::shared_ptr<Compound_stmt> current_compound_stmt;
 			size_t current_port = 0;
 
 			std::shared_ptr<Arg> current_arg;
@@ -165,7 +202,7 @@ namespace Context {
 
 	        size_t compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
 
-			std::shared_ptr<Genome> genome;
+			std::optional<Genome> genome;
     };
 
 }

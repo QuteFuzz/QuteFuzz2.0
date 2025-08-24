@@ -8,11 +8,11 @@ class Arg : public Node {
 
         /// @brief Dummy argument
         Arg() :
-            Node("arg", hash_rule_name("arg"))
+            Node("arg", Common::arg)
         {}
 
-        Arg(const std::string& str, const U64& hash, std::shared_ptr<Resource_definition> qubit_def):
-            Node(str, hash)
+        Arg(std::shared_ptr<Resource_definition> qubit_def):
+            Node("arg", Common::arg)
         {
             if(!qubit_def->is_register_def()){
                 constraint = std::make_optional<Node_constraint>(Common::arg_singular_qubit, 1);

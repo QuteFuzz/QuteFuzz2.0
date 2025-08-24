@@ -7,8 +7,8 @@ class Qubit_op : public Node {
 
     public:
 
-        Qubit_op(std::string str, U64 hash, std::shared_ptr<Block> current_block):
-            Node(str, hash)
+        Qubit_op(std::shared_ptr<Block> current_block):
+            Node("qubit_op", Common::qubit_op)
         {
             bool can_use_subroutine = current_block->get_can_apply_subroutines();
 

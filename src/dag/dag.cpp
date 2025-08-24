@@ -2,6 +2,14 @@
 #include <collection.h>
 #include <dag.h>
 
+std::string Dag::Edge::get_node_resolved_name() const {
+    return "\"" + node->resolved_name() + "\"";
+}
+
+int Dag::Edge::get_node_id() const {
+    return node->get_id();
+}
+
 void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
     reset();
 
@@ -12,18 +20,22 @@ void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
     }
 }
 
-void Dag::Dag::make_dag(const Dag& dag1, const Dag& dag2){
-    reset();
+std::optional<unsigned int> Dag::Dag::nodewise_data_contains(std::shared_ptr<Compound_stmt> node){
+    
+    for(unsigned int i = 0; i < nodewise_data.size(); i++){
+        if(nodewise_data[i].node->get_id() == node->get_id()){
+            return std::make_optional<unsigned int>(i);   
+        }
+    }
 
-    qubits = dag1.get_qubits();
-    UNUSED(dag2);
+    return std::nullopt;
 }
 
 
 void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id){
 
     unsigned int source_node_input_port = edge.get_dest_port();
-    std::shared_ptr<Node> source_node = edge.get_node();
+    std::shared_ptr<Compound_stmt> source_node = edge.get_node();
 
     std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
     unsigned int pos = maybe_pos.value_or(n_nodes);
@@ -39,15 +51,6 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     if(maybe_dest_node_id.has_value()) nodewise_data.at(pos).children.push_back(maybe_dest_node_id.value());
 
     nodewise_data.at(pos).inputs[source_node_input_port] = qubit_id;
-
-    if(source_node->is_subroutine_gate()) {
-
-        for(const std::shared_ptr<Node>& subroutine : subroutines){
-            if(subroutine->get_string() == source_node->get_string()) return;
-        }
-
-        subroutines.push_back(source_node);
-    }
 }
 
 int Dag::Dag::max_out_degree(){

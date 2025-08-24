@@ -3,11 +3,8 @@
 
 #include <grammar.h>
 #include <ast.h>
-
-struct Genome {
-    Dag::Dag dag;
-    int dag_score;
-};
+#include <genome.h>
+#include <dag.h>
 
 struct Generator {
 
@@ -35,15 +32,13 @@ struct Generator {
             grammar->print_tokens();
         }
 
+        Dag::Dag crossover(const Dag::Dag& dag1, const Dag::Dag& dag2);
+
         std::pair<Genome&, Genome&> pick_parents();
 
         void ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome);
 
-        inline void generate_random_programs(fs::path output_dir, int n_programs){
-            for(int build_counter = 0; build_counter < n_programs; build_counter++){
-                ast_to_program(output_dir, build_counter, std::nullopt);
-            }
-        }
+        void generate_random_programs(fs::path output_dir, int n_programs);
 
         void run_genetic(fs::path output_dir, int population_size);
 

@@ -12,7 +12,7 @@ void Generator::setup_builder(const std::string entry_name){
     }
 }
 
-void Generator::ast_to_program(fs::path output_dir, int build_counter,  std::optional<Genome> genome){
+void Generator::ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome){
 
     fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
     fs::create_directory(current_circuit_dir);
@@ -80,6 +80,16 @@ std::pair<Genome&, Genome&> Generator::pick_parents(){
     return { population[first], population[second] };
 }
 
+Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
+    Dag::Dag child;
+
+    child.make_dag(dag1.get_qubits());
+
+    UNUSED(dag2);
+
+    return child;
+}
+
 /// @brief Use genetic algorithm to maximize DAG score, producing final set of circuits that maximise this score
 /// @param output_dir 
 /// @param population_size 
@@ -118,16 +128,24 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
         /*
             Prepare for new epoch
         */
+        std::vector<Genome> new_pop;
 
         for(int j = 0; j < population_size; j++){
 
             // top performers go to next epoch as is, already in population in correct order due to sort 
             if(j > elitism * population_size){
                 std::pair<Genome&, Genome&> parents = pick_parents();
-                population[j].dag.make_dag(parents.first.dag, parents.second.dag);
-                population[j].dag_score = population[j].dag.score();
+
+                Genome child{.dag = std::move(crossover(parents.first.dag, parents.second.dag)), .dag_score = 0};
+                child.dag_score = child.dag.score();
+
+                new_pop.push_back(child);
+            } else {
+                new_pop.push_back(population[j]);
             }
         }
+
+        population = std::move(new_pop);
     }
 
     INFO(YELLOW("Run genetic algorithm for " + std::to_string(n_epochs) + " epochs"));
@@ -141,4 +159,10 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
 
     INFO(YELLOW("Generated " + std::to_string(population_size) + " program(s)"));
 
+}
+
+void Generator::generate_random_programs(fs::path output_dir, int n_programs){
+    for(int build_counter = 0; build_counter < n_programs; build_counter++){
+        ast_to_program(output_dir, build_counter, std::nullopt);
+    }
 }

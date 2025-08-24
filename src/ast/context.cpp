@@ -9,8 +9,9 @@ namespace Context {
             subroutines_node = nullptr;
             subroutine_counter = 0;
             Node::node_counter = 0;
-            genome = nullptr;
             blocks.clear();
+
+            genome = std::nullopt;
 
         } else if (l == BLOCK){
             compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
@@ -18,6 +19,8 @@ namespace Context {
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
             get_current_block()->bit_flag_reset();
+        
+        } else if (l == COMPOUND_STMT) {
             current_port = 0;
         }
     }
@@ -102,14 +105,12 @@ namespace Context {
     std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
         std::shared_ptr<Block> current_block;
 
+        reset(BLOCK);
+
         if(current_block_is_subroutine()){
 
-            if(genome == nullptr){
-                current_block_owner = "sub"+std::to_string(subroutine_counter++);
-                current_block = std::make_shared<Block>(str, hash, current_block_owner);
-
-            } else {
-                std::shared_ptr<Node> subroutine = genome->dag.get_next_subroutine();
+            if(genome.has_value()){
+                std::shared_ptr<Node> subroutine = genome.value().dag.get_next_subroutine_gate();
 
                 std::cout << YELLOW("setting block from DAG ") << std::endl;
                 std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
@@ -117,6 +118,10 @@ namespace Context {
 
                 current_block_owner = subroutine->get_string();
                 current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
+
+            } else {
+                current_block_owner = "sub"+std::to_string(subroutine_counter++);
+                current_block = std::make_shared<Block>(str, hash, current_block_owner);
             }
 
         } else {
@@ -153,7 +158,7 @@ namespace Context {
 
         size_t num_defs;
 
-        if((genome != nullptr) && !current_block_is_subroutine()){
+        if(genome.has_value() && !current_block_is_subroutine()){
             num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
         
         } else {
@@ -183,10 +188,10 @@ namespace Context {
         return std::nullopt;
     }
 
-    void Context::set_current_arg(const std::string& str, const U64& hash){
+    void Context::set_current_arg(){
         if((current_gate != nullptr) && current_gate_definition.has_value()){
             std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_qubit_def(EXTERNAL_SCOPE | OWNED_SCOPE);
-            current_arg = std::make_shared<Arg>(str, hash, qubit_def);
+            current_arg = std::make_shared<Arg>(qubit_def);
         }
     }
 
@@ -199,7 +204,7 @@ namespace Context {
 
         Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
         
-        random_qubit->extend_flow_path(current_gate, current_port++);
+        random_qubit->extend_flow_path(current_compound_stmt, current_port++);
 
         current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
     }
@@ -349,17 +354,33 @@ namespace Context {
         return std::make_shared<Node>(str, hash);
     }
 
-    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(const std::string& str, const U64& hash){
-        return std::make_shared<Compound_stmt>(str, hash, compound_stmt_depth);
+    void Context::set_current_compound_stmt(){
+        reset(COMPOUND_STMT);
+
+
+
+        current_compound_stmt = std::make_shared<Compound_stmt>(compound_stmt_depth);
+    }
+
+    std::shared_ptr<Compound_stmt> Context::get_current_compound_stmt(){
+        return current_compound_stmt;
     }
 
     std::shared_ptr<Compound_stmts> Context::get_compound_stmts(std::shared_ptr<Node> parent){
-        // if compound statements are under main circuit
+        
+        /*
+            this check is to make sure we only call the function for the compound statements rule in the circuit body, as opposed to each nested
+            call within the body in control flow
+        */
         if(*parent == Common::body){
             set_can_apply_subroutines();
         }
 
-        if(genome != nullptr){
+        /*
+            set number of compound statements the main circuit needs in order to match the DAG. Only main circuit is considered because DAG 
+            is only for the main circuit
+        */
+        if(genome.has_value() && !current_block_is_subroutine()){
             return std::make_shared<Compound_stmts>(genome->dag.n_compound_statements());
         
         } else {
@@ -368,11 +389,10 @@ namespace Context {
     }
 
     std::shared_ptr<Subroutines> Context::get_subroutines_node(){
-
         unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
 
-        if(genome != nullptr){
-            n_blocks = genome->dag.n_subroutines();
+        if(genome.has_value()){
+            n_blocks = genome.value().dag.n_subroutines();
         }
 
         subroutines_node = std::make_shared<Subroutines>(n_blocks);
@@ -413,9 +433,7 @@ namespace Context {
     }
 
     void Context::set_genome(const std::optional<Genome>& _genome){
-        if(_genome.has_value()){
-            genome = std::make_shared<Genome>(_genome.value());
-        }
+        genome = _genome;
     }
 
 

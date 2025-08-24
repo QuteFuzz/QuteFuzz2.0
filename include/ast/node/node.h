@@ -39,11 +39,11 @@ struct Node_constraint {
             return true;
         }
 
-        Common::Rule_hash constraint_string(int index) const {
+        Common::Rule_hash get_rule(unsigned int index) const {
             return rules[index];
         }
 
-        size_t get_occurances(int index) const {
+        size_t get_occurances(unsigned int index) const {
             return occurances[index];
         }
 
@@ -90,7 +90,7 @@ class Node {
 
         virtual ~Node() = default;
 
-        void add_child(const std::shared_ptr<Node> child){
+        inline void add_child(const std::shared_ptr<Node> child){
             children.push_back(child);
         }
 
@@ -137,7 +137,7 @@ class Node {
             return children;
         }
 
-        std::shared_ptr<Node> child_at(size_t index) const {
+        inline std::shared_ptr<Node> child_at(size_t index) const {
             if(index < children.size()){
                 return children.at(index);
             } else {
@@ -165,12 +165,16 @@ class Node {
         std::string get_debug_constraint_string() const {
             if(constraint.has_value()){
                 std::string debug_string;
+
                 for (size_t i = 0; i < constraint.value().rules_size(); i++){
-                    debug_string += std::to_string(constraint.value().constraint_string(i)) + " with occurances: " + std::to_string(constraint.value().get_occurances(i)) + " ";
+                    debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(constraint.value().get_occurances(i)) + " ";
                 }
+
                 return debug_string;
+            
             } else {
                 return "no constraint";
+            
             }
         }
         #endif
@@ -180,6 +184,8 @@ class Node {
         /// @brief Is this node a subroutine generated in the AST?
         /// @return 
         inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
+
+        std::shared_ptr<Node> find(const U64 _hash) const ;
 
     protected:
         std::string string;

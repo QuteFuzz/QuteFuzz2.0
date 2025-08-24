@@ -42,6 +42,7 @@ register_qubit_def_internal = qubit_def_name EQUALS "array" LPAREN "qubit() for 
 
 compound_stmt = qubit_op
                 | if_stmt
+                | measurement_op
                 ;
 
 if_stmt =
@@ -126,14 +127,10 @@ primary:
 
 atom: NUMBER;
 
-qubit_op  = gate_op
-            | subroutine_op
-            ;
+qubit_op  = gate_op | subroutine_op;  # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to compound stmt
 
 gate_op = gate_name gate_op_kind;
-subroutine_op = subroutine LPAREN arguments RPAREN;
-                #| "measure_array" LPAREN arg_register_qubits RPAREN
-                ;
+subroutine_op = gate_name LPAREN arguments RPAREN;
 
 # For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
 arguments = arg (COMMA arg)*;
@@ -165,7 +162,7 @@ discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN
                 ;
 
 gate_name = x | y | z | h | cx | cy | cz | toffoli | rz | rx | ry | v | vdg
-    | t | tdg | s | sdg | ch | crz | project_z | barrier | measure_and_reset
+    | t | tdg | s | sdg | ch | crz | project_z | barrier | measure_and_reset | subroutine
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
