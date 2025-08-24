@@ -166,6 +166,10 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
+        void set_constraint(const std::vector<Rule_hash>& rules, const std::vector<unsigned int>& occurances){
+            constraint = std::make_optional<Node_constraint>(rules, occurances);
+        }
+
         void add_constraint(const Common::Rule_hash& rule, unsigned int n_occurances){
             if(constraint.has_value()){
                 constraint.value().add(rule, n_occurances);
