@@ -155,6 +155,8 @@ namespace Context {
 
 			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
 
+			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
+
 			int get_current_gate_num_params();
 
 			int get_current_gate_num_qubits();

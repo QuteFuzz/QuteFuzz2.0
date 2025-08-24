@@ -9,6 +9,7 @@ namespace Context {
             subroutines_node = nullptr;
             subroutine_counter = 0;
             Node::node_counter = 0;
+            genome = nullptr;
             blocks.clear();
 
             genome = std::nullopt;

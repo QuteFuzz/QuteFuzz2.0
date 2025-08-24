@@ -201,6 +201,10 @@ class Block : public Node {
 
         void print_info() const;
 
+        size_t make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits);
+
+        size_t qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit);
+
     private:
         std::string owner;
 

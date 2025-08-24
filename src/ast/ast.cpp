@@ -25,6 +25,8 @@
 
 #include <generator.h>
 
+#include <generator.h>
+
 std::string Node::indentation_tracker = "";
 
 /// @brief Given a term, return a node for that term. `parent` is guaranteed to never be `nullptr` but runtime error thrown incase not true

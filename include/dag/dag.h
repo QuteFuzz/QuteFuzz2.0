@@ -106,6 +106,10 @@ namespace Dag {
 
             std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Compound_stmt> node);
 
+            unsigned int n_compound_statements(){
+                return n_nodes;
+            }
+
             friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
                 stream << "=========================================" << std::endl;
