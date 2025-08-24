@@ -346,7 +346,7 @@ namespace Context {
     }
 
     std::shared_ptr<Node> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
-        return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_internal_qubit}, {size_t(num_owned_qubit_defs)}), Node::indentation_tracker);
+        return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_internal_qubit, num_owned_qubit_defs), Node::indentation_tracker);
     }
 
     std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){

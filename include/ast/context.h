@@ -128,6 +128,18 @@ namespace Context {
 				return get_current_gate();
 			}
 
+			/// @brief Make barrier gate. The number of qubits used to choose the barrier width is a max of internal and external qubits, 
+			/// because a block could have either or both
+			/// @return 
+			inline std::shared_ptr<Gate> get_barrier(){
+				std::shared_ptr<Block> current_block = get_current_block();
+
+				unsigned int n_qubits = std::min((unsigned int)WILDCARD_MAX, (unsigned int)current_block->total_num_qubits());
+				unsigned int random_barrier_width = random_int(n_qubits, 1);
+
+				return new_gate("barrier", random_barrier_width, 0, 0);
+			}
+
 			std::shared_ptr<Node> get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs);
 
 			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);

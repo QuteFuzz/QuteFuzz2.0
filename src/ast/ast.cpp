@@ -265,11 +265,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::Measure:
 			return context.new_gate(str, 1, 1, 0);
 
-		case Common::barrier: {
-			int random_barrier_width = random_int(context.get_current_block()->total_num_qubits(), 1);
-			context.set_current_gate(str, random_barrier_width, 0, 0);
-			return context.get_current_gate();
-		}
+		case Common::barrier:
+			return context.get_barrier();
 
 		default:
 			return std::make_shared<Node>(str, hash);

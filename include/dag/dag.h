@@ -77,9 +77,11 @@ namespace Dag {
             int score();
             
             /// @brief Each node is a compound statement, so just count nodes to tell you how many you need in the AST for the main circuit
+            /// TODO: Fix control flow DAG representation, to allow correct compound statement counting at circuit level, as well as subroutine call tracking
+            /// std::min added to prevent inf loop when converting guppy DAG into AST
             /// @return 
             inline unsigned int n_compound_statements() const {
-                return n_nodes;
+                return std::min(n_nodes, (unsigned int)WILDCARD_MAX);
             }
 
             unsigned int n_subroutines() const {

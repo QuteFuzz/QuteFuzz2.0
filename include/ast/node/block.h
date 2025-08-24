@@ -6,6 +6,41 @@
 #include <resource.h>
 #include <collection.h>
 
+/*
+    Blocks contain external and internal qubits, external and internal bits, which are set targets that must be satisfied
+    It is not a guarantee that any block will have both internal and external qubits, so the targets are set such that any block 
+    will have external qubits = (MIN_QUBITS, MAX_QUBITS) and internal qubits = (MIN_QUBITS, MAX_QUBITS) separately, 
+    instead of external qubits + internal qubits = (MIN_QUBITS, MAX_QUBITS)
+
+    See example below, if using  external qubits + internal qubits = (MIN_QUBITS, MAX_QUBITS)
+
+    =======================================
+                BLOCK INFO               
+    =======================================
+    Owner: main_circuit
+    Target num qubits 
+    EXTERNAL: 3
+    INTERNAL: 1
+    Target num bits 
+    EXTERNAL: 1
+    INTERNAL: 1
+
+    Qubit definitions 
+    Qubit defs may not match target if block is built to match DAG
+    name: qreg0 size: 1 Scope: internal
+    =======================================
+    @guppy.comptime
+    def main_circuit() -> None:
+            qreg0 = array(qubit() for _ in range(1))
+            if 0 <= 0  and 0 > 0   or 0 <= 0  and 0 == 0   :
+                    if 0 <= 0  and 0 == 0   or 0 >= 0  and 0 <= 0   :
+                            project_z(qreg0[0])
+                            cy(qreg0[0], 
+
+    the block set a target for internal qubits of 1, and external of 3. But since this is guppy, only internal definitions are created, and therefore this stalls in 
+    an infinite loop while picking a random qubit
+*/
+
 class Block : public Node {
 
     public:

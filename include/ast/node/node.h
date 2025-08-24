@@ -19,12 +19,12 @@ enum Node_kind {
 struct Node_constraint {
 
     public:
-        Node_constraint(Common::Rule_hash _rule, size_t _occurances):
+        Node_constraint(Common::Rule_hash _rule, unsigned int _occurances):
             rules({_rule}),
             occurances({_occurances})
         {}
 
-        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<size_t> _occurances): 
+        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<unsigned int> _occurances): 
             rules(std::move(_rules)),
             occurances(std::move(_occurances))
         {}
@@ -58,7 +58,7 @@ struct Node_constraint {
 
     private:
         std::vector<Common::Rule_hash> rules;
-        std::vector<size_t> occurances = {0};
+        std::vector<unsigned int> occurances = {0};
 
 };
 
@@ -166,7 +166,17 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void set_constraint(const std::vector<Rule_hash>& rules, const std::vector<unsigned int>& occurances){
+        void check_constraint(const Common::Rule_hash& rule, const unsigned int& n_occurances){
+            if(n_occurances > WILDCARD_MAX){
+                ERROR("Constraint on " + std::to_string(rule) + " cannot be satified! Given " + std::to_string(n_occurances) + " but max = " + std::to_string(WILDCARD_MAX));
+            }
+        }
+
+        void set_constraint(std::vector<Common::Rule_hash> rules, std::vector<unsigned int> occurances){
+            if(rules.size() != occurances.size()){
+                ERROR("Hashes vector must be the same size as occurances vector!");
+            }
+
             constraint = std::make_optional<Node_constraint>(rules, occurances);
         }
 
@@ -183,8 +193,14 @@ class Node {
             if(constraint.has_value()){
                 std::string debug_string;
 
-                for (size_t i = 0; i < constraint.value().rules_size(); i++){
-                    debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(constraint.value().get_occurances(i)) + " ";
+                for(size_t i = 0; i < constraint.value().rules_size(); i++){
+                    unsigned int n_occurances = constraint.value().get_occurances(i);
+                    
+                    debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(n_occurances) + " ";
+                    
+                    if(n_occurances > (unsigned int)WILDCARD_MAX){
+                        debug_string += RED("(Cannot be satisfied! Max = " + std::to_string(WILDCARD_MAX) + ")");
+                    }
                 }
 
                 return debug_string;
