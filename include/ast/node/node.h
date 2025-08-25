@@ -1,5 +1,3 @@
-#ifndef NODE_H
-#define NODE_H
 
 #include <utils.h>
 #include <branch.h>
@@ -164,12 +162,6 @@ class Node {
 
         bool branch_satisfies_constraint(const Branch& branch){
             return !constraint.has_value() || constraint.value().passed(branch);
-        }
-
-        void check_constraint(const Common::Rule_hash& rule, const unsigned int& n_occurances){
-            if(n_occurances > WILDCARD_MAX){
-                ERROR("Constraint on " + std::to_string(rule) + " cannot be satified! Given " + std::to_string(n_occurances) + " but max = " + std::to_string(WILDCARD_MAX));
-            }
         }
 
         void set_constraint(std::vector<Common::Rule_hash> rules, std::vector<unsigned int> occurances){
