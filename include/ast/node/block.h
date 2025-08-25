@@ -46,7 +46,7 @@ class Block : public Node {
     public:
 
         Block() : 
-            Node("block", hash_rule_name("block")),
+            Node("block", Common::block),
             owner("dummy")
         {}
 

@@ -6,7 +6,6 @@
 class Subroutines : public Node {
 
     public:
-        using Node::Node;
 
         Subroutines(unsigned int n_blocks):
             Node("subroutines", Common::subroutines)

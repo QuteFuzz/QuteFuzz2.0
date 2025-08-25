@@ -3,7 +3,7 @@
 
 #include <node.h>
 #include <collection.h>
-#include <compound_stmt.h>
+#include <qubit_op.h>
 
 namespace Dag {
 
@@ -12,13 +12,13 @@ namespace Dag {
         public:
             Edge(){}
 
-            Edge(unsigned int _src_port, unsigned int _dest_port, std::shared_ptr<Compound_stmt> _node): 
+            Edge(unsigned int _src_port, unsigned int _dest_port, std::shared_ptr<Qubit_op> _node): 
                 src_port(_src_port),
                 dest_port(_dest_port),
                 node(_node)
             {}
 
-            inline std::shared_ptr<Compound_stmt> get_node() const {
+            inline std::shared_ptr<Qubit_op> get_node() const {
                 return node;
             }
 
@@ -38,11 +38,11 @@ namespace Dag {
         private:
             unsigned int src_port;
             unsigned int dest_port;
-            std::shared_ptr<Compound_stmt> node;
+            std::shared_ptr<Qubit_op> node;
     };
 
     struct Node_data{
-        std::shared_ptr<Compound_stmt> node;
+        std::shared_ptr<Qubit_op> node;
 
         std::vector<unsigned int> inputs; // each index is a port into the node, the value at each port is the id for the qubit entering that port
         std::vector<unsigned int> children; // node ids of child nodes
@@ -88,7 +88,7 @@ namespace Dag {
                return subroutine_gates.size();
             }
 
-            inline std::shared_ptr<Compound_stmt> get_next_node(){
+            inline std::shared_ptr<Qubit_op> get_next_node(){
                 if(node_pointer < n_nodes){
                     return nodewise_data.at(node_pointer++).node;
                 } else {
@@ -96,7 +96,7 @@ namespace Dag {
                 }
             }
 
-            inline std::shared_ptr<Gate> get_next_subroutine_gate(){
+            inline std::shared_ptr<Node> get_next_subroutine_gate(){
                 if(sub_pointer < subroutine_gates.size()){
                     return subroutine_gates.at(sub_pointer++);
                 } else {
@@ -104,7 +104,7 @@ namespace Dag {
                 }
             }
 
-            std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Compound_stmt> node);
+            std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Qubit_op> node);
 
             unsigned int n_compound_statements(){
                 return n_nodes;
@@ -116,7 +116,7 @@ namespace Dag {
                 stream << "                DAG INFO                 " << std::endl; 
                 stream << "=========================================" << std::endl;
 
-                stream << "N_NODES: " << dag.n_nodes << std::endl;
+                stream << "N_NODES (all nodes are Qubit_ops): " << dag.n_nodes << std::endl;
                 stream << "N_SUBROUTINES: " << dag.n_subroutines() << std::endl;
 
                 for(const auto& node_data : dag.nodewise_data){
@@ -145,13 +145,13 @@ namespace Dag {
             unsigned int n_nodes = 0;
             std::vector<Node_data> nodewise_data;
             unsigned int node_pointer = 0;
-            std::vector<std::shared_ptr<Gate>> subroutine_gates;
+            std::vector<std::shared_ptr<Node>> subroutine_gates;
             unsigned int sub_pointer = 0;
 
             Collection<Resource::Qubit> qubits;
 
             std::shared_ptr<Resource::Qubit> dummy_qubit;
-            std::shared_ptr<Compound_stmt> dummy_node;
+            std::shared_ptr<Qubit_op> dummy_node;
             std::shared_ptr<Gate> dummy_gate;
     };
 

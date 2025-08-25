@@ -1,3 +1,5 @@
+#ifndef NODE_H
+#define NODE_H
 
 #include <utils.h>
 #include <branch.h>
@@ -206,11 +208,9 @@ class Node {
 
         virtual unsigned int get_n_ports() const {return 1;}
 
-        /// @brief Is this node a subroutine call generated in the AST?
-        /// @return 
-        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
+        std::shared_ptr<Node> find(const U64 _hash) const;
 
-        std::shared_ptr<Node> find(const U64 _hash) const ;
+        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
 
     protected:
         std::string string;

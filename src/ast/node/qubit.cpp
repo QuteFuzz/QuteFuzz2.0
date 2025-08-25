@@ -1,15 +1,15 @@
 #include <resource.h>
 
-void Resource::Qubit::extend_flow_path(const std::shared_ptr<Compound_stmt> compound_stmt, unsigned int current_port){
+void Resource::Qubit::extend_flow_path(const std::shared_ptr<Qubit_op> qubit_op, unsigned int current_port){
 
     Dag::Edge edge;
 
     if(flow_path_length == 0){
         // qubit being operated on for the first time
-        edge = Dag::Edge(0, current_port, compound_stmt);
+        edge = Dag::Edge(0, current_port, qubit_op);
 
     } else {
-        edge = Dag::Edge(flow_path.back().get_dest_port(), current_port, compound_stmt);
+        edge = Dag::Edge(flow_path.back().get_dest_port(), current_port, qubit_op);
     }
     
     flow_path_length += 1;
