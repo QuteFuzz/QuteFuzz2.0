@@ -90,7 +90,7 @@ namespace Common {
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
-    constexpr int COMPOUND_STMT_DEPTH = 2;
+    constexpr int CONTROL_FLOW_MAX_DEPTH = 2;
 
     /*
         flags 
@@ -162,9 +162,7 @@ namespace Common {
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
-        bit_list = 3372974018932553881ULL,
-        qubit_def_list = 12288968177510665943ULL, 
-        qubit_def_size = 16541258826307231238ULL,      
+        bit_list = 3372974018932553881ULL,   
     
         qubit_defs_internal = 15763474746718250229ULL,
         qubit_def_internal = 8367506410210901254ULL,

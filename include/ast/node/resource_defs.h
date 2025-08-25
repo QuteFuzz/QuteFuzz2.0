@@ -8,7 +8,7 @@ class Qubit_defs : public Node {
 
     public:
 
-        Qubit_defs(std::string str, U64 hash, size_t num_defs, U8 scope):
+        Qubit_defs(std::string str, U64 hash, unsigned int num_defs, U8 scope):
             Node(str, hash, indentation_tracker)
         {
             if(Resource::is_external(scope)){
@@ -27,7 +27,7 @@ class Bit_defs : public Node {
 
     public:
 
-        Bit_defs(std::string str, U64 hash, size_t num_defs, U8 scope):
+        Bit_defs(std::string str, U64 hash, unsigned int num_defs, U8 scope):
             Node(str, hash, indentation_tracker)
         {
             if(Resource::is_external(scope)){

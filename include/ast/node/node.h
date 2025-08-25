@@ -166,12 +166,6 @@ class Node {
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void check_constraint(const Common::Rule_hash& rule, const unsigned int& n_occurances){
-            if(n_occurances > WILDCARD_MAX){
-                ERROR("Constraint on " + std::to_string(rule) + " cannot be satified! Given " + std::to_string(n_occurances) + " but max = " + std::to_string(WILDCARD_MAX));
-            }
-        }
-
         void set_constraint(std::vector<Common::Rule_hash> rules, std::vector<unsigned int> occurances){
             if(rules.size() != occurances.size()){
                 ERROR("Hashes vector must be the same size as occurances vector!");
@@ -214,11 +208,9 @@ class Node {
 
         virtual unsigned int get_n_ports() const {return 1;}
 
-        /// @brief Is this node a subroutine call generated in the AST?
-        /// @return 
-        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
+        std::shared_ptr<Node> find(const U64 _hash) const;
 
-        std::shared_ptr<Node> find(const U64 _hash) const ;
+        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
 
     protected:
         std::string string;

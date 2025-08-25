@@ -125,7 +125,7 @@ namespace Resource {
                 add_constraint(Common::singular_qubit, 1);
             }
 
-            void extend_flow_path(const std::shared_ptr<Compound_stmt> compound_stmt, unsigned int current_port);
+            void extend_flow_path(const std::shared_ptr<Qubit_op> qubit_op, unsigned int current_port);
 
             void extend_dot_string(std::ostringstream& ss) const;
 

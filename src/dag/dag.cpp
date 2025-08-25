@@ -20,7 +20,7 @@ void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
     }
 }
 
-std::optional<unsigned int> Dag::Dag::nodewise_data_contains(std::shared_ptr<Compound_stmt> node){
+std::optional<unsigned int> Dag::Dag::nodewise_data_contains(std::shared_ptr<Qubit_op> node){
     
     for(unsigned int i = 0; i < nodewise_data.size(); i++){
         if(nodewise_data[i].node->get_id() == node->get_id()){
@@ -35,7 +35,7 @@ std::optional<unsigned int> Dag::Dag::nodewise_data_contains(std::shared_ptr<Com
 void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id){
 
     unsigned int source_node_input_port = edge.get_dest_port();
-    std::shared_ptr<Compound_stmt> source_node = edge.get_node();
+    std::shared_ptr<Qubit_op> source_node = edge.get_node();
 
     std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
     unsigned int pos = maybe_pos.value_or(n_nodes);

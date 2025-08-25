@@ -6,22 +6,21 @@ namespace Context {
     void Context::reset(Level l){
 
         if(l == PROGRAM){
-            subroutines_node = nullptr;
             subroutine_counter = 0;
             Node::node_counter = 0;
 
             blocks.clear();
 
+            subroutines_node = std::nullopt;
             genome = std::nullopt;
 
         } else if (l == BLOCK){
-            compound_stmt_depth = Common::COMPOUND_STMT_DEPTH;
+            control_flow_depth = 1; // Common::CONTROL_FLOW_MAX_DEPTH;
 
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
             get_current_block()->bit_flag_reset();
-        
-        } else if (l == COMPOUND_STMT) {
+
             current_port = 0;
         }
     }
@@ -103,7 +102,7 @@ namespace Context {
         return block;
     }
 
-    std::shared_ptr<Block> Context::setup_block(std::string str, U64 hash){
+    std::shared_ptr<Block> Context::new_block_node(std::string str, U64 hash){
         std::shared_ptr<Block> current_block;
 
         reset(BLOCK);
@@ -137,7 +136,7 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Qubit_defs> Context::make_qubit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Qubit_defs> Context::get_qubit_defs_node(std::string str, U64 hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         U8 scope;
@@ -169,7 +168,7 @@ namespace Context {
         return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
     }
 
-    std::shared_ptr<Bit_defs> Context::make_bit_definitions(std::string& str, U64& hash){
+    std::shared_ptr<Bit_defs> Context::get_bit_defs_node(std::string str, U64 hash){
         std::shared_ptr<Block> current_block = get_current_block();
 
         U8 scope = (hash == Common::bit_defs_external) ? EXTERNAL_SCOPE : INTERNAL_SCOPE;
@@ -189,39 +188,7 @@ namespace Context {
         return std::nullopt;
     }
 
-    void Context::set_current_arg(){
-        if((current_gate != nullptr) && current_gate_definition.has_value()){
-            std::shared_ptr<Resource_definition> qubit_def = current_gate_definition.value()->get_next_qubit_def(EXTERNAL_SCOPE | OWNED_SCOPE);
-            current_arg = std::make_shared<Arg>(qubit_def);
-        }
-    }
-
-    std::shared_ptr<Arg> Context::get_current_arg(){
-        return current_arg;
-    }
-
-    void Context::set_current_qubit(){
-        U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
-
-        Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
-        
-        random_qubit->extend_flow_path(current_compound_stmt, current_port++);
-
-        current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
-    }
-
-    void Context::set_current_bit(){
-        Resource::Bit* random_bit = get_current_block()->get_random_bit();
-        current_bit = std::make_shared<Resource::Bit>(*random_bit);
-    }
-
-    std::shared_ptr<Resource::Qubit> Context::get_current_qubit(){
-        return current_qubit;
-    }
-
-    std::shared_ptr<Resource::Bit> Context::get_current_bit(){
-        return current_bit;
-    }
+    
 
     std::shared_ptr<Integer> Context::get_current_qubit_index(){
         if(current_qubit != nullptr){
@@ -259,54 +226,11 @@ namespace Context {
         }
     }
 
-    void Context::set_current_qubit_definition(){
-        current_qubit_definition = get_current_block()->get_next_qubit_def();
-    }
-
-    void Context::set_current_bit_definition(){
-        current_bit_definition = get_current_block()->get_next_bit_def();
-    }
-
-    std::shared_ptr<Qubit_definition> Context::get_current_qubit_definition(){
-        return current_qubit_definition;
-    }
-
-    std::shared_ptr<Bit_definition> Context::get_current_bit_definition(){
-        return current_bit_definition;
-    }
-
-    void Context::set_current_qubit_definition_owned(){
-        current_qubit_definition = get_current_block()->get_next_qubit_def(OWNED_SCOPE);
-    }
-
-    void Context::set_current_bit_definition_owned(){
-        current_bit_definition = get_current_block()->get_next_bit_def(OWNED_SCOPE);
-    }
-
-    std::shared_ptr<Node> Context::get_current_qubit_definition_discard(const std::string& str, const U64& hash){
-        if (current_qubit_definition->is_register_def()) {
-            return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_single_qubit}, {0}));
-        } else {
-            return std::make_shared<Node>(str, hash, Node_constraint({Common::discard_qreg}, {0}));
-        }
-    }
-
     std::shared_ptr<Integer> Context::get_current_qubit_definition_size(){
         if(current_qubit_definition != nullptr){
             return current_qubit_definition->get_size();
         } else  {
             WARNING("Current qubit not set but trying to get size! Using dummy instead");
-            return std::make_shared<Integer>(dummy_int);
-        }
-    }
-
-    std::shared_ptr<Integer> Context::get_current_qubit_definition_size_including_single(){
-        if(current_qubit_definition != nullptr && current_qubit_definition->is_external()){
-            current_qubit_definition = get_current_block()->get_next_qubit_def(EXTERNAL_SCOPE);
-            std::shared_ptr<Integer> result = current_qubit_definition->is_register_def() ? current_qubit_definition->get_size() : std::make_shared<Integer>("1");
-            return result;
-        } else {
-            WARNING("Current qubit definition not set or is singular but trying to get size! Using dummy instead");
             return std::make_shared<Integer>(dummy_int);
         }
     }
@@ -338,33 +262,13 @@ namespace Context {
         }
     }
 
-    void Context::set_current_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash){
-        current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
-    }
-
-    std::shared_ptr<Gate> Context::get_current_gate(){
-        return current_gate;
-    }
-
-    std::shared_ptr<Node> Context::get_discard_qubit_defs(const std::string& str, const U64& hash, int num_owned_qubit_defs) {
-        return std::make_shared<Node>(str, hash, Node_constraint(Common::discard_internal_qubit, num_owned_qubit_defs), Node::indentation_tracker);
-    }
-
     std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){
-        compound_stmt_depth -= 1;
+        control_flow_depth -= 1;
         return std::make_shared<Node>(str, hash);
     }
 
-    void Context::set_current_compound_stmt(){
-        reset(COMPOUND_STMT);
-
-
-
-        current_compound_stmt = std::make_shared<Compound_stmt>(compound_stmt_depth);
-    }
-
-    std::shared_ptr<Compound_stmt> Context::get_current_compound_stmt(){
-        return current_compound_stmt;
+    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(){
+        return std::make_shared<Compound_stmt>(control_flow_depth);
     }
 
     std::shared_ptr<Compound_stmts> Context::get_compound_stmts(std::shared_ptr<Node> parent){
@@ -389,16 +293,18 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Subroutines> Context::get_subroutines_node(){
+    std::shared_ptr<Subroutines> Context::new_subroutines_node(){
         unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
 
         if(genome.has_value()){
             n_blocks = genome.value().dag.n_subroutines();
         }
 
-        subroutines_node = std::make_shared<Subroutines>(n_blocks);
+        std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(n_blocks);
 
-        return subroutines_node;
+        subroutines_node = std::make_optional<std::shared_ptr<Subroutines>>(node);
+
+        return node;
     }
 
 
@@ -429,13 +335,8 @@ namespace Context {
         }
     }
 
-    void Context::set_current_gate_definition(){
-        current_gate_definition = get_block(current_gate->get_string());
-    }
-
     void Context::set_genome(const std::optional<Genome>& _genome){
         genome = _genome;
     }
-
 
 }
