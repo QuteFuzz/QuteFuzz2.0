@@ -9,9 +9,7 @@ class Block;
 class Compound_stmt : public Node {
 
     public:
-        Compound_stmt(int compound_stmt_depth);
-        
-        std::string resolved_name() const override;
+        Compound_stmt(unsigned int control_flow_depth);
 
     private:
 };

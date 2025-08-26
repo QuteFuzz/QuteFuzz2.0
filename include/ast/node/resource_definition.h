@@ -35,14 +35,17 @@ class Resource_definition : public Node {
             }, value);
         }
 
-        inline std::shared_ptr<Integer> get_size() const {                
+        /// @brief Get size of resource definition if it is a register definition. If not, return 1, or whatever `default_size` is as an `Integer` node
+        /// @param default_size 
+        /// @return 
+        inline std::shared_ptr<Integer> get_size(unsigned int default_size = 1) const {                
             if(is_register_def()){
                 return std::get<Register_resource_definition>(value).get_size();   
             }
 
             ERROR("Singular resource definitions do not have sizes!");
 
-            return std::make_shared<Integer>();
+            return std::make_shared<Integer>(default_size);
         }
 
         inline bool is_external() const {
