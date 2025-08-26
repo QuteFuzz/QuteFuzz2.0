@@ -79,11 +79,11 @@ singular_bit = bit_name;
 
 register_bit = bit_name "[" bit_index "]";
 
-imports = "from sympy import Symbol" NEWLINE
-        "from diff_testing.lib import pytketTesting" NEWLINE
-        "from pathlib import Path" NEWLINE
-        "from pytket import Circuit, Qubit, Bit" NEWLINE
-        "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE;
+imports =   "from pytket import Circuit, Qubit, Bit" NEWLINE
+            "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE
+            swarm_testing_imports NEWLINE
+            "from diff_testing.lib import pytketTesting"
+            ;
 
 compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
 

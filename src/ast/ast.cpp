@@ -224,7 +224,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Integer>();
 
 		case Common::gate_name:
-			return std::make_shared<Gate_name>(parent, context.get_current_block());
+			return std::make_shared<Gate_name>(parent, context.get_current_block(), context.get_swarm_testing_gateset());
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -244,30 +244,32 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 		case Common::tdg: case Common::s: case Common::sdg: case Common::project_z: case Common::measure_and_reset:
 		case Common::v: case Common::vdg:
-			return context.new_gate(str, 1, 0, 0);
+			return context.new_gate(str, 1, 0, 0, hash);
 
 		case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
 		case Common::ch:
-			return context.new_gate(str, 2, 0, 0);
+			return context.new_gate(str, 2, 0, 0, hash);
 
 		case Common::crz:
-			return context.new_gate(str, 2, 0, 1);
+			return context.new_gate(str, 2, 0, 1, hash);
 
 		case Common::ccx: case Common::cswap: case Common::toffoli:
-			return context.new_gate(str, 3, 0, 0);
+			return context.new_gate(str, 3, 0, 0, hash);
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
-			return context.new_gate(str, 1, 0, 1);
+			return context.new_gate(str, 1, 0, 1, hash);
 
 		case Common::u2:
-			return context.new_gate(str, 1, 0, 2);
+			return context.new_gate(str, 1, 0, 2, hash);
 
 		case Common::u3: case Common::u:
-			return context.new_gate(str, 1, 0, 3);
+			return context.new_gate(str, 1, 0, 3, hash);
 		
 		case Common::Measure:
-			return context.new_gate(str, 1, 1, 0);
+			return context.new_gate(str, 1, 1, 0, hash);
 
+		/* Added hash to every new_gate instance. Not sure if this is intended but it is needed for swarm testing */
+		
 		case Common::barrier:
 			return context.get_barrier();
 

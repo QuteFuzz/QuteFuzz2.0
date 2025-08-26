@@ -5,6 +5,8 @@ namespace Common {
     bool plot = false;
     bool verbose = false;
     bool render_dags = false;
+    bool run_genetic = false;
+    bool swarm_testing = false;
 }
 
 void lower(std::string& str){

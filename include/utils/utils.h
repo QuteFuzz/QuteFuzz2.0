@@ -91,6 +91,7 @@ namespace Common {
     constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
     constexpr int CONTROL_FLOW_MAX_DEPTH = 2;
+    constexpr int SWARM_TESTING_GATESET_SIZE = 6;
 
     /*
         flags 
@@ -98,6 +99,8 @@ namespace Common {
     extern bool plot;
     extern bool verbose;
     extern bool render_dags;
+    extern bool run_genetic;
+    extern bool swarm_testing;
     
     /*
         ast node types

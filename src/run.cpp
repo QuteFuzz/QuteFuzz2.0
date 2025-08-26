@@ -158,7 +158,6 @@ void Run::run_tests(){
 void Run::loop(){
 
     std::string current_command;
-    bool run_genetic = false;
 
     while(true){
         std::cout << "> ";
@@ -197,15 +196,19 @@ void Run::loop(){
 
             } else if (current_command == "run_tests"){
                 run_tests();
+                
+            } else if (current_command == "swarm_testing") {
+                Common::swarm_testing = !Common::swarm_testing;
+                INFO("Swarm testing mode " + FLAG_STATUS(Common::swarm_testing));
 
             } else if (current_command == "genetic"){
-                run_genetic = !run_genetic;
-                INFO("Genetic generation mode " + FLAG_STATUS(run_genetic));
+                Common::run_genetic = !Common::run_genetic;
+                INFO("Genetic generation mode " + FLAG_STATUS(Common::run_genetic));
 
             } else if ((n_programs = safe_stoi(current_command))){
                 remove_all_in_dir(output_dir);
 
-                if(run_genetic){
+                if(Common::run_genetic){
                     current_generator->run_genetic(output_dir, n_programs.value_or(0));
 
                 } else {

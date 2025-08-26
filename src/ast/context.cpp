@@ -13,6 +13,7 @@ namespace Context {
 
             subroutines_node = std::nullopt;
             genome = std::nullopt;
+            swarm_testing_gateset = std::array<std::optional<Common::Rule_hash>, Common::SWARM_TESTING_GATESET_SIZE>{};
 
         } else if (l == BLOCK){
             control_flow_depth = 1; // Common::CONTROL_FLOW_MAX_DEPTH;
