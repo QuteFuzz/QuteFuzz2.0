@@ -151,16 +151,24 @@ simple_stmt = "return";
 discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
 
 discard_internal_qubit = discard_single_qubit
-                        | discard_qreg;
+                        | discard_qreg
+                        | measure_and_record_single_qubit
+                        | measure_and_record_qreg
+                        ;
 
-discard_qreg = "discard_array" LPAREN qubit_def_name RPAREN
-                | "measure_array" LPAREN qubit_def_name RPAREN;
-discard_single_qubit = "discard" LPAREN qubit_def_name RPAREN
-                | "measure" LPAREN qubit_def_name RPAREN
+discard_qreg =  "measure_array" LPAREN qubit_def_name RPAREN
+                | "discard_array" LPAREN qubit_def_name RPAREN
+                ;
+discard_single_qubit = "measure" LPAREN qubit_def_name RPAREN
+                | "discard" LPAREN qubit_def_name RPAREN
                 ;
 
+measure_and_record_qreg =  "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure_array" LPAREN qubit_def_name RPAREN RPAREN;
+
+measure_and_record_single_qubit = "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure" LPAREN qubit_def_name RPAREN RPAREN;
+
 gate_name = x | y | z | h | cx | cy | cz | toffoli | rz | rx | ry | v | vdg
-    | t | tdg | s | sdg | ch | crz | project_z | barrier | measure_and_reset | subroutine
+    | t | tdg | s | sdg | ch | crz | project_z | measure_and_reset | subroutine # | barrier
     ;
 
 qubit_list  = qubit (COMMA SPACE qubit)*;
@@ -182,4 +190,5 @@ imports = "from guppylang.decorator import guppy " NEWLINE
 compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
 
 testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE
-                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE;
+                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id COMMA total_num_qubits RPAREN NEWLINE; # Currently too slow with Nexus
+                ;

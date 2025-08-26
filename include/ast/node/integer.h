@@ -9,7 +9,7 @@ class Integer : public Node {
         using Node::Node;
 
         Integer() : 
-            Node(std::to_string(num))
+            Node(std::to_string(42))
         {}
 
         Integer(int i) : 
@@ -23,7 +23,7 @@ class Integer : public Node {
         }
 
     private:
-        int num = 42;
+        int num;
 
 };
 

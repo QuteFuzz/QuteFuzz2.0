@@ -196,6 +196,7 @@ namespace Common {
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
+        total_num_qubits = 11347479691534777333ULL,
 
         main_block = 9115425723233342258ULL,
         main_block_def = 6816634947724795910ULL,
@@ -207,6 +208,8 @@ namespace Common {
         discard_internal_qubit = 1018654204566407765ULL,
         discard_single_qubit = 11775807085076373088ULL,
         discard_qreg = 13047647025597388553ULL,
+        measure_and_record_single_qubit = 15772338210910691146ULL,
+        measure_and_record_qreg = 12346547178136284519ULL,
         comptime_block = 13310967149289622197ULL,
         comptime_block_def = 5962160394468879029ULL,
         non_comptime_block = 15717574089437842153ULL,

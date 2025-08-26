@@ -114,6 +114,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::circuit_id:
 			return context.get_circuit_id();
 
+		case Common::total_num_qubits: {
+			return std::make_shared<Integer>(context.get_max_external_qubits());
+		}
+
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 			
@@ -176,7 +180,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 		
 		case Common::discard_internal_qubit:
-			return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE));
+			return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE), context.get_current_block_owner());
 
 		//	===============================================================
 

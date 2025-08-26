@@ -71,7 +71,8 @@ std::optional<int> safe_stoi(const std::string& str) {
         int ret = (str == "") ? 1 : std::stoi(str);
         return std::optional<int>(ret);
     } catch (const std::invalid_argument& e) {
-        ERROR(e.what());
+        // ERROR(e.what());
+        ERROR("Please enter a valid integer or enter a valid command");
         return std::nullopt;
     }
 }
