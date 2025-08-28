@@ -9,6 +9,9 @@ class Gate;
 class Qubit_op : public Node {
 
     public:
+        Qubit_op(): 
+            Node("qubit_op", Common::qubit_op)
+        {}
 
         Qubit_op(std::shared_ptr<Block> current_block);
 

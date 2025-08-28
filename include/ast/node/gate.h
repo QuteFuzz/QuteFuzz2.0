@@ -6,6 +6,10 @@
 class Gate : public Node {
 
     public:
+
+        Gate() : 
+            Node("dummy")
+        {}
         
         Gate(const std::string& str, U64 _hash, unsigned int _qubits, unsigned int _bits, unsigned int _params) :
             Node(str),

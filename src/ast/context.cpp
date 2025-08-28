@@ -8,6 +8,7 @@ namespace Context {
         if(l == PROGRAM){
             subroutine_counter = 0;
             Node::node_counter = 0;
+            can_copy_dag = false;
 
             blocks.clear();
 
@@ -129,6 +130,8 @@ namespace Context {
             current_block = std::make_shared<Block>(str, hash, Common::TOP_LEVEL_CIRCUIT_NAME);
 
             subroutine_counter = 0;
+
+            can_copy_dag = genome.has_value();
         }
 
         blocks.push_back(current_block);
@@ -158,7 +161,7 @@ namespace Context {
 
         size_t num_defs;
 
-        if(genome.has_value() && !current_block_is_subroutine()){
+        if(can_copy_dag){
             num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
         
         } else {
@@ -262,13 +265,34 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Node> Context::get_control_flow_stmt(const std::string& str, const U64& hash){
-        control_flow_depth -= 1;
-        return std::make_shared<Node>(str, hash);
+    std::shared_ptr<Control_flow_branch> Context::get_control_flow_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+        if(can_copy_dag){
+            return std::make_shared<Control_flow_branch>(str, hash, parent->get_next_qubit_op_target());
+
+        } else {
+            return std::make_shared<Control_flow_branch>(str, hash);
+        }
     }
 
-    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(){
-        return std::make_shared<Compound_stmt>(control_flow_depth);
+    std::shared_ptr<Control_flow_stmt> Context::get_control_flow_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+        control_flow_depth -= 1;
+
+        if(can_copy_dag){
+            return std::make_shared<Control_flow_stmt>(str, hash, parent->get_next_qubit_op_target());
+
+        } else {
+            return std::make_shared<Control_flow_stmt>(str, hash);
+        }
+    }
+
+    std::shared_ptr<Compound_stmt> Context::get_compound_stmt(std::shared_ptr<Node> parent){
+        
+        if(can_copy_dag){
+            return Compound_stmt::from_num_qubit_ops(parent->get_next_qubit_op_target());
+        } else {
+            return Compound_stmt::from_control_flow_depth(control_flow_depth);
+        }
+    
     }
 
     std::shared_ptr<Compound_stmts> Context::get_compound_stmts(std::shared_ptr<Node> parent){
@@ -277,20 +301,21 @@ namespace Context {
             this check is to make sure we only call the function for the compound statements rule in the circuit body, as opposed to each nested
             call within the body in control flow
         */
+
         if(*parent == Common::body){
             set_can_apply_subroutines();
+
+            if(can_copy_dag){
+                parent->make_partition(genome.value().dag.n_qubit_ops(), 1);
+            }
         }
 
-        /*
-            set number of compound statements the main circuit needs in order to match the DAG. Only main circuit is considered because DAG 
-            is only for the main circuit
-        */
-        if(genome.has_value() && !current_block_is_subroutine()){
-            return std::make_shared<Compound_stmts>(genome->dag.n_compound_statements());
-        
+        if(can_copy_dag){
+            return Compound_stmts::from_num_qubit_ops(parent->get_next_qubit_op_target());
+
         } else {
-            return std::make_shared<Compound_stmts>(WILDCARD_MAX);
-        }
+            return Compound_stmts::from_num_compound_stmts(WILDCARD_MAX);
+        }   
     }
 
     std::shared_ptr<Subroutines> Context::new_subroutines_node(){

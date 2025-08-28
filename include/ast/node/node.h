@@ -212,6 +212,98 @@ class Node {
 
         inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
 
+        int get_next_qubit_op_target(){
+            size_t partition_size = qubit_op_target_partition.size();
+
+            if(partition_counter < partition_size){
+                return qubit_op_target_partition[partition_counter++];
+            } else {
+                WARNING("Node " + string + " qubit node target partition info: Counter: " + std::to_string(partition_counter) + ", Size: " + std::to_string(partition_size));
+                return 1;
+            }
+        }
+
+        /// @brief Create a random partition of `target` over `n_children`. Final result contains +ve ints
+        /// @param target 
+        /// @param n_children 
+        void make_partition(int target, int n_children){
+
+            if((n_children == 1) || (target == 1)){
+                qubit_op_target_partition = {target};
+            
+            } else if (target == n_children){
+                qubit_op_target_partition = std::vector<int>(n_children, 1);
+
+            } else {
+
+                /*
+                    make N-1 random cuts between 1 and T-1
+                    ex: 
+                        T = 10, N = 4
+                        {2, 9, 4}
+                */
+                std::vector<int> cuts;
+
+                for(int i = 0; i < n_children-1; i++){
+                    int val = random_int(target-1, 1);
+
+                    while(std::find(cuts.begin(), cuts.end(), val) != cuts.end()){
+                        val = random_int(target-1, 1);
+                    }
+
+                    cuts.push_back(val);
+                }
+
+                /*
+                    sort the cuts
+                    ex:
+                        {2, 4, 9}
+                */
+                std::sort(cuts.begin(), cuts.end());
+
+                /*
+                    add 0 and T boundaries, then calculate diffs
+                    ex:
+                        {0, 2, 4, 9, 10}
+                        {2, 2, 5, 1} <- result
+                */
+                qubit_op_target_partition.push_back(cuts[0]);
+
+                for(int i = 1; i < n_children-1; i++){
+                    qubit_op_target_partition.push_back(cuts[i] - cuts[i-1]);
+                }
+
+                qubit_op_target_partition.push_back(target - cuts[n_children-2]);
+
+            }
+        
+        #ifdef DEBUG
+            std::cout << "Partition at " << string << std::endl;
+            for(size_t i = 0; i < qubit_op_target_partition.size(); i++){
+                std::cout << qubit_op_target_partition[i] << " ";
+            }
+
+            std::cout << std::endl;
+        #endif
+        }
+
+        void make_control_flow_partition(int target, int n_children){
+            make_partition(target, n_children);
+            
+            if(n_children == 1){
+                add_constraint(Common::else_stmt, 0);
+                add_constraint(Common::elif_stmt, 0);
+            } else if (random_int(1)) {
+                add_constraint(Common::else_stmt, 1);
+            } else {
+                add_constraint(Common::elif_stmt, 1);
+            }
+        }
+
+        inline void set_from_dag(){from_dag = true;}
+
+        inline bool is_from_dag(){return from_dag;}
+
     protected:
         std::string string;
         U64 hash;
@@ -221,6 +313,10 @@ class Node {
         std::string indentation_str;
         std::vector<std::shared_ptr<Node>> children;
         Node_build_state state = NB_BUILD;
+        std::vector<int> qubit_op_target_partition;
+        unsigned int partition_counter = 0;
+
+        bool from_dag = false;
     
     private:
         std::optional<Node_constraint> constraint;

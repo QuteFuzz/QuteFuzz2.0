@@ -37,15 +37,16 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     unsigned int source_node_input_port = edge.get_dest_port();
     std::shared_ptr<Qubit_op> source_node = edge.get_node();
 
+    source_node->set_from_dag();
+
     std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
-    unsigned int pos = maybe_pos.value_or(n_nodes);
+    unsigned int pos = maybe_pos.value_or(nodewise_data.size());
 
     if(maybe_pos.has_value() == false){
         nodewise_data.push_back(Node_data{.node = source_node, .inputs = {}, .children = {}});
         
         // reserve memory for inputs depending on number of ports this gate has
         nodewise_data.at(pos).inputs.resize(source_node->get_n_ports(), 0);
-        n_nodes += 1;
     }
 
     if(maybe_dest_node_id.has_value()) nodewise_data.at(pos).children.push_back(maybe_dest_node_id.value());

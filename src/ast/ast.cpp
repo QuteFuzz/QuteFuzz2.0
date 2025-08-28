@@ -91,13 +91,13 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Qubit_list>(context.get_current_arg()->get_qubit_def_size());
 		
 		case Common::compound_stmt:
-			return context.get_compound_stmt();
+			return context.get_compound_stmt(parent);
 
 		case Common::if_stmt:
-			return context.get_control_flow_stmt(str, hash);
+			return context.get_control_flow_stmt(str, hash, parent);
 
 		case Common::elif_stmt: case Common::else_stmt:
-			return std::make_shared<Control_flow_branch>(str, hash);
+			return context.get_control_flow_branch(str, hash, parent);
 
 		case Common::disjunction:
 			return std::make_shared<Disjunction>();
@@ -285,6 +285,8 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 			std::shared_ptr<Node> child_node = get_node_from_term(parent, child_term);
 
 			parent->add_child(child_node);
+
+			if(child_node->is_from_dag()) continue;
 
 			write_branch(child_node, child_term);
         }
