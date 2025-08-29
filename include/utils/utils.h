@@ -165,7 +165,11 @@ namespace Common {
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
-        bit_list = 3372974018932553881ULL,   
+        bit_list = 3372974018932553881ULL,
+        qubit_def_list = 12288968177510665943ULL, 
+        qubit_def_size = 16541258826307231238ULL, 
+        bit_def_list = 8034270308867516509ULL,
+        bit_def_size = 2428654514965833632ULL,
     
         qubit_defs_internal = 15763474746718250229ULL,
         qubit_def_internal = 8367506410210901254ULL,

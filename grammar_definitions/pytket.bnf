@@ -48,13 +48,13 @@ qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation th
 gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list COMMA SPACE bit_list "])";
 
-gate_name   = X | Y | Z | CX | CY | CZ | Rx | Ry | Rz
+gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg # | CY #Disabled CY since buggy
             | H | T | S | CH | subroutine | Measure;
 gate_op_kind =
     LPAREN qubit_list RPAREN 
     | LPAREN qubit_list COMMA bit_list RPAREN
     | LPAREN float_list COMMA qubit_list RPAREN
-    | LPAREN qubit_list COMMA "condition_bits=[" bit RBRACK COMMA condition_value RPAREN
+    # | LPAREN qubit_list COMMA "condition_bits=[" bit RBRACK COMMA condition_value RPAREN      # Disabled temporarily to allow for pytket-guppy pipeline
     ;
 
 condition_value = "condition_value=1"
@@ -87,10 +87,12 @@ imports =   "from pytket import Circuit, Qubit, Bit" NEWLINE
 
 compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
 
-testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
+testing_method = # main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
                 # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run statevector simulator with measures
-                # | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE      # Currently buggy since load_pytket doesn't like circboxes
+                 "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK COMMA LBRACK bit_def_list RBRACK RPAREN NEWLINE
                 # | main_circuit_name ".measure_all() " NEWLINE "pt.run_qir_pytket_diff(" main_circuit_name COMMA circuit_id RPAREN NEWLINE;  # No compatibility with circboxes and slow with Nexus
                 ;
 
 qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;
+
+bit_def_list = bit_def_size (COMMA SPACE bit_def_size)*;

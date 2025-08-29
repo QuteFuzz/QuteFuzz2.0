@@ -29,7 +29,6 @@ import matplotlib.ticker as ticker
 import traceback
 import pathlib
 import shutil
-import subprocess
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 # Pytket imports
@@ -154,7 +153,7 @@ class Base():
         if not plots_dir.exists():
             plots_dir.mkdir(parents=True, exist_ok=True)
         
-        plots_path = plots_dir /f"output{circuit_number}_{compilation_level if compilation_level else 'uncompiled'}.png"
+        plots_path = plots_dir /f"output{circuit_number}_{title}{compilation_level if compilation_level else 'uncompiled'}.png"
         
         # Plot the histogram
         values = list(res.keys())
@@ -248,29 +247,54 @@ class pytketTesting(Base):
         except Exception:
             print("Exception :", traceback.format_exc())
 
-    def run_guppy_pytket_diff(self, circuit : Circuit, circuit_number : int, qubit_defs_list : list[int]) -> None:
+    def run_guppy_pytket_diff(self, circuit : Circuit, circuit_number : int, qubit_defs_list : list[int], bit_defs_list : list[int]) -> None:
         '''
         Loads pytket circuit as a guppy circuit and runs it, comparing the results
         with normal AerBackend
         '''
         pytket_circ_copy = circuit.copy()
+
+        # Define the guppy gateset
+        from pytket import OpType
+        guppy_gateset = { OpType.CX, OpType.CZ, OpType.CY, OpType.X, OpType.Y, OpType.Z, OpType.H, OpType.T,
+                          OpType.Tdg, OpType.Rx, OpType.Ry, OpType.Rz, OpType.S, OpType.Sdg, OpType.CCX,
+                            OpType.V, OpType.Vdg, OpType.CRz }
+        DecomposeBoxes().apply(circuit) # Decompose circboxes for guppy compatibility
+        AutoRebase(guppy_gateset).apply(circuit) # Rebase to guppy gateset
+
         guppy_circuit = guppy.load_pytket("guppy_circuit", circuit)
+
+        # Reordering qubits in alphebatical order like in pytket
+        qubit_defs_list_sorted =  [x[1] for x in sorted(enumerate(qubit_defs_list), key=lambda x: (x[1] == 0, x[0]))]
+        # Reordering bits in alphebetical order like in pytket
+        bit_defs_list_sorted = [x for x in bit_defs_list if x == 0] + [x for x in bit_defs_list if x != 0]
+        # And if creg is the sole register, it will be expanded to individual bits
+        if len(bit_defs_list_sorted) == 1 and bit_defs_list_sorted[0] != 0:
+            bit_defs_list_sorted = [1] * bit_defs_list_sorted[0]
+        
+        # guppy_circuit.compile().modules[0].store_dot("TESTING.dot")
 
         @guppy.comptime
         def main() -> None:
             qubit_variables = []
             
-            for qubit_def in qubit_defs_list:
-                qubit_array = [qubit() for _ in range(qubit_def)]
+            # qreg are always at the front, followed by singular qubits
+            for qubit_def in qubit_defs_list_sorted:
+                qubit_array = [qubit() for _ in range(qubit_def)] if qubit_def > 0 else [qubit()]
                 qubit_variables.append(qubit_array)
-
+            # At this point, bit and qubit ordering is different. Needs to be adapted here
             creg_results = guppy_circuit(*qubit_variables)
-            if creg_results is not None and hasattr(creg_results, '__len__'):
-                for i in range(len(creg_results)):
-                    result(f"creg{i}", creg_results[i])
-            for r in range(len(qubit_variables)-1, -1, -1):
+
+            for i in range(len(bit_defs_list_sorted)):
+                if bit_defs_list_sorted[i] == 0:
+                    result(f"b{i}", creg_results[i])
+            for r in range(len(qubit_variables)):
                 if isinstance(qubit_variables[r], list):
                     result(f"q{r}", measure_array(qubit_variables[r]))
+            if creg_results is not None and hasattr(creg_results, '__len__'):
+                for i in range(len(bit_defs_list_sorted)):
+                    if bit_defs_list_sorted[i] != 0:
+                        result(f"creg{i}", creg_results[i])
 
         try:
             # Getting guppy circuit results
@@ -282,7 +306,7 @@ class pytketTesting(Base):
             counts_guppy = results.collated_counts()
             counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
             counts_guppy = self.preprocess_counts(counts_guppy)
-            
+            print("Processed guppy counts:", counts_guppy)
 
             # Getting uncompiled pytket circuit results
             backend = AerBackend()
@@ -291,6 +315,7 @@ class pytketTesting(Base):
             handle = backend.process_circuit(uncompiled_pytket_circ, n_shots=10000)
             result_pytket = backend.get_result(handle)
             counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+            print("Pytket counts:", counts_pytket)
 
             # Run the kstest on the two results
             ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)

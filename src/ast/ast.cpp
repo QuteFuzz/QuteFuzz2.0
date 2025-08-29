@@ -160,7 +160,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_current_bit_definition_name();
 
 		case Common::bit_def_external: case Common::bit_def_internal:
-			return context.new_bit_definiition();
+			return context.new_bit_definition();
 
 		case Common::bit_defs_external: case Common::bit_defs_internal:
 			return context.get_bit_defs_node(str, hash);
@@ -192,6 +192,31 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::bit_list: {
 			unsigned int num_bits = context.get_current_gate_num_bits();
 			return std::make_shared<Bit_list>(num_bits);
+		}
+
+		// (qu)bit_def_list and (qu)bit_def_size are a special cases used only for pytket->guppy conversion
+		case Common::qubit_def_list:
+			context.get_current_block()->qubit_def_pointer_reset();
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_owned_qubit_defs()));
+
+		case Common::qubit_def_size: {
+			if (context.new_qubit_definition(OWNED_SCOPE)->is_register_def()) {
+				return context.get_current_qubit_definition_size();
+			} else {
+				return std::make_shared<Integer>(0);
+			}
+		}
+
+		case Common::bit_def_list:
+			context.get_current_block()->bit_def_pointer_reset();
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::bit_def_size, context.get_current_block()->num_external_bit_defs()));
+
+		case Common::bit_def_size: {
+			if (context.new_bit_definition(EXTERNAL_SCOPE)->is_register_def()) {
+				return context.get_current_bit_definition_size();
+			} else {
+				return std::make_shared<Integer>(0);
+			}
 		}
 
 		case Common::qubit_index:

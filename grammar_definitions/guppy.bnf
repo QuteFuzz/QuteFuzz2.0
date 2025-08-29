@@ -123,7 +123,8 @@ shift_expr:
 primary:
     atom;
 
-atom: NUMBER;
+atom: NUMBER
+    ;
 
 qubit_op  = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
 
