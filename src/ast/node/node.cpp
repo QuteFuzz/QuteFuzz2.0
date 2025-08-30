@@ -123,7 +123,7 @@ void Node::make_partition(int target, int n_children){
 /// @brief Make partitions for control flow blocks and branches, adding correct constraints where required
 /// @param target 
 /// @param n_children 
-void make_control_flow_partition(int target, int n_children){
+void Node::make_control_flow_partition(int target, int n_children){
     make_partition(target, n_children);
     
     if(n_children == 1){
