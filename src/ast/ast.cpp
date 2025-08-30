@@ -16,7 +16,7 @@
 #include <gate_op_kind.h>
 #include <subroutines.h>
 #include <compound_stmt.h>
-#include <control_flow_branch.h>
+#include <nested_branch.h>
 #include <disjunction.h>
 #include <conjunction.h>
 #include <compare_op_bitwise_or_pair_child.h>
@@ -94,10 +94,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_compound_stmt(parent);
 
 		case Common::if_stmt:
-			return context.get_control_flow_stmt(str, hash, parent);
+			return context.get_nested_stmt(str, hash, parent);
 
 		case Common::elif_stmt: case Common::else_stmt:
-			return context.get_control_flow_branch(str, hash, parent);
+			return context.get_nested_branch(str, hash, parent);
 
 		case Common::disjunction:
 			return std::make_shared<Disjunction>();
@@ -319,7 +319,7 @@ Result<Node> Ast::build(const std::optional<Genome>& genome){
 			dag = genome.value().dag;
 		} else {
 			std::shared_ptr<Block> current_block = context.get_current_block();
-			dag.make_dag(current_block->get_qubits());
+			dag.make_dag(current_block->get_qubits(), current_block->get_bits());
 		}
 
 		context.print_block_info();

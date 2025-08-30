@@ -2,18 +2,11 @@
 #include <collection.h>
 #include <dag.h>
 
-std::string Dag::Edge::get_node_resolved_name() const {
-    return "\"" + node->resolved_name() + "\"";
-}
-
-int Dag::Edge::get_node_id() const {
-    return node->get_id();
-}
-
-void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits){
+void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits){
     reset();
 
     qubits = _qubits;
+    bits = _bits;
     
     for(const Resource::Qubit& qubit : qubits){
         qubit.add_path_to_dag(*this);
@@ -52,6 +45,8 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     if(maybe_dest_node_id.has_value()) nodewise_data.at(pos).children.push_back(maybe_dest_node_id.value());
 
     nodewise_data.at(pos).inputs[source_node_input_port] = qubit_id;
+
+    source_node->add_gate_if_subroutine(subroutine_gates);
 }
 
 int Dag::Dag::max_out_degree(){

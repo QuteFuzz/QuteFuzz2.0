@@ -16,7 +16,7 @@ namespace Context {
             genome = std::nullopt;
 
         } else if (l == BLOCK){
-            control_flow_depth = 1; // Common::CONTROL_FLOW_MAX_DEPTH;
+            nested_depth = Common::NESTED_MAX_DEPTH;
 
         } else if (l == QUBIT_OP){
             get_current_block()->qubit_flag_reset();
@@ -176,8 +176,14 @@ namespace Context {
 
         U8 scope = (hash == Common::bit_defs_external) ? EXTERNAL_SCOPE : INTERNAL_SCOPE;
 
-        size_t num_defs = current_block->make_resource_definitions(scope, Resource::BIT);
-
+        size_t num_defs;
+        
+        if(can_copy_dag){
+            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_bits());
+        } else {
+            num_defs = current_block->make_resource_definitions(scope, Resource::BIT);
+        }
+    
         return std::make_shared<Bit_defs>(str, hash, num_defs, scope);
     }
 
@@ -265,23 +271,23 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Control_flow_branch> Context::get_control_flow_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+    std::shared_ptr<Nested_branch> Context::get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
         if(can_copy_dag){
-            return std::make_shared<Control_flow_branch>(str, hash, parent->get_next_qubit_op_target());
+            return std::make_shared<Nested_branch>(str, hash, parent->get_next_qubit_op_target());
 
         } else {
-            return std::make_shared<Control_flow_branch>(str, hash);
+            return std::make_shared<Nested_branch>(str, hash);
         }
     }
 
-    std::shared_ptr<Control_flow_stmt> Context::get_control_flow_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
-        control_flow_depth -= 1;
+    std::shared_ptr<Nested_stmt> Context::get_nested_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+        nested_depth -= 1;
 
         if(can_copy_dag){
-            return std::make_shared<Control_flow_stmt>(str, hash, parent->get_next_qubit_op_target());
+            return std::make_shared<Nested_stmt>(str, hash, parent->get_next_qubit_op_target());
 
         } else {
-            return std::make_shared<Control_flow_stmt>(str, hash);
+            return std::make_shared<Nested_stmt>(str, hash);
         }
     }
 
@@ -290,7 +296,7 @@ namespace Context {
         if(can_copy_dag){
             return Compound_stmt::from_num_qubit_ops(parent->get_next_qubit_op_target());
         } else {
-            return Compound_stmt::from_control_flow_depth(control_flow_depth);
+            return Compound_stmt::from_nested_depth(nested_depth);
         }
     
     }

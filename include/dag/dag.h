@@ -26,9 +26,13 @@ namespace Dag {
                 return dest_port;
             }
 
-            std::string get_node_resolved_name() const;
+            std::string get_node_resolved_name() const {
+                return "\"" + node->resolved_name() + "\"";
+            }
 
-            int get_node_id() const;
+            inline int get_node_id() const {
+                return node->get_id();
+            }
 
             friend std::ostream& operator<<(std::ostream& stream, const Edge& edge) {
                 stream << " -> " << edge.get_node_resolved_name() << "[label=\"" << std::to_string(edge.src_port) << ", " << std::to_string(edge.dest_port) << "\"";
@@ -62,10 +66,14 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& _qubits);
+            void make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits);
 
             inline Collection<Resource::Qubit> get_qubits() const {
                 return qubits;
+            }
+
+            inline Collection<Resource::Bit> get_bits() const {
+                return bits;
             }
 
             void add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id);
@@ -140,6 +148,7 @@ namespace Dag {
             unsigned int sub_pointer = 0;
 
             Collection<Resource::Qubit> qubits;
+            Collection<Resource::Bit> bits;
 
             std::shared_ptr<Node> dummy_node = std::make_shared<Node>("");
             std::shared_ptr<Qubit_op> dummy_qubit_op = std::make_shared<Qubit_op>();

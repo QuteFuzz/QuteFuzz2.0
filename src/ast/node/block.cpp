@@ -189,10 +189,10 @@ unsigned int Block::make_resource_definitions(U8 scope, Resource::Classification
 unsigned int Block::make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits){
     unsigned int num_definitions = 0;
 
+    // only create definitions from qubits matching the scope
     qubits = _qubits;
 
-    // only create definitions from qubits matching the scope
-    for(const Resource::Qubit& qubit : _qubits){
+    for(const Resource::Qubit& qubit : qubits){
         if(qubit.get_scope() & scope){
             num_definitions += qubit_to_qubit_def(scope, qubit);
         }
@@ -200,6 +200,26 @@ unsigned int Block::make_resource_definitions(U8 scope, const Collection<Resourc
     
     return num_definitions;
 }
+
+/// @brief Given set of bits from genome, create bit definitions from those bits. Note that the preset targets for the block are ignored
+/// @param scope 
+/// @param bits 
+/// @return 
+unsigned int Block::make_resource_definitions(U8 scope, const Collection<Resource::Bit>& _bits){
+    unsigned int num_definitions = 0;
+
+    // only create definitions from qubits matching the scope
+    bits = _bits;
+
+    for(const Resource::Bit& bit : bits){
+        if(bit.get_scope() & scope){
+            num_definitions += bit_to_bit_def(scope, bit);
+        }
+    }
+    
+    return num_definitions;
+}
+
 
 /// @brief Add qubit to set of qubit defs in block, merge with register as required
 /// @param qubit 
@@ -218,6 +238,29 @@ unsigned int Block::qubit_to_qubit_def(const U8& scope, const Resource::Qubit& q
     } else {
         Singular_qubit_definition qubit_def(qubit);
         qubit_defs.add(Qubit_definition(qubit_def, scope));
+    }
+
+    return 1;
+}
+
+
+/// @brief Add bit to set of bit defs in block, merge with register as required
+/// @param bit 
+unsigned int Block::bit_to_bit_def(const U8& scope, const Resource::Bit& bit){
+    for(Bit_definition& bit_def : bit_defs){
+        if(bit_def.defines(bit)){
+            bit_def.increase_size();
+            return 0;
+        }
+    }
+
+    if(bit.is_register_def()){
+        Register_bit_definition bit_def(bit);
+        bit_defs.add(Bit_definition(bit_def, scope));
+
+    } else {
+        Singular_bit_definition bit_def(bit);
+        bit_defs.add(Bit_definition(bit_def, scope));
     }
 
     return 1;

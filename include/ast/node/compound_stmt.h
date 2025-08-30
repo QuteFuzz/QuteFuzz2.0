@@ -9,10 +9,10 @@ class Block;
 class Compound_stmt : public Node {
 
     public:
-        static std::shared_ptr<Compound_stmt> from_control_flow_depth(unsigned int control_flow_depth){
+        static std::shared_ptr<Compound_stmt> from_nested_depth(unsigned int nested_depth){
             Compound_stmt stmt;
             
-            if(control_flow_depth == 0){
+            if(nested_depth == 0){
                 stmt.add_constraint(Common::qubit_op, 1);
             }
 

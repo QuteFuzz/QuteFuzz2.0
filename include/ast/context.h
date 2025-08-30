@@ -11,8 +11,8 @@
 #include <gate.h>
 #include <subroutines.h>
 #include <genome.h>
-#include <control_flow_stmt.h>
-#include <control_flow_branch.h>
+#include <nested_stmt.h>
+#include <nested_branch.h>
 
 namespace Context {
 
@@ -137,9 +137,9 @@ namespace Context {
 				return new_gate("barrier", random_barrier_width, 0, 0);
 			}
 
-			std::shared_ptr<Control_flow_branch> get_control_flow_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
+			std::shared_ptr<Nested_branch> get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
 
-			std::shared_ptr<Control_flow_stmt> get_control_flow_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
+			std::shared_ptr<Nested_stmt> get_nested_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
 
 			std::shared_ptr<Compound_stmt> get_compound_stmt(std::shared_ptr<Node> parent);
 
@@ -185,7 +185,7 @@ namespace Context {
             unsigned int subroutine_counter = 0;
 			unsigned int ast_counter = 0;
 			unsigned int current_port;
-	        unsigned int control_flow_depth;
+	        unsigned int nested_depth;
 		
 			std::shared_ptr<Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Bit_definition> current_bit_definition;

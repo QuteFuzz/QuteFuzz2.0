@@ -1,5 +1,5 @@
-#ifndef CONTROL_FLOW_BRANCH_H
-#define CONTROL_FLOW_BRANCH_H
+#ifndef NESTED_BRANCH_H
+#define NESTED_BRANCH_H
 
 /*
     elif and else make up this node type
@@ -8,11 +8,11 @@
 
 #include <node.h>
 
-class Control_flow_branch : public Node {
+class Nested_branch : public Node {
 
     public:
 
-        Control_flow_branch(const std::string& str, const U64& hash, unsigned int target_num_qubit_ops):
+        Nested_branch(const std::string& str, const U64& hash, unsigned int target_num_qubit_ops):
             Node(str, hash, indentation_tracker)
         {
 
@@ -30,7 +30,7 @@ class Control_flow_branch : public Node {
             }
         }
 
-        Control_flow_branch(std::string str, U64 hash):
+        Nested_branch(std::string str, U64 hash):
             Node(str, hash, indentation_tracker)
         {}
 
