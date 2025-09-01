@@ -26,9 +26,13 @@ namespace Dag {
                 return dest_port;
             }
 
-            std::string get_node_resolved_name() const;
+            std::string get_node_resolved_name() const {
+                return "\"" + node->resolved_name() + "\"";
+            }
 
-            int get_node_id() const;
+            inline int get_node_id() const {
+                return node->get_id();
+            }
 
             friend std::ostream& operator<<(std::ostream& stream, const Edge& edge) {
                 stream << " -> " << edge.get_node_resolved_name() << "[label=\"" << std::to_string(edge.src_port) << ", " << std::to_string(edge.dest_port) << "\"";
@@ -62,10 +66,14 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& _qubits);
+            void make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits);
 
             inline Collection<Resource::Qubit> get_qubits() const {
                 return qubits;
+            }
+
+            inline Collection<Resource::Bit> get_bits() const {
+                return bits;
             }
 
             void add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id);
@@ -75,13 +83,9 @@ namespace Dag {
             int max_out_degree();
 
             int score();
-            
-            /// @brief Each node is a compound statement, so just count nodes to tell you how many you need in the AST for the main circuit
-            /// TODO: Fix control flow DAG representation, to allow correct compound statement counting at circuit level, as well as subroutine call tracking
-            /// std::min added to prevent inf loop when converting guppy DAG into AST
-            /// @return 
-            inline unsigned int n_compound_statements() const {
-                return std::min(n_nodes, (unsigned int)WILDCARD_MAX);
+
+            unsigned int n_qubit_ops() const {
+                return nodewise_data.size();
             }
 
             unsigned int n_subroutines() const {
@@ -89,10 +93,11 @@ namespace Dag {
             }
 
             inline std::shared_ptr<Qubit_op> get_next_node(){
-                if(node_pointer < n_nodes){
+                if(node_pointer < nodewise_data.size()){
                     return nodewise_data.at(node_pointer++).node;
                 } else {
-                    return dummy_node;
+                    dummy_qubit_op->set_from_dag();
+                    return dummy_qubit_op;
                 }
             }
 
@@ -100,15 +105,11 @@ namespace Dag {
                 if(sub_pointer < subroutine_gates.size()){
                     return subroutine_gates.at(sub_pointer++);
                 } else {
-                    return dummy_gate;
+                    return dummy_node;
                 }
             }
 
             std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Qubit_op> node);
-
-            unsigned int n_compound_statements(){
-                return n_nodes;
-            }
 
             friend std::ostream& operator<<(std::ostream& stream, const Dag& dag){
 
@@ -116,7 +117,7 @@ namespace Dag {
                 stream << "                DAG INFO                 " << std::endl; 
                 stream << "=========================================" << std::endl;
 
-                stream << "N_NODES (all nodes are Qubit_ops): " << dag.n_nodes << std::endl;
+                stream << "N_NODES (all nodes are Qubit_ops): " << dag.n_qubit_ops() << std::endl;
                 stream << "N_SUBROUTINES: " << dag.n_subroutines() << std::endl;
 
                 for(const auto& node_data : dag.nodewise_data){
@@ -134,7 +135,6 @@ namespace Dag {
             }
 
             inline void reset(){
-                n_nodes = 0;
                 nodewise_data.clear();
                 node_pointer = 0;
                 subroutine_gates.clear();
@@ -142,17 +142,16 @@ namespace Dag {
             }
 
         private:
-            unsigned int n_nodes = 0;
             std::vector<Node_data> nodewise_data;
             unsigned int node_pointer = 0;
             std::vector<std::shared_ptr<Node>> subroutine_gates;
             unsigned int sub_pointer = 0;
 
             Collection<Resource::Qubit> qubits;
+            Collection<Resource::Bit> bits;
 
-            std::shared_ptr<Resource::Qubit> dummy_qubit;
-            std::shared_ptr<Qubit_op> dummy_node;
-            std::shared_ptr<Gate> dummy_gate;
+            std::shared_ptr<Node> dummy_node = std::make_shared<Node>("");
+            std::shared_ptr<Qubit_op> dummy_qubit_op = std::make_shared<Qubit_op>();
     };
 
 };

@@ -183,27 +183,7 @@ class Node {
         }
 
         #ifdef DEBUG
-        std::string get_debug_constraint_string() const {
-            if(constraint.has_value()){
-                std::string debug_string;
-
-                for(size_t i = 0; i < constraint.value().rules_size(); i++){
-                    unsigned int n_occurances = constraint.value().get_occurances(i);
-                    
-                    debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(n_occurances) + " ";
-                    
-                    if(n_occurances > (unsigned int)WILDCARD_MAX){
-                        debug_string += RED("(Cannot be satisfied! Max = " + std::to_string(WILDCARD_MAX) + ")");
-                    }
-                }
-
-                return debug_string;
-            
-            } else {
-                return "no constraint";
-            
-            }
-        }
+        std::string get_debug_constraint_string() const;
         #endif
 
         virtual unsigned int get_n_ports() const {return 1;}
@@ -211,6 +191,16 @@ class Node {
         std::shared_ptr<Node> find(const U64 _hash) const;
 
         inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
+
+        int get_next_qubit_op_target();
+
+        void make_partition(int target, int n_children);
+
+        void make_control_flow_partition(int target, int n_children);
+
+        inline void set_from_dag(){from_dag = true;}
+
+        inline bool is_from_dag(){return from_dag;}
 
     protected:
         std::string string;
@@ -221,6 +211,10 @@ class Node {
         std::string indentation_str;
         std::vector<std::shared_ptr<Node>> children;
         Node_build_state state = NB_BUILD;
+        std::vector<int> qubit_op_target_partition;
+        unsigned int partition_counter = 0;
+
+        bool from_dag = false;
     
     private:
         std::optional<Node_constraint> constraint;

@@ -11,6 +11,8 @@
 #include <gate.h>
 #include <subroutines.h>
 #include <genome.h>
+#include <nested_stmt.h>
+#include <nested_branch.h>
 
 namespace Context {
 
@@ -144,9 +146,11 @@ namespace Context {
 				return new_gate("barrier", random_barrier_width, 0, 0);
 			}
 
-			std::shared_ptr<Node> get_control_flow_stmt(const std::string& str, const U64& hash);
+			std::shared_ptr<Nested_branch> get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
 
-			std::shared_ptr<Compound_stmt> get_compound_stmt();
+			std::shared_ptr<Nested_stmt> get_nested_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
+
+			std::shared_ptr<Compound_stmt> get_compound_stmt(std::shared_ptr<Node> parent);
 
 			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
 
@@ -159,7 +163,8 @@ namespace Context {
 			std::shared_ptr<Qubit_op> new_qubit_op_node(){
 				reset(QUBIT_OP);
 
-				current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
+				current_qubit_op = can_copy_dag ? genome.value().dag.get_next_node() : std::make_shared<Qubit_op>(get_current_block());
+				// current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
 
 				return current_qubit_op;
 			}
@@ -193,7 +198,7 @@ namespace Context {
             unsigned int subroutine_counter = 0;
 			unsigned int ast_counter = 0;
 			unsigned int current_port;
-	        unsigned int control_flow_depth;
+	        unsigned int nested_depth;
 		
 			std::shared_ptr<Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Bit_definition> current_bit_definition;
@@ -206,6 +211,8 @@ namespace Context {
 
 			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;
+
+			bool can_copy_dag;
     };
 
 }

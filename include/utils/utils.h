@@ -90,7 +90,7 @@ namespace Common {
     constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
-    constexpr int CONTROL_FLOW_MAX_DEPTH = 2;
+    constexpr int NESTED_MAX_DEPTH = 2;
     constexpr int SWARM_TESTING_GATESET_SIZE = 6;
 
     /*

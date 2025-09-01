@@ -83,7 +83,7 @@ std::pair<Genome&, Genome&> Generator::pick_parents(){
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
-    child.make_dag(dag1.get_qubits());
+    child.make_dag(dag1.get_qubits(), dag1.get_bits());
 
     UNUSED(dag2);
 

@@ -86,10 +86,9 @@ std::optional<int> safe_stoi(const std::string& str) {
 /// @param r 
 /// @return 
 std::vector<std::vector<int>> n_choose_r(const int n, const int r){
-    if((n >= r) && (r >= Common::MIN_N_QUBITS_IN_ENTANGLEMENT)){
-
-        std::vector<std::vector<int>> res;
-
+    std::vector<std::vector<int>> res;
+    
+    if(n >= r){
         std::string bitmask(r, 1);
         bitmask.resize(n, 0);
 
@@ -103,14 +102,10 @@ std::vector<std::vector<int>> n_choose_r(const int n, const int r){
             res.push_back(comb);
 
         } while(std::prev_permutation(bitmask.begin(), bitmask.end()));
-
-        return res;
-
-    } else {
-        throw std::runtime_error(ANNOT("n must be less than r, and r must be >= " + std::to_string(Common::MIN_N_QUBITS_IN_ENTANGLEMENT)));
     }
-}
 
+    return res;
+}
 
 int vector_sum(std::vector<int> in){
     int res = 0;
