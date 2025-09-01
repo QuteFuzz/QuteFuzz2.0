@@ -196,8 +196,12 @@ class Block : public Node {
         unsigned int make_resource_definitions(U8 scope, Resource::Classification classification);
 
         unsigned int make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits);
+        
+        unsigned int make_resource_definitions(U8 scope, const Collection<Resource::Bit>& _bits);
 
         unsigned int qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit);
+
+        unsigned int bit_to_bit_def(const U8& scope, const Resource::Bit& bit);
 
         void print_info() const;
 

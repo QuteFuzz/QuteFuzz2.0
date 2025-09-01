@@ -7,13 +7,28 @@ class Compound_stmts : public Node {
 
     public:
 
-        Compound_stmts(unsigned int num_statements):
-            Node("compound_stmts", Common::compound_stmts)
-        {
-            add_constraint(Common::compound_stmt, num_statements);
+        static std::shared_ptr<Compound_stmts> from_num_compound_stmts(unsigned int num_statements){
+            Compound_stmts stmts;
+            stmts.add_constraint(Common::compound_stmt, num_statements);
+
+            return std::make_shared<Compound_stmts>(stmts);
+        }
+
+        static std::shared_ptr<Compound_stmts> from_num_qubit_ops(unsigned int target_num_qubit_ops){
+            Compound_stmts stmts;
+
+            unsigned int n_children = (target_num_qubit_ops >= WILDCARD_MAX) ? WILDCARD_MAX : target_num_qubit_ops;
+
+            stmts.add_constraint(Common::compound_stmt, n_children);
+            stmts.make_partition(target_num_qubit_ops, n_children);
+            
+            return std::make_shared<Compound_stmts>(stmts);
         }
 
     private:
+        Compound_stmts():
+            Node("compound_stmts", Common::compound_stmts)
+        {}
 
 };
 
