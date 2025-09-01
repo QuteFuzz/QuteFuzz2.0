@@ -272,8 +272,6 @@ class pytketTesting(Base):
         if len(bit_defs_list_sorted) == 1 and bit_defs_list_sorted[0] != 0:
             bit_defs_list_sorted = [1] * bit_defs_list_sorted[0]
         
-        # guppy_circuit.compile().modules[0].store_dot("TESTING.dot")
-
         @guppy.comptime
         def main() -> None:
             qubit_variables = []
