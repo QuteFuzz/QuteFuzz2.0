@@ -27,7 +27,7 @@ namespace Context {
         public:
             Context(){}
 
-			void reset(Level l);
+			void reset(Level l, std::vector<Common::Rule_hash> available_gate_name_hashes = {});
 
 			inline std::string get_current_block_owner(){
 				return current_block_owner;
@@ -118,7 +118,7 @@ namespace Context {
 
 				if(Common::swarm_testing && !current_gate->is_subroutine_gate()) {
 					for(size_t i = 0; i < Common::SWARM_TESTING_GATESET_SIZE; i++){
-						if(!swarm_testing_gateset[i].has_value()){
+						if(swarm_testing_gateset[i] != Common::Rule_hash(0)) {
 							swarm_testing_gateset[i] = Common::Rule_hash(hash);
 							break;
 						}
@@ -156,7 +156,7 @@ namespace Context {
 
 			std::shared_ptr<Subroutines> new_subroutines_node();
 
-			std::array<std::optional<Common::Rule_hash>, Common::SWARM_TESTING_GATESET_SIZE> get_swarm_testing_gateset() const {
+			std::vector<Common::Rule_hash> get_swarm_testing_gateset() const {
 				return swarm_testing_gateset;
 			}
 
@@ -207,7 +207,7 @@ namespace Context {
 			std::shared_ptr<Gate> current_gate;
 			std::shared_ptr<Qubit_op> current_qubit_op;
 			std::shared_ptr<Arg> current_arg;
-			std::array<std::optional<Common::Rule_hash>, Common::SWARM_TESTING_GATESET_SIZE> swarm_testing_gateset;
+			std::vector<Common::Rule_hash> swarm_testing_gateset;
 
 			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;

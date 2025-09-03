@@ -3,7 +3,7 @@
 
 namespace Context {
 
-    void Context::reset(Level l){
+    void Context::reset(Level l, std::vector<Common::Rule_hash> available_gate_name_hashes){
 
         if(l == PROGRAM){
             subroutine_counter = 0;
@@ -14,7 +14,22 @@ namespace Context {
 
             subroutines_node = std::nullopt;
             genome = std::nullopt;
-            swarm_testing_gateset = std::array<std::optional<Common::Rule_hash>, Common::SWARM_TESTING_GATESET_SIZE>{};
+
+            /*
+                Picks gateset from which NOT to choose from:  
+                1. Shuffle available gates
+                2. Assign first SWARM_TESTING_GATESET_SIZE to swarm_testing_gateset.
+                3. If SWARM_TESTING_GATESET_SIZE > available gates, fill the rest with 0ULL.
+            */
+            swarm_testing_gateset = std::vector<Common::Rule_hash>(Common::SWARM_TESTING_GATESET_SIZE);
+            std::shuffle(available_gate_name_hashes.begin(), available_gate_name_hashes.end(), std::mt19937{std::random_device{}()});
+            for (size_t i = 0; i < swarm_testing_gateset.size(); i++) {
+                if (i < available_gate_name_hashes.size()) {
+                    swarm_testing_gateset[i] = available_gate_name_hashes[i];
+                } else {
+                    swarm_testing_gateset[i] = Common::Rule_hash(0ULL);
+                }
+            }
 
         } else if (l == BLOCK){
             nested_depth = Common::NESTED_MAX_DEPTH;

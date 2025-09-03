@@ -8,7 +8,7 @@ class Gate_name : public Node {
     public:
         using Node::Node;
 
-        Gate_name(const std::shared_ptr<Node> parent, const std::shared_ptr<Block> current_block, const std::array<std::optional<Common::Rule_hash>, Common::SWARM_TESTING_GATESET_SIZE>& swarm_testing_gateset) :
+        Gate_name(const std::shared_ptr<Node> parent, const std::shared_ptr<Block> current_block, const std::vector<Common::Rule_hash>& swarm_testing_gateset) :
             Node("gate_name", Common::gate_name)
         {
 
@@ -26,24 +26,15 @@ class Gate_name : public Node {
                 add_constraint(Common::subroutine, 1);
                 
             } else if (*parent == Common::gate_op) {
-                add_constraint(Common::subroutine, 0);
-
                 if(Common::swarm_testing){
-                    if(std::all_of(swarm_testing_gateset.begin(), swarm_testing_gateset.end(), [](const std::optional<Common::Rule_hash>& g){ return g.has_value(); })) {
-                        add_constraint(swarm_testing_gateset[random_int(Common::SWARM_TESTING_GATESET_SIZE-1)].value(), 1);
-                    } else {
-                        // If swarm_testing_gateset is not full, allow all gates except for the ones already in the gateset
-                        for(int i = 0; i < Common::SWARM_TESTING_GATESET_SIZE; i++){
-                            if(swarm_testing_gateset[i].has_value()){
-                                add_constraint(swarm_testing_gateset[i].value(), 0);
-                            }
-                        }
-                    }
+                    set_constraint(swarm_testing_gateset, std::vector<unsigned int>(swarm_testing_gateset.size(), 0));
+                    /* 
+                        Might contain constraints with hash 0ULL if number of gates is less than SWARM_TESTING_GATESET_SIZE.
+                        But since currently is determining non-occurance of gates, this is fine.
+                    */
                 }
-
-                /* 
-                    Swarm testing begins with populating swarm_testing_gateset with unique gates at runtime, until it is full. Then it will choose from this set only.
-                */
+                
+                add_constraint(Common::subroutine, 0);                
 
             } else {
                 ERROR("Gate name expected parent to be subroutine_op or gate_op!");

@@ -29,7 +29,7 @@ class Ast{
 
         inline void set_ast_counter(const int& counter){context.set_ast_counter(counter);}
 
-        Result<Node> build(const std::optional<Genome>& genome);
+        Result<Node> build(const std::optional<Genome>& genome, const std::vector<Common::Rule_hash>& gate_name_hashes);
 
         Genome genome();
 

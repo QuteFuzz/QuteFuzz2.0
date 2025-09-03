@@ -19,7 +19,7 @@ void Generator::ast_to_program(fs::path output_dir, int build_counter, std::opti
 
     builder->set_ast_counter(build_counter);
     
-    Result<Node> maybe_ast_root = builder->build(genome);
+    Result<Node> maybe_ast_root = builder->build(genome, get_available_gate_hashes());
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
@@ -80,6 +80,23 @@ std::pair<Genome&, Genome&> Generator::pick_parents(){
     return { population[first], population[second] };
 }
 
+/// @brief Get all available gate names from grammar rule "gate_name", always exclude "subroutine"
+/// @return
+std::vector<Common::Rule_hash> Generator::get_available_gate_hashes(){
+    std::vector<Common::Rule_hash> gate_name_hashes;
+
+    for (Branch& b : grammar->get_rule_pointer("gate_name")->get_branches()) {
+        std::vector<Term> terms = b.get_terms();
+        for (Term& t : terms) {
+            if (t.get_string() != "subroutine") {
+                gate_name_hashes.push_back(Common::Rule_hash(t.get_hash()));
+            }
+        }
+    }
+
+    return gate_name_hashes;
+}
+
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
@@ -103,8 +120,8 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
     population.clear();
 
     for(int i = 0; i < population_size; i++){
-        
-        Result<Node> maybe_root = builder->build(std::nullopt);
+
+        Result<Node> maybe_root = builder->build(std::nullopt, get_available_gate_hashes());
 
         if(maybe_root.is_ok()){
             population.push_back(builder->genome());

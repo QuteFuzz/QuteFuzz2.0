@@ -328,14 +328,14 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node> Ast::build(const std::optional<Genome>& genome){
+Result<Node> Ast::build(const std::optional<Genome>& genome, const std::vector<Common::Rule_hash>& gate_name_hashes){
 	Result<Node> res;
 
 	if(entry == nullptr){
 		res.set_error("Entry point not set");
 
 	} else {
-		context.reset(Context::PROGRAM);
+		context.reset(Context::PROGRAM, gate_name_hashes);
 
 		Term entry_as_term;
 		entry_as_term.set(entry);
