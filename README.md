@@ -60,7 +60,7 @@ Outputs are in the `outputs` folder.
 
 | Compiler Bugs | Other Bugs |
 |---------------|------------|
-| [Issue 623 &#x1F41E;](https://github.com/CQCL/pytket-quantinuum/issues/623) | [Issue 374 &#x1F41E;](https://github.com/CQCL/pytket-qiskit/issues/374) |
+| [Issue 623 &#x1F41E;](https://github.com/CQCL/pytket-quantinuum/issues/623) |  |
 | [Issue 2004  &#x1F41E;](https://github.com/CQCL/tket/issues/2004) | 
 | | |
 
