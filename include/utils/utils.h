@@ -91,6 +91,7 @@ namespace Common {
     constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
     constexpr int NESTED_MAX_DEPTH = 2;
+    constexpr int SWARM_TESTING_GATESET_SIZE = 6;
 
     /*
         flags 
@@ -98,6 +99,8 @@ namespace Common {
     extern bool plot;
     extern bool verbose;
     extern bool render_dags;
+    extern bool run_genetic;
+    extern bool swarm_testing;
     
     /*
         ast node types
@@ -162,7 +165,11 @@ namespace Common {
         gate_op_kind = 14929235841933060947ULL,
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
-        bit_list = 3372974018932553881ULL,   
+        bit_list = 3372974018932553881ULL,
+        qubit_def_list = 12288968177510665943ULL, 
+        qubit_def_size = 16541258826307231238ULL, 
+        bit_def_list = 8034270308867516509ULL,
+        bit_def_size = 2428654514965833632ULL,
     
         qubit_defs_internal = 15763474746718250229ULL,
         qubit_def_internal = 8367506410210901254ULL,
@@ -196,6 +203,7 @@ namespace Common {
         subroutines = 3276487754481867520ULL,
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
+        total_num_qubits = 11347479691534777333ULL,
 
         main_block = 9115425723233342258ULL,
         main_block_def = 6816634947724795910ULL,
@@ -207,6 +215,8 @@ namespace Common {
         discard_internal_qubit = 1018654204566407765ULL,
         discard_single_qubit = 11775807085076373088ULL,
         discard_qreg = 13047647025597388553ULL,
+        measure_and_record_single_qubit = 15772338210910691146ULL,
+        measure_and_record_qreg = 12346547178136284519ULL,
         comptime_block = 13310967149289622197ULL,
         comptime_block_def = 5962160394468879029ULL,
         non_comptime_block = 15717574089437842153ULL,

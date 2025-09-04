@@ -141,6 +141,10 @@ class Block : public Node {
             return bit_defs.get_num_internal();
         }
 
+        inline size_t num_owned_bit_defs() const {
+            return bit_defs.get_num_owned();
+        }
+
         void qubit_flag_reset(){
             qubits.reset();
         }

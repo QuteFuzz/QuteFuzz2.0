@@ -114,6 +114,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::circuit_id:
 			return context.get_circuit_id();
 
+		case Common::total_num_qubits: {
+			return std::make_shared<Integer>(context.get_max_external_qubits());
+		}
+
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 			
@@ -156,7 +160,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_current_bit_definition_name();
 
 		case Common::bit_def_external: case Common::bit_def_internal:
-			return context.new_bit_definiition();
+			return context.new_bit_definition();
 
 		case Common::bit_defs_external: case Common::bit_defs_internal:
 			return context.get_bit_defs_node(str, hash);
@@ -176,7 +180,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		}
 		
 		case Common::discard_internal_qubit:
-			return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE));
+			return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE), context.get_current_block_owner());
 
 		//	===============================================================
 
@@ -188,6 +192,31 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::bit_list: {
 			unsigned int num_bits = context.get_current_gate_num_bits();
 			return std::make_shared<Bit_list>(num_bits);
+		}
+
+		// (qu)bit_def_list and (qu)bit_def_size are a special cases used only for pytket->guppy conversion
+		case Common::qubit_def_list:
+			context.get_current_block()->qubit_def_pointer_reset();
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_owned_qubit_defs()));
+
+		case Common::qubit_def_size: {
+			if (context.new_qubit_definition(OWNED_SCOPE)->is_register_def()) {
+				return context.get_current_qubit_definition_size();
+			} else {
+				return std::make_shared<Integer>(0);
+			}
+		}
+
+		case Common::bit_def_list:
+			context.get_current_block()->bit_def_pointer_reset();
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::bit_def_size, context.get_current_block()->num_external_bit_defs()));
+
+		case Common::bit_def_size: {
+			if (context.new_bit_definition(EXTERNAL_SCOPE)->is_register_def()) {
+				return context.get_current_bit_definition_size();
+			} else {
+				return std::make_shared<Integer>(0);
+			}
 		}
 
 		case Common::qubit_index:
@@ -220,7 +249,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Integer>();
 
 		case Common::gate_name:
-			return std::make_shared<Gate_name>(parent, context.get_current_block());
+			return std::make_shared<Gate_name>(parent, context.get_current_block(), swarm_testing_gateset);
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -240,30 +269,32 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 		case Common::tdg: case Common::s: case Common::sdg: case Common::project_z: case Common::measure_and_reset:
 		case Common::v: case Common::vdg:
-			return context.new_gate(str, 1, 0, 0);
+			return context.new_gate(str, 1, 0, 0, hash);
 
 		case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
 		case Common::ch:
-			return context.new_gate(str, 2, 0, 0);
+			return context.new_gate(str, 2, 0, 0, hash);
 
 		case Common::crz:
-			return context.new_gate(str, 2, 0, 1);
+			return context.new_gate(str, 2, 0, 1, hash);
 
 		case Common::ccx: case Common::cswap: case Common::toffoli:
-			return context.new_gate(str, 3, 0, 0);
+			return context.new_gate(str, 3, 0, 0, hash);
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
-			return context.new_gate(str, 1, 0, 1);
+			return context.new_gate(str, 1, 0, 1, hash);
 
 		case Common::u2:
-			return context.new_gate(str, 1, 0, 2);
+			return context.new_gate(str, 1, 0, 2, hash);
 
 		case Common::u3: case Common::u:
-			return context.new_gate(str, 1, 0, 3);
+			return context.new_gate(str, 1, 0, 3, hash);
 		
 		case Common::Measure:
-			return context.new_gate(str, 1, 1, 0);
+			return context.new_gate(str, 1, 1, 0, hash);
 
+		/* Added hash to every new_gate instance. Not sure if this is intended but it is needed for swarm testing */
+		
 		case Common::barrier:
 			return context.get_barrier();
 
@@ -297,13 +328,16 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node> Ast::build(const std::optional<Genome>& genome){
+Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_constraint>& _swarm_testing_gateset){
 	Result<Node> res;
 
 	if(entry == nullptr){
 		res.set_error("Entry point not set");
 
 	} else {
+
+		swarm_testing_gateset = _swarm_testing_gateset;
+
 		context.reset(Context::PROGRAM);
 
 		Term entry_as_term;

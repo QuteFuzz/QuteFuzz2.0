@@ -102,7 +102,7 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
-			inline std::shared_ptr<Bit_definition> new_bit_definiition(U8 scope_filter = ALL_SCOPES){
+			inline std::shared_ptr<Bit_definition> new_bit_definition(U8 scope_filter = ALL_SCOPES){
 				current_bit_definition = get_current_block()->get_next_bit_def(scope_filter);
 				return current_bit_definition;
 			}

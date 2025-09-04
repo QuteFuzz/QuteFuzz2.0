@@ -18,8 +18,15 @@ void Generator::ast_to_program(fs::path output_dir, int build_counter, std::opti
     fs::create_directory(current_circuit_dir);
 
     builder->set_ast_counter(build_counter);
-    
-    Result<Node> maybe_ast_root = builder->build(genome);
+
+    std::optional<Node_constraint> gateset;
+
+    if (Common::swarm_testing) {
+        gateset = get_swarm_testing_gateset();
+    } else {
+        gateset = std::nullopt;
+    }
+    Result<Node> maybe_ast_root = builder->build(genome, gateset);
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
@@ -80,6 +87,52 @@ std::pair<Genome&, Genome&> Generator::pick_parents(){
     return { population[first], population[second] };
 }
 
+/// @brief Get all available gate names from grammar rule "gate_name", always exclude "subroutine"
+/// @return
+std::vector<Common::Rule_hash> Generator::get_available_gate_hashes(){
+    std::vector<Common::Rule_hash> gate_name_hashes;
+
+    for (Branch& b : grammar->get_rule_pointer("gate_name")->get_branches()) {
+        std::vector<Term> terms = b.get_terms();
+        for (Term& t : terms) {
+            if (t.get_string() != "subroutine" && t.get_string() != "Measure") {
+                gate_name_hashes.push_back(Common::Rule_hash(t.get_hash()));
+            }
+        }
+    }
+
+    /*
+        I've kept this separate from get_swarm_testing_gateset in case we want to use it for something else later
+    */
+
+    return gate_name_hashes;
+}
+
+Node_constraint Generator::get_swarm_testing_gateset(){
+    std::vector<Common::Rule_hash> gate_name_hashes = get_available_gate_hashes();
+
+    size_t n_gates = std::min((size_t)Common::SWARM_TESTING_GATESET_SIZE, gate_name_hashes.size());
+    std::vector<Common::Rule_hash> selected_hashes(n_gates);
+    
+    #ifdef DEBUG
+    if (n_gates == gate_name_hashes.size()) {
+        WARNING("Requested swarm testing gateset size is larger than or equal to available gates");
+    }
+    #endif
+
+    // Sample directly from gate_name_hashes into selected_hashes
+    std::sample(gate_name_hashes.begin(), gate_name_hashes.end(), 
+                selected_hashes.begin(), n_gates, seed());
+
+    /*
+        Gateset needs to be unique, there are probably many ways to do this but this is just what I've done
+        Other methods could be like using a set or shuffling and taking the first n elements
+    */
+
+    std::vector<unsigned int> selected_occurances(n_gates, 0);
+    return Node_constraint(selected_hashes, selected_occurances);
+}
+
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
@@ -103,8 +156,15 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
     population.clear();
 
     for(int i = 0; i < population_size; i++){
-        
-        Result<Node> maybe_root = builder->build(std::nullopt);
+
+        std::optional<Node_constraint> gateset;
+
+        if (Common::swarm_testing) {
+            gateset = get_swarm_testing_gateset();
+        } else {
+            gateset = std::nullopt;
+        }
+        Result<Node> maybe_root = builder->build(std::nullopt, gateset);
 
         if(maybe_root.is_ok()){
             population.push_back(builder->genome());

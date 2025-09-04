@@ -83,7 +83,7 @@ class Node {
         }
 
 
-        Node(const std::string _string, const U64 _hash, const Node_constraint& _constraint, const std::string _indentation_str = ""):
+        Node(const std::string _string, const U64 _hash, const std::optional<Node_constraint>& _constraint, const std::string _indentation_str = ""):
             string(_string),
             hash(_hash),
             kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
