@@ -38,6 +38,8 @@ struct Generator {
 
         std::vector<Common::Rule_hash> get_available_gate_hashes();
 
+        Node_constraint get_swarm_testing_gateset();
+
         void ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome);
 
         void generate_random_programs(fs::path output_dir, int n_programs);

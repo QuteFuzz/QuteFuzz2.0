@@ -249,7 +249,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return std::make_shared<Integer>();
 
 		case Common::gate_name:
-			return std::make_shared<Gate_name>(parent, context.get_current_block(), context.get_swarm_testing_gateset());
+			return std::make_shared<Gate_name>(parent, context.get_current_block(), swarm_testing_gateset);
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -328,14 +328,17 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 	parent->transition_to_done();
 }
 
-Result<Node> Ast::build(const std::optional<Genome>& genome, const std::vector<Common::Rule_hash>& gate_name_hashes){
+Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_constraint>& _swarm_testing_gateset){
 	Result<Node> res;
 
 	if(entry == nullptr){
 		res.set_error("Entry point not set");
 
 	} else {
-		context.reset(Context::PROGRAM, gate_name_hashes);
+
+		swarm_testing_gateset = _swarm_testing_gateset;
+
+		context.reset(Context::PROGRAM);
 
 		Term entry_as_term;
 		entry_as_term.set(entry);
