@@ -70,7 +70,7 @@ Outputs are in the `outputs` folder.
 |---------------|------------|
 | [Issue 1122 &#x1F41E;](https://github.com/CQCL/guppylang/issues/1122)  | [Issue 1101 &#x1F41E;](https://github.com/CQCL/guppylang/issues/1101)|
 | [Issue 1224 &#x1F41E;](https://github.com/CQCL/guppylang/issues/1224) | |
-| [Issue 1079 &#x1F41E;](https://github.com/CQCL/guppylang/issues/1079) | |
+| [Issue 1079 &#x1F41E;](https://github.com/CQCL/tket2/issues/1079) | |
 | | |
 
 ## Ideas
