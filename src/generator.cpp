@@ -1,42 +1,52 @@
 #include <generator.h>
 
-void Generator::setup_builder(const std::string entry_name){
+void Generator::setup_builder(const std::string entry_name, bool is_cross_qss){
     if(grammar->is_rule(entry_name)){
-        builder->set_entry(grammar->get_rule_pointer(entry_name));
+        if (is_cross_qss) {
+            cross_qss_builder->set_entry(cross_qss_grammar->get_rule_pointer(entry_name));
+        } else {
+            builder->set_entry(grammar->get_rule_pointer(entry_name));
+        }
 
-    } else if(builder->entry_set()){
-        WARNING("Rule " + entry_name + " is not defined for grammar " + grammar->get_name() + ". Will use previous entry instead");
+    } else if(builder->entry_set() || cross_qss_builder->entry_set()){
+        WARNING("Rule " + entry_name + " is not defined for grammar " + grammar->get_name() + " or " + cross_qss_grammar->get_name() + ". Will use previous entry instead");
 
     } else {
-        ERROR("Rule " + entry_name + " is not defined for grammar " + grammar->get_name());  
+        ERROR("Rule " + entry_name + " is not defined for grammar " + grammar->get_name());
     }
 }
 
-void Generator::ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome){
+void Generator::ast_to_program(fs::path output_dir, int build_counter, std::optional<Genome> genome, bool is_cross_qss){
 
     fs::path current_circuit_dir =  output_dir / ("circuit" + std::to_string(build_counter));
     fs::create_directory(current_circuit_dir);
 
-    builder->set_ast_counter(build_counter);
+    if (is_cross_qss) {
+        cross_qss_builder->set_ast_counter(build_counter);
+    } else {
+        builder->set_ast_counter(build_counter);
+    }
 
     std::optional<Node_constraint> gateset;
-
     if (Common::swarm_testing) {
         gateset = get_swarm_testing_gateset();
     } else {
         gateset = std::nullopt;
     }
-    Result<Node> maybe_ast_root = builder->build(genome, gateset);
+
+    Result<Node> maybe_ast_root = (is_cross_qss ? cross_qss_builder : builder)->build(genome, gateset);
 
     if(maybe_ast_root.is_ok()){
         Node ast_root = maybe_ast_root.get_ok();
 
-        fs::path program_path = current_circuit_dir / "circuit.py";
+        std::string circuit_name = is_cross_qss ? "circuit_cross_qss" : "circuit";
+        fs::path program_path = current_circuit_dir / (circuit_name + ".py");
         std::ofstream stream(program_path.string());
 
         // render dag (main block)
         if (Common::render_dags) {
-            builder->render_dag(current_circuit_dir);
+            (is_cross_qss ? cross_qss_builder : builder)->render_dag(current_circuit_dir);
+            (is_cross_qss ? cross_qss_builder : builder)->render_subroutine_dags(current_circuit_dir);
         }
 
         int dag_score;
@@ -44,7 +54,7 @@ void Generator::ast_to_program(fs::path output_dir, int build_counter, std::opti
         if(genome.has_value()){
             dag_score = genome.value().dag_score;
         } else {
-            dag_score = builder->genome().dag_score;
+            dag_score = (is_cross_qss ? cross_qss_builder : builder)->genome().dag_score;
         }
 
         INFO("Dag score: " + std::to_string(dag_score));
@@ -136,7 +146,12 @@ Node_constraint Generator::get_swarm_testing_gateset(){
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
-    child.make_dag(dag1.get_qubits(), dag1.get_bits());
+    child.make_dag(dag1.get_qubits(), dag1.get_bits(), "child");
+
+    /*
+        I just thought I'd name it something. A nameless child is a sad child. 
+        On a serious note, I can make the default name empty if needed
+    */
 
     UNUSED(dag2);
 
@@ -196,7 +211,7 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
             if(j > elitism * population_size){
                 std::pair<Genome&, Genome&> parents = pick_parents();
 
-                Genome child{.dag = std::move(crossover(parents.first.dag, parents.second.dag)), .dag_score = 0};
+                Genome child{.dag = std::move(crossover(parents.first.dag, parents.second.dag)), .subroutine_dags = {}, .dag_score = 0};
                 child.dag_score = child.dag.score();
 
                 new_pop.push_back(child);
@@ -218,6 +233,50 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
     }
 
     INFO(YELLOW("Generated " + std::to_string(population_size) + " program(s)"));
+
+}
+
+void Generator::generate_cross_qss(fs::path output_dir, int n_programs) {
+    
+    /*
+    Reset population
+    */
+    population.clear();
+
+    /*
+        Fill initial DAG population
+    */
+    for(int i = 0; i < n_programs; i++){
+        
+        std::optional<Node_constraint> gateset;
+        if (Common::swarm_testing) {
+            gateset = get_swarm_testing_gateset();
+        } else {
+            gateset = std::nullopt;
+        }
+        Result<Node> maybe_root = builder->build(std::nullopt, gateset);
+
+        if(maybe_root.is_ok()){
+            population.push_back(builder->genome());
+        }
+    }
+
+    INFO(YELLOW("Generated " + std::to_string(population.size()) + " program(s)"));
+
+    /*
+        Generate semantically equivalent programs in base language first
+    */
+    for(int build_counter = 0; build_counter < (int)population.size(); build_counter++){
+        ast_to_program(output_dir, build_counter, std::make_optional<Genome>(population[build_counter]));
+    }
+
+    INFO("Generating cross-QSS programs...");
+    /*
+        Set builder to new grammar using same entry point and generate programs
+    */
+   for(int build_counter = 0; build_counter < (int)population.size(); build_counter++){
+        ast_to_program(output_dir, build_counter, std::make_optional<Genome>(population[build_counter]), true);
+    }
 
 }
 

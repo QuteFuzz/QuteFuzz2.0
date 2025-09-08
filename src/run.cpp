@@ -63,14 +63,24 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
 }
 
-void Run::set_grammar(){
+void Run::set_grammar() {
 
     std::string grammar_name = tokens[0], entry_name = tokens[1];
 
     if(is_grammar(grammar_name)){
-        current_generator = generators[grammar_name];
-        current_generator->setup_builder(entry_name);
-
+        if (Common::cross_qss) {
+            current_generator->set_cross_qss_grammar(generators[grammar_name]->get_grammar());
+            current_generator->setup_builder(entry_name, Common::cross_qss);
+        } else {
+            current_generator = generators[grammar_name];
+            current_generator->setup_builder(entry_name);
+        }
+        
+        /*
+        Sets the cross_qss grammar of the current generator (base language) to
+        be the grammar of the entered grammar. The second grammar is stored and only set up
+        after generating the base language AST.
+        */
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
     }
@@ -168,6 +178,12 @@ void Run::loop(){
         if(tokens.size() == 2){
             set_grammar();
 
+            /*
+            Upon entering cross-qss mode, all grammar and entry point inputs will be 
+            changing the other grammar being tested against. That is, until the user
+            disables cross-qss mode.
+            */
+
         } else if(current_command == "h"){
             help();
 
@@ -202,14 +218,32 @@ void Run::loop(){
                 INFO("Swarm testing mode " + FLAG_STATUS(Common::swarm_testing));
 
             } else if (current_command == "genetic"){
+                if (Common::cross_qss && !Common::run_genetic) {
+                    INFO("Genetic mode cannot be used with Cross QSS mode, disabling Cross QSS mode");
+                    Common::cross_qss = false;
+                }
                 Common::run_genetic = !Common::run_genetic;
                 INFO("Genetic generation mode " + FLAG_STATUS(Common::run_genetic));
+
+            } else if (current_command == "cross_qss") {
+                if (Common::run_genetic && !Common::cross_qss) {
+                    INFO("Cross QSS mode cannot be used with genetic mode, disabling genetic mode");
+                    Common::run_genetic = false;
+                }
+                Common::cross_qss = !Common::cross_qss;
+                INFO("Cross QSS mode " + FLAG_STATUS(Common::cross_qss));
+                if (Common::cross_qss) {
+                    INFO("Enter the grammar and entry point of the other QSS being tested against:");
+                }
 
             } else if ((n_programs = safe_stoi(current_command))){
                 remove_all_in_dir(output_dir);
 
                 if(Common::run_genetic){
                     current_generator->run_genetic(output_dir, n_programs.value_or(0));
+
+                } else if (Common::cross_qss) {
+                    current_generator->generate_cross_qss(output_dir, n_programs.value_or(0));
 
                 } else {
                     current_generator->generate_random_programs(output_dir, n_programs.value_or(0));

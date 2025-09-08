@@ -22,6 +22,8 @@ class Run{
 
         void set_grammar();
 
+        void set_cross_qss_grammar();
+
         void tokenise(const std::string& command);
 
         void remove_all_in_dir(const fs::path& dir);

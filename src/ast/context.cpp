@@ -89,6 +89,8 @@ namespace Context {
 
         #ifdef DEBUG
         INFO("Getting random block");
+        INFO("Current block owner: " + current_block_owner);
+        INFO("Number of blocks: " + std::to_string(blocks.size()));
         #endif
         
         while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
@@ -97,6 +99,7 @@ namespace Context {
             (block->num_external_bits() > current_block->total_num_bits()) //TODO: Add check for other parameters if needed
         )
         {
+            // INFO("Trying out block owned by " + block->get_owner() + " with " + std::to_string(block->num_external_qubits()) + " external qubits and " + std::to_string(block->num_external_bits()) + " external bits");
             block = blocks.at(random_int(blocks.size()-1));
         }
 
@@ -111,14 +114,21 @@ namespace Context {
         if(current_block_is_subroutine()){
 
             if(genome.has_value()){
-                std::shared_ptr<Node> subroutine = genome.value().dag.get_next_subroutine_gate();
+                if (Common::cross_qss) {
+                    current_block_owner = genome->subroutine_dags.at(subroutine_counter).get_name();
+                    current_block = std::make_shared<Block>(str, hash, current_block_owner, genome->subroutine_dags.at(subroutine_counter++).get_qubits().get_total());
 
-                std::cout << YELLOW("setting block from DAG ") << std::endl;
-                std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
-                std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
+                    can_copy_dag = true;
+                } else {
+                    std::shared_ptr<Node> subroutine = genome.value().dag.get_next_subroutine_gate();
 
-                current_block_owner = subroutine->get_string();
-                current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
+                    std::cout << YELLOW("setting block from DAG ") << std::endl;
+                    std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
+                    std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
+
+                    current_block_owner = subroutine->get_string();
+                    current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
+                }
 
             } else {
                 current_block_owner = "sub"+std::to_string(subroutine_counter++);
@@ -162,11 +172,34 @@ namespace Context {
         size_t num_defs;
 
         if(can_copy_dag){
-            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
+            // Iterate through subroutine dags in genome if current block is a subroutine
+            if (Common::cross_qss && genome.has_value() && !current_block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME)) {
+                //Find the right subroutine dag using name and iterating through the array
+                for (const auto& sub_dag : genome->subroutine_dags) {
+                    if (sub_dag.get_name() == current_block_owner) {
+                        current_subroutine_dag = sub_dag;
+                        break;
+                    }
+                }
+                
+                num_defs = current_block->make_resource_definitions(scope, current_subroutine_dag->get_qubits());
+
+            } else {
+                num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
+                /*
+                    guppy main circuit needs only define internal qubits, so at the very least it can use the subcircuits,
+                    even if the previous subroutines don't.
+
+                    Also, external owned qubits of pytket triggers the qubit_to_qubit_def twice for each qubit in guppy, since
+                    pytket external owned qubits are both internal and external at the same time to guppy. This needs a little change
+                */
+
+            }
         
         } else {
             num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
         }
+        
         
         return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
     }
@@ -180,6 +213,7 @@ namespace Context {
         
         if(can_copy_dag){
             num_defs = current_block->make_resource_definitions(scope, genome->dag.get_bits());
+            // TODO: Once Bit defs are supported for cross-qss testing, iterate through subroutine dags in genome
         } else {
             num_defs = current_block->make_resource_definitions(scope, Resource::BIT);
         }
@@ -312,7 +346,12 @@ namespace Context {
             set_can_apply_subroutines();
 
             if(can_copy_dag){
-                parent->make_partition(genome.value().dag.n_qubit_ops(), 1);
+                if (Common::cross_qss && !get_current_block()->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME)) {
+                    parent->make_partition(current_subroutine_dag->n_qubit_ops(), 1);
+                } else {
+                    parent->make_partition(genome.value().dag.n_qubit_ops(), 1);
+                }
+                
             }
         }
 
@@ -328,7 +367,15 @@ namespace Context {
         unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
 
         if(genome.has_value()){
-            n_blocks = genome.value().dag.n_subroutines();
+            if (Common::cross_qss) {
+                n_blocks = genome.value().subroutine_dags.size();
+            } else {
+                n_blocks = genome.value().dag.n_subroutines();
+            }
+            /* 
+            These should be the same things, so may be possible to replace
+            genome.value().dag.n_subroutines() with genome.value().subroutine_dags.size()
+            */
         }
 
         std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(n_blocks);
@@ -345,6 +392,15 @@ namespace Context {
         } else {
             WARNING("Current gate not set but trying to get num params! 1 parameter will be returned");
             return 1;
+        }
+    }
+
+    int Context::get_current_gate_num_qubit_params(){
+        if(current_gate != nullptr){
+            return current_gate->get_num_qubit_params();
+        } else {
+            WARNING("Current gate not set but trying to get num qubit params! 0 qubit parameters will be returned");
+            return 0;
         }
     }
 

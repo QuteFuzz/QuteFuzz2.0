@@ -15,6 +15,8 @@ class Qubit_op : public Node {
 
         Qubit_op(std::shared_ptr<Block> current_block);
 
+        static std::shared_ptr<Qubit_op> qubit_op_from_dag(std::shared_ptr<Qubit_op> dag_copy);
+
         inline void set_gate_node(std::shared_ptr<Node> node){
             gate_node = std::make_optional<std::shared_ptr<Node>>(node);
         }

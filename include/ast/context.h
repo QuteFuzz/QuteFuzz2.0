@@ -9,6 +9,7 @@
 #include <compound_stmt.h>
 #include <compound_stmts.h>
 #include <gate.h>
+#include <gate_name.h>
 #include <subroutines.h>
 #include <genome.h>
 #include <nested_stmt.h>
@@ -51,6 +52,8 @@ namespace Context {
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
+			std::vector<std::shared_ptr<Block>> get_blocks() { return blocks;};
+
 			inline std::shared_ptr<Resource::Qubit> new_qubit(){
 				U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
 
@@ -81,9 +84,10 @@ namespace Context {
 			inline std::shared_ptr<Arg> new_arg(){
 				if((current_gate != nullptr) && current_gate->is_subroutine_gate()){
 					std::shared_ptr<Block> subroutine = get_block(current_gate->get_string()).value();
-					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(EXTERNAL_SCOPE | OWNED_SCOPE);
+					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(EXTERNAL_SCOPE);
 
 					current_arg = std::make_shared<Arg>(qubit_def);
+					ERROR("ARGHHHH"+subroutine->get_owner()+" "+qubit_def->get_size()->get_string()+" "+qubit_def->get_name()->get_string());
 				}
 
 				return current_arg;
@@ -111,8 +115,8 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
-			inline std::shared_ptr<Gate> new_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL){
-				current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL, int num_qubit_params = 0){
+				current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params, num_qubit_params);
 
 				current_qubit_op->set_gate_node(current_gate);
 
@@ -120,6 +124,8 @@ namespace Context {
 			}
 
 			int get_current_gate_num_params();
+
+			int get_current_gate_num_qubit_params();
 
 			int get_current_gate_num_qubits();
 
@@ -150,11 +156,49 @@ namespace Context {
 			std::shared_ptr<Qubit_op> new_qubit_op_node(){
 				reset(QUBIT_OP);
 
-				current_qubit_op = can_copy_dag ? genome.value().dag.get_next_node() : std::make_shared<Qubit_op>(get_current_block());
-				// current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
+				if (Common::cross_qss && genome.has_value()) {
 
-				return current_qubit_op;
+					/*
+						current_qubit_op will be set to the DAG, while a new qubit_op is passed back. This allows subsequent grammar rules
+						that are its children to also have access to the DAG without advancing to the next qubit_op
+					*/
+					if (current_block_is_subroutine()) {
+						current_qubit_op = current_subroutine_dag->get_next_node();
+					} else {
+						current_qubit_op = genome.value().dag.get_next_node();
+					}
+
+					return Qubit_op::qubit_op_from_dag(current_qubit_op);
+
+				} else {
+					current_qubit_op = can_copy_dag ? genome.value().dag.get_next_node() : std::make_shared<Qubit_op>(get_current_block());
+					return current_qubit_op;
+					// current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
+				}
+				
 			}
+
+			/// @brief  Make a gate_name node with constraints added based on the genome DAG's qubit_op node
+			/// @param parent
+			/// @return gate_name node straight from DAG
+			std::shared_ptr<Node> make_gate_name(const std::shared_ptr<Node> parent, const std::optional<Node_constraint>& swarm_testing_gateset) {
+				// Gate name is one of the children of the child of the DAG qubit_op
+				if (Common::cross_qss && genome.has_value()) {
+					WARNING("Dag gate_op num_children : " + std::to_string(current_qubit_op->get_children().at(0)->get_num_children()));
+					for (const std::shared_ptr<Node>& child : current_qubit_op->get_children().at(0)->get_children()) {
+						if (child->get_hash() == Common::gate_name) {
+							Common::Rule_hash gate_name_node = Common::Rule_hash(child->get_children().at(0)->get_hash()); // Note: this gate_name refers to name of gate (i.e. "cx", "h", etc)
+							return std::make_shared<Gate_name>(gate_name_node);
+						}
+						WARNING("Child hash: " + std::to_string(child->get_hash()));
+					}
+					
+					WARNING("Could not find gate_name node in qubit_op children! Generating random gate name instead");
+					return std::make_shared<Gate_name>(parent, get_current_block(), swarm_testing_gateset);
+				}
+
+				return std::make_shared<Gate_name>(parent, get_current_block(), std::nullopt);
+			};
 
 			/// @brief Is the current block being generated a subroutine?
 			/// @return 
@@ -197,6 +241,7 @@ namespace Context {
 
 			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;
+			std::optional<Dag::Dag> current_subroutine_dag;
 
 			bool can_copy_dag;
     };

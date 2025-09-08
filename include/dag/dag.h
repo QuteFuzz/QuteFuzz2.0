@@ -66,7 +66,7 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits);
+            void make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits, std::string _name);
 
             inline Collection<Resource::Qubit> get_qubits() const {
                 return qubits;
@@ -78,7 +78,7 @@ namespace Dag {
 
             void add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id, int qubit_id);
 
-            void render_dag(const fs::path& current_circuit_dir);
+            void render_dag(const fs::path& current_circuit_dir, const std::string dag_name = "dag");
 
             int max_out_degree();
 
@@ -107,6 +107,10 @@ namespace Dag {
                 } else {
                     return dummy_node;
                 }
+            }
+
+            inline std::string get_name() const {
+                return name;
             }
 
             std::optional<unsigned int> nodewise_data_contains(std::shared_ptr<Qubit_op> node);
@@ -142,6 +146,7 @@ namespace Dag {
             }
 
         private:
+            std::string name;
             std::vector<Node_data> nodewise_data;
             unsigned int node_pointer = 0;
             std::vector<std::shared_ptr<Node>> subroutine_gates;

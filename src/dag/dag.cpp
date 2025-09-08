@@ -2,12 +2,13 @@
 #include <collection.h>
 #include <dag.h>
 
-void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits){
+void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits, std::string _name){
     reset();
 
     qubits = _qubits;
     bits = _bits;
-    
+    name = _name;
+
     for(const Resource::Qubit& qubit : qubits){
         qubit.add_path_to_dag(*this);
     }
@@ -65,7 +66,7 @@ int Dag::Dag::score(){
     return max_out_degree();
 }
 
-void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
+void Dag::Dag::render_dag(const fs::path& current_circuit_dir, const std::string dag_name){
     std::ostringstream dot_string;
 
     dot_string << "digraph G {\n";
@@ -76,8 +77,7 @@ void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "}\n";
 
-
-    fs::path dag_render_path = current_circuit_dir / "dag.png";
+    fs::path dag_render_path = current_circuit_dir / (dag_name + ".png");
 
     const std::string str = dag_render_path.string();
     std::string command = "dot -Tpng -o " + str;

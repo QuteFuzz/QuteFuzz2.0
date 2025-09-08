@@ -304,7 +304,7 @@ class pytketTesting(Base):
             counts_guppy = results.collated_counts()
             counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
             counts_guppy = self.preprocess_counts(counts_guppy)
-            print("Processed guppy counts:", counts_guppy)
+            print("Guppy counts:", counts_guppy)
 
             # Getting uncompiled pytket circuit results
             backend = AerBackend()

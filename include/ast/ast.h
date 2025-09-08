@@ -35,6 +35,12 @@ class Ast{
 
         inline void render_dag(const fs::path& current_circuit_dir){dag.render_dag(current_circuit_dir);}
 
+        inline void render_subroutine_dags(const fs::path& current_circuit_dir){
+            for(size_t i = 0; i < subroutine_dags.size(); i++){
+                subroutine_dags.at(i).render_dag(current_circuit_dir, "sub" + std::to_string(i));
+            }
+        }
+
     protected:
 
         std::shared_ptr<Rule> entry = nullptr;
@@ -43,6 +49,7 @@ class Ast{
         Context::Context context;
         std::optional<Node_constraint> swarm_testing_gateset = std::nullopt;
         Dag::Dag dag;
+        std::vector<Dag::Dag> subroutine_dags;
 };
 
 #endif

@@ -64,6 +64,7 @@ class Block : public Node {
         {}
 
         /// @brief Generating a block with a specific number of external qubits (generating from DAG)
+        /// TODO: Add target_num_bits_external when bits are supported for cross-qss testing
         /// @param str 
         /// @param hash 
         /// @param owner_name 

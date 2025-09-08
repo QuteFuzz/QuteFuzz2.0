@@ -5,6 +5,7 @@
 
 struct Genome {
     Dag::Dag dag;
+    std::vector<Dag::Dag> subroutine_dags;
     int dag_score;
 };
 

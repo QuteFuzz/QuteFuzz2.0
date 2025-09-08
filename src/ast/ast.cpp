@@ -70,14 +70,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			context.set_can_apply_subroutines(false);
 			return std::make_shared<Node>(str, hash);
 
-		case Common::body:
-			return std::make_shared<Node>(str, hash);
-
 		case Common::compound_stmts:
 			return context.get_compound_stmts(parent);
-		
-		case Common::arguments: {			
-			unsigned int num_args = context.get_current_gate_num_params();
+
+		case Common::arguments: {
+			unsigned int num_args = context.get_current_gate_num_qubit_params();
 			return std::make_shared<Arguments>(num_args);
 		}
 
@@ -248,8 +245,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::number:
 			return std::make_shared<Integer>();
 
-		case Common::gate_name:
-			return std::make_shared<Gate_name>(parent, context.get_current_block(), swarm_testing_gateset);
+		case Common::gate_name: {
+			return context.make_gate_name(parent, swarm_testing_gateset);
+		}
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
@@ -258,12 +256,13 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 			subroutine->qubit_def_pointer_reset();
 
+			return context.new_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, 0, hash, subroutine->num_external_qubit_defs());
 			/*
-				create gate from subroutine
-				- the hash of the node will be Common::subroutine, and the string will be the name of the block defining this subroutine
-				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
+				num_params means different things for guppy and pytket
+				- for guppy, it means the number of qubits the subroutine takes
+				- for pytket, it means the number of floats a gate takes
+				Therefore, I've added a new parameter to specify specifically the number of qubits that are taken in as parameters
 			*/
-			return context.new_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_external_qubit_defs(), hash);
 		}
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
@@ -351,14 +350,22 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 
 		if(genome.has_value()){
 			dag = genome.value().dag;
+			subroutine_dags = genome.value().subroutine_dags;
 		} else {
 			std::shared_ptr<Block> current_block = context.get_current_block();
-			dag.make_dag(current_block->get_qubits(), current_block->get_bits());
+			dag.make_dag(current_block->get_qubits(), current_block->get_bits(), current_block->get_owner());
+			
+			// Iterate through the blocks and create subroutine dags
+			for (auto block : context.get_blocks()) {
+				if (block->get_owner() != Common::TOP_LEVEL_CIRCUIT_NAME) {
+					Dag::Dag sub_dag;
+					sub_dag.make_dag(block->get_qubits(), block->get_bits(), block->get_owner());
+					subroutine_dags.push_back(sub_dag);
+				}
+			}
 		}
 
 		context.print_block_info();
-
-		std::cout << dag << std::endl;
 
 		res.set_ok(*root_ptr);
 	}
@@ -367,5 +374,5 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 }
 
 Genome Ast::genome(){
-	return Genome{.dag = dag, .dag_score = dag.score()};
+	return Genome{.dag = dag, .subroutine_dags = subroutine_dags, .dag_score = dag.score()};
 }

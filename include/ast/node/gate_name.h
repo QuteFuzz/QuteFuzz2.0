@@ -34,6 +34,16 @@ class Gate_name : public Node {
 
         }
 
+
+        /*
+            For making gate_node from DAG, without directly referencing the qubit_op from the DAG
+        */
+        Gate_name(Common::Rule_hash gate_name_hash) :
+            Node("gate_name", Common::gate_name)
+        {
+            add_constraint(gate_name_hash, 1);
+        }
+
     private:
 
 };

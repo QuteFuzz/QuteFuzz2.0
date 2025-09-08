@@ -111,6 +111,10 @@ class Node {
             return string;
         }
 
+        U64 get_hash() const {
+            return hash;
+        }
+
         int get_id() const {
             return id;
         }

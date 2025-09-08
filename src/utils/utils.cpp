@@ -7,6 +7,7 @@ namespace Common {
     bool render_dags = false;
     bool run_genetic = false;
     bool swarm_testing = false;
+    bool cross_qss = false;
 }
 
 void lower(std::string& str){
