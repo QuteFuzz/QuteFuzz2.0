@@ -190,6 +190,6 @@ imports = "from guppylang.decorator import guppy " NEWLINE
 
 compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
 
-testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE
-                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id COMMA total_num_qubits RPAREN NEWLINE; # Currently too slow with Nexus
+testing_method = "gt.guppy_timeout_test(main_circuit" COMMA circuit_id RPAREN NEWLINE
+                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id COMMA total_num_qubits RPAREN NEWLINE; # Currently too slow with Nexus, hugr-qir is too buggy
                 ;

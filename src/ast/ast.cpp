@@ -115,7 +115,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_circuit_id();
 
 		case Common::total_num_qubits: {
-			return std::make_shared<Integer>(context.get_max_external_qubits());
+			return std::make_shared<Integer>(context.get_max_defined_qubits());
 		}
 
 		case Common::main_circuit_name:				

@@ -51,11 +51,11 @@ namespace Context {
         current_block->set_can_apply_subroutines(false);
     }
 
-    unsigned int Context::get_max_external_qubits(){
+    unsigned int Context::get_max_defined_qubits(){
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
-            res = std::max(res, block->num_external_qubits());
+            res = std::max(res, block->num_external_qubits()+block->num_internal_qubits());
         }
 
         return res;

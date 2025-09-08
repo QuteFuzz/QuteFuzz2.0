@@ -24,6 +24,7 @@ import sys
 import os
 import datetime
 import argparse
+import subprocess
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import traceback
@@ -52,9 +53,10 @@ from hugr.qsystem.result import QsysResult
 
 # QIR imports
 from hugr_qir.hugr_to_qir import hugr_to_qir
+from hugr_qir.output import OutputFormat
 from qirrunner import run, OutputHandler
 from pytket.qir.conversion.api import pytket_to_qir, QIRFormat
-import qnexus as qnx
+# import qnexus as qnx
 import pyqir
 
 class Base():
@@ -452,7 +454,7 @@ class guppyTesting(Base):
     def __init__(self):
         super().__init__()
 
-    def ks_diff_test(self, circuit : Any, circuit_number : int) -> None:
+    def guppy_timeout_test(self, circuit : Any, circuit_number : int) -> None:
         '''
         Compile guppy circuit into hugr and optimise through TKET for differential testing
         '''        
@@ -493,13 +495,18 @@ class guppyTesting(Base):
         Compile guppy circuit into hugr and convert to QIR for differential testing
         '''
 
-        if not self.qnexus_check_login_status():
-            self.qnexus_login()
+        # if not self.qnexus_check_login_status():
+        #     self.qnexus_login()
+        @guppy.comptime
+        def main_circuit() -> None:
+            qreg1 = array(qubit() for _ in range(2))
+            x(qreg1[0])
+            result("qreg1", measure_array(qreg1))
 
         try:
-            hugr = circuit.compile()
-            # Circuit compiled successfully, now differential test hugr
-            # Running hugr on selene
+            hugr = main_circuit.compile()
+
+            # Running guppy-hugr-selene tests
             runner = build(hugr)
             results = QsysResult(
                 runner.run_shots(Quest(), n_qubits=total_num_qubits, n_shots=1000)
@@ -508,31 +515,54 @@ class guppyTesting(Base):
             counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
             counts_guppy = self.preprocess_counts(counts_guppy)
 
-            qir_LLVM = hugr_to_qir(hugr, emit_text=True)
-            project = qnx.projects.get_or_create(name="guppy_qir_diff")
-            qnx.context.set_active_project(project)
-            qir_name = "guppy_qir_circuit"+str(circuit_number)
-            jobname_suffix = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            qir = pyqir.Module.from_ir(pyqir.Context(), qir_LLVM).bitcode
-            qir_program_ref = qnx.qir.upload(qir=qir, name=qir_name, project=project)
+            # Running hugr-qir-qirrunner tests
+            # Converting hugr to qir with hugr-qir and writing it to a file
+            qir_LLVM = hugr_to_qir(hugr, output_format=OutputFormat.LLVM_IR)
+            circuit_dir = self.OUTPUT_DIR / f"circuit{circuit_number}"
+            circuit_dir.mkdir(parents=True, exist_ok=True)
+            qir_LLVM_file_path = circuit_dir / "circuit.ll"
+            qir_bc_file_path = circuit_dir / "circuit.bc"
 
-            # Run the QIR on H1-Emulator
-            device_name = "H1-Emulator"
+            with open(qir_LLVM_file_path, 'w') as qir_file:
+                qir_file.write(qir_LLVM)
 
-            qnx.context.set_active_project(project)
-            config = qnx.QuantinuumConfig(device_name=device_name)
+            # Convert to bitcode using llvm-as
+            subprocess.run(['llvm-as-14', str(qir_LLVM_file_path), '-o', str(qir_bc_file_path)],
+                            check=True, capture_output=True)
+            print(f"QIR bitcode written to: {qir_bc_file_path}")
 
-            job_name = f"execution-job-qir-{qir_name}-{device_name}-{jobname_suffix}"
-            ref_execute_job = qnx.start_execute_job(
-                programs=[qir_program_ref],
-                n_shots=[1000],
-                backend_config=config,
-                name=job_name,
-            )
+            qir_handler = OutputHandler()
+            run(str(qir_bc_file_path), shots=1000, output_fn=qir_handler.handle)
+            qir_results = qir_handler.get_output()
+            print("QIR results:", qir_results)
+            counts_qir = self.preprocess_counts(qir_results.get_shots())
 
-            qnx.jobs.wait_for(ref_execute_job)
-            qir_result = qnx.jobs.results(ref_execute_job)[0].download_result()
-            counts_qir = self.preprocess_counts(qir_result.get_counts())
+            # qir_LLVM = hugr_to_qir(hugr, emit_text=True)
+            # project = qnx.projects.get_or_create(name="guppy_qir_diff")
+            # qnx.context.set_active_project(project)
+            # qir_name = "guppy_qir_circuit"+str(circuit_number)
+
+            # qnx.jobs.wait_for(ref_execute_job)
+            # qir_result = qnx.jobs.results(ref_execute_job)[0].download_result()
+            # counts_qir = self.preprocess_counts(qir_result.get_counts())
+
+            # jobname_suffix = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            # qir = pyqir.Module.from_ir(pyqir.Context(), qir_LLVM).bitcode
+            # qir_program_ref = qnx.qir.upload(qir=qir, name=qir_name, project=project)
+
+            # # Run the QIR on H1-Emulator
+            # device_name = "H1-Emulator"
+
+            # qnx.context.set_active_project(project)
+            # config = qnx.QuantinuumConfig(device_name=device_name)
+
+            # job_name = f"execution-job-qir-{qir_name}-{device_name}-{jobname_suffix}"
+            # ref_execute_job = qnx.start_execute_job(
+            #     programs=[qir_program_ref],
+            #     n_shots=[1000],
+            #     backend_config=config,
+            #     name=job_name,
+            # )
 
             # Run the kstest on the two results
             ks_value = self.ks_test(counts_guppy, counts_qir, 1000)

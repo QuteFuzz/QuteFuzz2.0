@@ -35,7 +35,7 @@ namespace Context {
 
             void set_can_apply_subroutines(bool flag = true);
 
-            unsigned int get_max_external_qubits();
+            unsigned int get_max_defined_qubits();
 
 			unsigned int get_max_external_bits();
 
