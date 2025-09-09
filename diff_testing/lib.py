@@ -233,9 +233,11 @@ class pytketTesting(Base):
             # circuit with no passes
             uncompiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=0)
             no_pass_statevector = uncompiled_circ.get_statevector()
+            is_testcase_interesting = False
 
             # Get statevector after every optimisation level
             for i in range(3):
+                print(f"Optimisation level {i+1} statevector comparison:")
                 compiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=i+1)
                 pass_statevector = compiled_circ.get_statevector()
                 dot_prod = self.compare_statevectors(no_pass_statevector, pass_statevector, 6)
@@ -245,6 +247,11 @@ class pytketTesting(Base):
                 else:
                     print ("Statevectors not the same")
                     print("Dot product: ", dot_prod)
+                    is_testcase_interesting = True
+            
+            if is_testcase_interesting:
+                print(f"Interesting circuit found: {circuit_number}")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
 
         except Exception:
             print("Exception :", traceback.format_exc())

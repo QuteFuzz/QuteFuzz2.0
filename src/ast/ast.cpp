@@ -298,6 +298,16 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::barrier:
 			return context.get_barrier();
 
+		case Common::testing_method:
+			/* 
+				Statevector testing method can only occur when swarm_testing_gateset is set, is swarm testing mode
+				and measure gate is in the gateset 
+			*/
+			if (swarm_testing_gateset.has_value() && swarm_testing_gateset->contains(Common::Measure)) {
+				return std::make_shared<Node>(str, hash, Node_constraint(Common::statevector_test, random_int(1)));
+			}
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::statevector_test, 0));
+
 		default:
 			return std::make_shared<Node>(str, hash);
 	}

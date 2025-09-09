@@ -39,6 +39,10 @@ struct Node_constraint {
             return true;
         }
 
+        bool contains(const Common::Rule_hash& rule) const {
+            return std::find(rules.begin(), rules.end(), rule) != rules.end();
+        }
+
         Common::Rule_hash get_rule(unsigned int index) const {
             return rules[index];
         }

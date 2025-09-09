@@ -91,7 +91,7 @@ namespace Common {
     constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
     constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
     constexpr int NESTED_MAX_DEPTH = 2;
-    constexpr int SWARM_TESTING_GATESET_SIZE = 6;
+    constexpr int SWARM_TESTING_GATESET_SIZE = 8;
 
     /*
         flags 
@@ -151,6 +151,8 @@ namespace Common {
         float_list = 12337679196430086138ULL,
         float_literal = 6014115549703600901ULL,
         main_circuit_name = 15359974437464362266ULL,
+        testing_method = 16965317775465738533ULL,
+        statevector_test = 12839512169232769230ULL,
 
         body = 14793735007222968981ULL,
         qubit_def_name = 9637820166840754028ULL,
