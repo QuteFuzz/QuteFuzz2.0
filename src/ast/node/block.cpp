@@ -196,9 +196,7 @@ unsigned int Block::make_resource_definitions(U8 scope, const Collection<Resourc
         /*
             I want to get rid of the owned attributes when generating qubit defs since that's irrelevant currently
         */
-        bool match_internal_scope = ((qubit.get_scope() & scope) & INTERNAL_SCOPE);
-        bool match_external_scope = ((qubit.get_scope() & scope) & EXTERNAL_SCOPE);
-        if((qubit.get_scope() & scope && !Common::cross_qss) || (Common::cross_qss && match_internal_scope && match_external_scope)){
+        if((qubit.get_scope() & scope)){
             num_definitions += qubit_to_qubit_def(scope, qubit);
         }
     }

@@ -41,8 +41,8 @@ qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation th
 gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list "])";
 
-gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg # | CY #Disabled CY since buggy
-            | H | T | S | CH | subroutine;
+gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg | CY
+            | H | T | S | CH | toffoli | subroutine;
 gate_op_kind =
     LPAREN qubit_list RPAREN 
     | LPAREN float_list COMMA qubit_list RPAREN

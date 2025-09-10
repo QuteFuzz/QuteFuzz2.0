@@ -87,7 +87,6 @@ namespace Context {
 					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(EXTERNAL_SCOPE);
 
 					current_arg = std::make_shared<Arg>(qubit_def);
-					ERROR("ARGHHHH"+subroutine->get_owner()+" "+qubit_def->get_size()->get_string()+" "+qubit_def->get_name()->get_string());
 				}
 
 				return current_arg;

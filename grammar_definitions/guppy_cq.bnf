@@ -13,7 +13,7 @@ block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " ->
 comptime_block = comptime_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
 comptime_block_def =  "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" COLON;
 
-body   = qubit_defs_internal compound_stmts;
+body   = compound_stmts;
 
 compound_stmts = (compound_stmt NEWLINE)*;
 
@@ -80,7 +80,7 @@ measure_and_record_qreg =  "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE CO
 
 measure_and_record_single_qubit = "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure" LPAREN qubit_def_name RPAREN RPAREN;
 
-gate_name = x | y | z | h | cx | cy | cz | toffoli | rz | rx | ry | v | vdg
+gate_name = x | y | z | h | cx | cy | cz | rz | rx | ry | v | vdg
     | t | tdg | s | sdg | ch | subroutine 
     ;
 

@@ -352,10 +352,12 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 			dag = genome.value().dag;
 			subroutine_dags = genome.value().subroutine_dags;
 		} else {
+			//Make main dag
 			std::shared_ptr<Block> current_block = context.get_current_block();
 			dag.make_dag(current_block->get_qubits(), current_block->get_bits(), current_block->get_owner());
 			
 			// Iterate through the blocks and create subroutine dags
+			subroutine_dags.clear();
 			for (auto block : context.get_blocks()) {
 				if (block->get_owner() != Common::TOP_LEVEL_CIRCUIT_NAME) {
 					Dag::Dag sub_dag;
