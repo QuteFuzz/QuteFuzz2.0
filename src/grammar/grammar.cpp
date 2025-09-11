@@ -64,16 +64,16 @@ void Grammar::peek(){
 /// @brief If rule_name hasn't been initialsed, this adds a rule pointer for it and returns that pointer
 /// @param rule_name 
 /// @return 
-std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name){
+std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name, U8 scope){
+    auto dummy = std::make_shared<Rule>(rule_name, scope);
 
-    // lower(rule_name);
-
-    if(rule_pointers.find(rule_name) == rule_pointers.end()){
-        std::shared_ptr<Rule> ptr = std::make_shared<Rule>(rule_name);
-        rule_pointers[rule_name] = ptr;
+    for(const auto& rp : rule_pointers){
+        if(*rp == *dummy){return rp;}
     }
 
-    return rule_pointers[rule_name];
+    rule_pointers.push_back(dummy);
+
+    return dummy;
 }
 
 /// @brief Convert a single token into a term and add it to the given branch
@@ -84,8 +84,17 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
     
     if(token.kind == Token::SYNTAX){
         term.set(token.value);
+
     } else if (token.kind == Token::RULE){
-        term.set(get_rule_pointer(token.value));
+        /*
+            each term within the branch of a rule has a scope associated with it
+            if explicitly specified like EXTERNAL::term, then the term takes on that scope, otherwise, it 
+            takes on the scope of the current rule (i.e the rule def)
+        */
+        U8 scope = (rule_decl_scope == NO_SCOPE) && (current_rule != nullptr) ? current_rule->get_scope() : rule_decl_scope;
+    
+        term.set(get_rule_pointer(token.value, scope));
+
     } else {
         throw std::runtime_error(ANNOT("Build branch should only be called on syntax or rule tokens!"));
     }
@@ -103,13 +112,13 @@ void Grammar::add_term_to_current_branches(const Token::Token& token){
     if(current_branches.size() == 0){
         Branch b;
         add_term_to_branch(token, b);
-        current_branches.push_back(b);    
+        current_branches.push_back(b);
+ 
     } else {
         for(Branch& current_branch : current_branches){
             add_term_to_branch(token, current_branch);
         }
     }
-
 }
 
 void Grammar::extend_current_branches(const Token::Token& wildcard){
@@ -149,28 +158,6 @@ void Grammar::extend_current_branches(const Token::Token& wildcard){
     current_branches.insert(current_branches.end(), extensions.begin(), extensions.end());
 }
 
-void Grammar::expand_range(){
-    char begin = range_start[0];
-    char end = range_end[0];
-
-    std::vector<Branch> new_current_branches;
-    
-    if(current_branches.size() == 0){
-        current_branches.assign(1, Branch());
-    }
-
-    for(char i = begin; i <= end; ++i){
-        Token::Token token = {.kind = Token::SYNTAX, .value = std::string(1, i)};
-        
-        for(Branch copy : current_branches){
-            add_term_to_branch(token, copy);
-            new_current_branches.push_back(copy);
-        }
-    }
-
-    current_branches = new_current_branches;
-}
-
 void Grammar::build_grammar(){
 
     if(curr_token.is_ok()){
@@ -185,19 +172,24 @@ void Grammar::build_grammar(){
 
                 next = next_token.get_ok();
 
-                if((next.kind != Token::RANGE) && (prev_token.kind != Token::RANGE)){
+                // rules that are within branches, rules before `RULE_START` are handled at `RULE_START`
+                if(current_rule != nullptr){
                     add_term_to_current_branches(token);
+                    rule_decl_scope = NO_SCOPE;
                 }
 
                 break;
             }
 
-            case Token::RULE_START: 
+            case Token::RULE_START: {
                 reset_current_branches();
-                current_rule = get_rule_pointer(prev_token.value);
+                
+                current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
+                current_rule->clear();
                 break;
+            }
 
-            case Token::RULE_END: complete_rule(); break;
+            case Token::RULE_END: complete_rule(); current_rule = nullptr; break;
 
             case Token::_EOF: return; // should never peek if current token was EOF
 
@@ -222,23 +214,48 @@ void Grammar::build_grammar(){
                 break;
             }
 
-            case Token::RANGE: 
-                range_start = prev_token.value; 
-                range_end = next_token.get_ok().value;
-                
-                expand_range();
-
-                break;
-
             case Token::OPTIONAL: case Token::ZERO_OR_MORE: case Token::ONE_OR_MORE:
                 extend_current_branches(token);
                 break;
 
-            case Token::LBRACE: case Token::RBRACE: break;
+            case Token::LBRACE: 
+                break;
+            
+            case Token::RBRACE: rule_def_scope = NO_SCOPE; break;
+
+            case Token::EXTERNAL:
+                if(current_rule == nullptr){
+                    rule_def_scope |= EXTERNAL_SCOPE;
+                } else {
+                    rule_decl_scope |= EXTERNAL_SCOPE;
+                }
+
+                break;
+                        
+            case Token::INTERNAL:
+                if(current_rule == nullptr){
+                    rule_def_scope |= INTERNAL_SCOPE;
+                } else {
+                    rule_decl_scope |= INTERNAL_SCOPE;
+                }
+                
+                break;
+            
+            case Token::OWNED: 
+                if(current_rule == nullptr){
+                    rule_def_scope |= OWNED_SCOPE;
+                } else {
+                    rule_decl_scope |= OWNED_SCOPE;
+                }
+
+                break;
+
+            case Token::ARROW: break;
+
+            case Token::COMMENT: case Token::MULTI_COMMENT_START: case Token::MULTI_COMMENT_END: break;
 
             default:
-                throw std::runtime_error(ANNOT("Unknown token!")); 
-            
+                throw std::runtime_error(ANNOT("Unknown token: " + token.value)); 
         }
 
         prev_token = token;
@@ -262,14 +279,14 @@ void Grammar::print_tokens() const {
 void Grammar::print_grammar() const {
 
     for(const auto& p : rule_pointers){
-        std::cout << p.first << " = ";
-        p.second->print(std::cout);
+        std::cout << p->get_name() << " = ";
+        p->print(std::cout);
         std::cout << ";" << std::endl;
     }
 }
 
 void Grammar::print_rules() const {
     for(const auto& p : rule_pointers){
-        std::cout << p.first << " ";
+        std::cout << p->get_name() << " ";
     }
 }

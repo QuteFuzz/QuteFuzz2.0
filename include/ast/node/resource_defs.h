@@ -3,20 +3,14 @@
 
 #include <node.h>
 
-
 class Qubit_defs : public Node {
 
     public:
 
-        Qubit_defs(std::string str, U64 hash, unsigned int num_defs, U8 scope):
-            Node(str, hash, indentation_tracker)
+        Qubit_defs(unsigned int num_defs):
+            Node(indentation_tracker)
         {
-            if(Resource::is_external(scope)){
-                add_constraint(Common::qubit_def_external, num_defs);
-            } else {
-                add_constraint(Common::qubit_def_internal, num_defs);
-            }
-
+            add_constraint(Common::qubit_def, num_defs);
         }
 
     private:
@@ -27,15 +21,10 @@ class Bit_defs : public Node {
 
     public:
 
-        Bit_defs(std::string str, U64 hash, unsigned int num_defs, U8 scope):
-            Node(str, hash, indentation_tracker)
+        Bit_defs(unsigned int num_defs):
+            Node(indentation_tracker)
         {
-            if(Resource::is_external(scope)){
-                add_constraint(Common::bit_def_external, num_defs);
-            } else {
-                add_constraint(Common::bit_def_internal, num_defs);
-            }
-
+            add_constraint(Common::bit_def, num_defs);
         }
 
     private:

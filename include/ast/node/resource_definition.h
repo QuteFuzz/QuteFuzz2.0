@@ -11,8 +11,7 @@ class Resource_definition : public Node {
         /// @brief Dummy definition
         Resource_definition() : 
             Node("resource_def", hash_rule_name("resource_def")),
-            value(Register_resource_definition()), 
-            scope(EXTERNAL_SCOPE)
+            value(Register_resource_definition()) 
         {}
 
         Resource_definition(const Register_resource_definition& def, const U8& _scope) :
@@ -48,14 +47,6 @@ class Resource_definition : public Node {
             return std::make_shared<Integer>(default_size);
         }
 
-        inline bool is_external() const {
-            return Resource::is_external(scope);
-        }
-
-        inline bool is_owned() const {
-            return Resource::is_owned(scope);
-        }
-
         inline bool is_register_def() const {
             return std::holds_alternative<Register_resource_definition>(value);
         }
@@ -85,11 +76,7 @@ class Qubit_definition : public Resource_definition {
                 scope
             )
         {
-            if (Resource::is_external(scope)) {
-                add_constraint(Common::register_qubit_def_external, 1);
-            } else {
-                add_constraint(Common::register_qubit_def_internal, 1);
-            }
+            add_constraint(Common::register_qubit_def, 1);
         }
 
         Qubit_definition(const Singular_resource_definition& def, const U8& scope):
@@ -98,11 +85,7 @@ class Qubit_definition : public Resource_definition {
                 scope
             )
         {
-            if (Resource::is_external(scope)) {
-                add_constraint(Common::singular_qubit_def_external, 1);
-            } else {
-                add_constraint(Common::singular_qubit_def_internal, 1);
-            }
+            add_constraint(Common::singular_qubit_def, 1);
         }
 
     private:
@@ -120,11 +103,7 @@ class Bit_definition : public Resource_definition {
                 scope
             )
         {
-            if (Resource::is_external(scope)) {
-                add_constraint(Common::register_bit_def_external, 1);
-            } else {
-                add_constraint(Common::register_bit_def_internal, 1);
-            }
+            add_constraint(Common::register_bit_def, 1);
         }
 
         Bit_definition(const Singular_resource_definition& def, const U8& scope):
@@ -133,11 +112,7 @@ class Bit_definition : public Resource_definition {
                 scope
             )
         {
-            if (Resource::is_external(scope)) {
-                add_constraint(Common::singular_bit_def_external, 1);
-            } else {
-                add_constraint(Common::singular_bit_def_internal, 1);
-            }
+            add_constraint(Common::singular_bit_def, 1);
         }
 
     private:

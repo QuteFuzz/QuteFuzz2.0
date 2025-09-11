@@ -46,7 +46,7 @@ class Block : public Node {
     public:
 
         Block() : 
-            Node("block", Common::block),
+            Node("circuit_def", Common::circuit_def),
             owner("dummy")
         {}
 
@@ -89,60 +89,20 @@ class Block : public Node {
             return can_apply_subroutines;
         }
 
-        inline size_t total_num_qubits() const {
-            return qubits.get_total();
+        inline size_t num_qubits_of(const U8& scope) const {
+            return qubits.get_num_of(scope);
         }
 
-        inline size_t num_external_qubits() const {
-            return qubits.get_num_external();
+        inline size_t num_bits_of(const U8& scope) const {
+            return bits.get_num_of(scope);
         }
 
-        inline size_t num_internal_qubits() const {
-            return qubits.get_num_internal();
+        inline size_t num_qubit_defs_of(const U8& scope) const {
+            return qubit_defs.get_num_of(scope);
         }
 
-        inline size_t num_owned_qubits() const {
-            return qubits.get_num_owned();
-        }
-
-        inline size_t num_internal_qubit_defs() const {
-            return qubit_defs.get_num_internal();
-        }
-
-        inline size_t num_owned_qubit_defs() const {
-            return qubit_defs.get_num_owned();
-        }
-
-        inline size_t num_external_qubit_defs() const {
-            return qubit_defs.get_num_external();
-        }
-
-        inline size_t total_num_bits() const {
-            return bits.get_total();
-        }
-
-        inline size_t num_external_bits() const {
-            return bits.get_num_external();
-        }
-
-        inline size_t num_internal_bits() const {
-            return bits.get_num_internal();
-        }
-
-        inline size_t num_owned_bits() const {
-            return bits.get_num_owned();
-        }
-
-        inline size_t num_external_bit_defs() const {
-            return bit_defs.get_num_external();
-        }
-
-        inline size_t num_internal_bit_defs() const {
-            return bit_defs.get_num_internal();
-        }
-
-        inline size_t num_owned_bit_defs() const {
-            return bit_defs.get_num_owned();
+        inline size_t num_bit_defs_of(const U8& scope) const {
+            return bit_defs.get_num_of(scope);
         }
 
         void qubit_flag_reset(){
@@ -161,19 +121,19 @@ class Block : public Node {
             bit_def_pointer = 0;
         }
 
-        inline Resource::Resource* qubit_at(size_t index){
-            if(index < qubits.get_total()){
+        inline std::shared_ptr<Resource::Qubit> qubit_at(size_t index){
+            if(index < qubits.get_num_of(ALL_SCOPES)){
                 return qubits.at(index);
             } else {
-                return &dummy_qubit;
+                return dummy_qubit;
             }
         }
 
-        inline Resource::Resource* bit_at(size_t index){
-            if(index < bits.get_total()){
+        inline std::shared_ptr<Resource::Bit> bit_at(size_t index){
+            if(index < bits.get_num_of(ALL_SCOPES)){
                 return bits.at(index);
             } else {
-                return &dummy_bit;
+                return dummy_bit;
             }
         }
 
@@ -185,27 +145,29 @@ class Block : public Node {
             return bits;
         }
 
-        Resource::Qubit* get_random_qubit(U8 scope_filter = ALL_SCOPES);
+        inline Collection<Qubit_definition> get_qubit_defs(){
+            return qubit_defs;
+        }
+
+        inline Collection<Bit_definition> get_bit_defs(){
+            return bit_defs;
+        }
+
+        std::shared_ptr<Resource::Qubit> get_random_qubit(U8 scope_filter);
         
-        Resource::Bit* get_random_bit(U8 scope_filter = ALL_SCOPES);
+        std::shared_ptr<Resource::Bit> get_random_bit(U8 scope_filter );
 
-        std::shared_ptr<Qubit_definition> get_next_qubit_def(U8 scope_filter = ALL_SCOPES);
+        std::shared_ptr<Qubit_definition> get_next_qubit_def(const U8& scope);
 
-        std::shared_ptr<Bit_definition> get_next_bit_def(U8 scope_filter = ALL_SCOPES);
+        std::shared_ptr<Bit_definition> get_next_bit_def(const U8& scope);
 
-        unsigned int make_register_resource_definition(unsigned int max_size, U8 scope, Resource::Classification classification, unsigned int& total_definitions);
+        unsigned int make_register_resource_definition(unsigned int max_size, U8& scope, Resource::Classification classification, unsigned int& total_definitions);
 
-        unsigned int make_singular_resource_definition(U8 scope, Resource::Classification classification, unsigned int& total_definitions);
+        unsigned int make_singular_resource_definition(U8& scope, Resource::Classification classification, unsigned int& total_definitions);
 
-        unsigned int make_resource_definitions(U8 scope, Resource::Classification classification);
+        unsigned int make_resource_definitions(U8& scope, Resource::Classification classification);
 
-        unsigned int make_resource_definitions(U8 scope, const Collection<Resource::Qubit>& _qubits);
-        
-        unsigned int make_resource_definitions(U8 scope, const Collection<Resource::Bit>& _bits);
-
-        unsigned int qubit_to_qubit_def(const U8& scope, const Resource::Qubit& qubit);
-
-        unsigned int bit_to_bit_def(const U8& scope, const Resource::Bit& bit);
+        unsigned int make_resource_definitions(const Dag::Dag& dag, const U8& scope, Resource::Classification classification);
 
         void print_info() const;
 
@@ -228,12 +190,17 @@ class Block : public Node {
         unsigned int qubit_def_pointer = 0;
         unsigned int bit_def_pointer = 0;
 
-        Resource::Qubit dummy_qubit;
-        Resource::Bit dummy_bit;
+        std::shared_ptr<Resource::Qubit> dummy_qubit = std::make_shared<Resource::Qubit>();
+        std::shared_ptr<Resource::Bit> dummy_bit = std::make_shared<Resource::Bit>();
 
-        Qubit_definition dummy_qubit_def;
-        Bit_definition dummy_bit_def;
+        // Resource::Qubit dummy_qubit;
+        // Resource::Bit dummy_bit;
 
+        // Qubit_definition dummy_qubit_def;
+        // Bit_definition dummy_bit_def;
+
+        std::shared_ptr<Qubit_definition> dummy_qubit_def = std::make_shared<Qubit_definition>();
+        std::shared_ptr<Bit_definition> dummy_bit_def = std::make_shared<Bit_definition>();
 };
 
 

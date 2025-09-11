@@ -1,5 +1,6 @@
 #include <run.h>
 #include <ast.h>
+#include <lex.h>
 
 
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
@@ -14,13 +15,14 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().stem() == Common::TOKENS_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().stem() == Common::META_GRAMMAR_NAME)){
                     Grammar grammar(file);
                     grammar.build_grammar();
 
-                    commons_grammar = grammar;
-                    commons_grammar.mark_as_commons_grammar();
+                    commons_grammar = std::move(grammar);
 
+                    std::cout << "Built " << Common::META_GRAMMAR_NAME << std::endl;
+                    generators[Common::META_GRAMMAR_NAME] = std::make_shared<Generator>(commons_grammar);
                     break;
                 }
             }
@@ -30,11 +32,12 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != Common::TOKENS_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != Common::META_GRAMMAR_NAME)){
 
                     Grammar grammar(file);
-                    grammar += commons_grammar;
                     grammar.build_grammar();
+
+                    grammar += commons_grammar;
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;

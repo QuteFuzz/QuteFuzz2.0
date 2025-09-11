@@ -22,7 +22,9 @@ class Branch {
 
     public:
         Branch(){}
+
         Branch(const std::string& _name) : name(_name){}
+
         ~Branch(){}
 
         Branch(std::vector<Term> _terms) {

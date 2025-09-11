@@ -1,5 +1,7 @@
 #include <generator.h>
 
+/// @brief TODO: make it such that user can call entry point with particular scope
+/// @param entry_name 
 void Generator::setup_builder(const std::string entry_name){
     if(grammar->is_rule(entry_name)){
         builder->set_entry(grammar->get_rule_pointer(entry_name));
@@ -136,8 +138,7 @@ Node_constraint Generator::get_swarm_testing_gateset(){
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
-    child.make_dag(dag1.get_qubits(), dag1.get_bits());
-
+    UNUSED(dag1);
     UNUSED(dag2);
 
     return child;

@@ -66,7 +66,15 @@ namespace Dag {
         public:
             Dag(){}
 
-            void make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits);
+            void make_dag(const std::shared_ptr<Block> block);
+
+            inline Collection<Qubit_definition> get_qubit_defs() const {
+                return qubit_defs;
+            }
+
+            inline Collection<Bit_definition> get_bit_defs() const {
+                return bit_defs;
+            }
 
             inline Collection<Resource::Qubit> get_qubits() const {
                 return qubits;
@@ -148,7 +156,10 @@ namespace Dag {
             unsigned int sub_pointer = 0;
 
             Collection<Resource::Qubit> qubits;
+            Collection<Qubit_definition> qubit_defs;
+            
             Collection<Resource::Bit> bits;
+            Collection<Bit_definition> bit_defs;
 
             std::shared_ptr<Node> dummy_node = std::make_shared<Node>("");
             std::shared_ptr<Qubit_op> dummy_qubit_op = std::make_shared<Qubit_op>();

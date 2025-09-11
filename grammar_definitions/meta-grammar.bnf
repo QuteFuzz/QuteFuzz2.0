@@ -1,0 +1,141 @@
+
+# META-GRAMMAR
+
+program       = imports NEWLINE subroutine_defs NEWLINE circuit_def NEWLINE compiler_call;
+
+subroutine_defs = (circuit_def NEWLINE subroutine_def_footer)*;
+
+circuit_def = circuit_def_header NEWLINE body NEWLINE;
+
+body = EXTERNAL::qubit_defs EXTERNAL::bit_defs NEWLINE compound_stmts;
+
+EXTERNAL {
+    qubit_defs = (qubit_def NEWLINE)+;
+    
+    bit_defs = (bit_def NEWLINE)+;
+
+    qubit_def = singular_qubit_def | register_qubit_def;
+ 
+    bit_def = singular_bit_def | register_bit_def;
+}
+
+compound_stmts = (compound_stmt NEWLINE)+;
+
+compound_stmt = qubit_op | if_stmt;
+
+qubit_op = gate_op | subroutine_op;
+
+# maybe not needed
+# ==========================================
+gate_op_args = 
+    "(" qubit_list ")" 
+    | "(" qubit_list "," bit_list ")"
+    | "(" float_list "," qubit_list ")"
+    ;
+# ==========================================
+
+arguments = arg ("," arg)*;
+
+arg = qubit    
+    | bit
+    | float_literal
+    | "[" qubit_list "]"
+    | "[" bit_list "]"
+    ;
+
+qubit_list  = qubit (", " qubit)*;
+
+float_list = float_literal (", " float_literal)*;
+
+qubit = 
+    singular_qubit 
+    | register_qubit
+    ;
+
+bit_list = bit (", " bit)*;
+
+bit = singular_bit 
+    | register_bit
+    ;
+
+
+if_stmt =
+    'if' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
+    | 'if' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_stmt)?;
+elif_stmt =
+    'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT elif_stmt
+    | 'elif' expression ':' NEWLINE INDENT compound_stmts DEDENT (else_stmt)?;
+else_stmt =
+    'else' ':' NEWLINE INDENT compound_stmts DEDENT;
+
+# The expressions below are from https://docs.python.org/3/reference/grammar.html
+# Bits have been commented out / removed / modified to remove unnecessary complexity
+
+# EXPRESSIONS
+# -----------
+
+expression =
+    disjunction;
+
+disjunction =
+    conjunction ('or' conjunction )+
+    | conjunction;
+
+conjunction =
+    inversion ('and' inversion )+ 
+    | inversion;
+
+inversion =
+    comparison;
+
+# Comparison operators
+# --------------------
+
+comparison = 
+    bitwise_or compare_op_bitwise_or_pair;
+
+compare_op_bitwise_or_pair =
+    eq_bitwise_or
+    | noteq_bitwise_or
+    | lte_bitwise_or
+    | lt_bitwise_or
+    | gte_bitwise_or
+    | gt_bitwise_or;
+
+eq_bitwise_or: '==' bitwise_or;
+noteq_bitwise_or: '!=' bitwise_or; 
+lte_bitwise_or: '<=' bitwise_or;
+lt_bitwise_or: '<' bitwise_or ;
+gte_bitwise_or: '>=' bitwise_or; 
+gt_bitwise_or: '>' bitwise_or ;
+
+
+# Bitwise operators
+# -----------------
+
+bitwise_or:
+    # | bitwise_or '|' bitwise_xor 
+    bitwise_xor;
+
+bitwise_xor:
+    # | bitwise_xor '^' bitwise_and 
+    bitwise_and;
+
+bitwise_and:
+    # | bitwise_and '&' shift_expr 
+    shift_expr;
+
+shift_expr:
+    # | shift_expr '<<' primary 
+    # | shift_expr '>>' primary
+    primary;
+
+
+# Primary elements
+# ----------------
+
+primary:
+    atom;
+
+atom: NUMBER
+    ;

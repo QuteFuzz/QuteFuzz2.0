@@ -40,6 +40,13 @@
 // flag status
 #define FLAG_STATUS(x) (x ? YELLOW("enabled") : YELLOW("disabled"))
 
+#define NO_SCOPE 0
+#define EXTERNAL_SCOPE (1UL << 0)
+#define INTERNAL_SCOPE (1UL << 1)
+#define OWNED_SCOPE (1UL << 2)
+#define ALL_SCOPES (EXTERNAL_SCOPE | INTERNAL_SCOPE | OWNED_SCOPE)
+
+#define STR_SCOPE(scope) (" scope flag (OWNED  INTERNAL  EXTERNAL): " + std::bitset<8>(scope).to_string())
 
 using U64 = uint64_t;
 
@@ -79,7 +86,7 @@ namespace Common {
     */
     constexpr char TOP_LEVEL_CIRCUIT_NAME[] = "main_circuit";
     constexpr char OUTPUTS_FOLDER_NAME[] = "outputs";
-    constexpr char TOKENS_GRAMMAR_NAME[] = "tokens";
+    constexpr char META_GRAMMAR_NAME[] = "meta-grammar";
 
     /*
         ast parameters
@@ -87,9 +94,9 @@ namespace Common {
     constexpr int MIN_N_QUBITS_IN_ENTANGLEMENT = 2;
     constexpr int MIN_QUBITS = 3;
     constexpr int MIN_BITS = 1;
-    constexpr int MAX_QUBITS = std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
-    constexpr int MAX_BITS = std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
-    constexpr int MAX_SUBROUTINES = (int)(0.5 * WILDCARD_MAX);
+    constexpr int MAX_QUBITS = 4; // std::max(MIN_QUBITS + 1, (int)(0.5 * WILDCARD_MAX));
+    constexpr int MAX_BITS = 2; // std::max(MIN_BITS + 1, (int)(0.5 * WILDCARD_MAX));
+    constexpr int MAX_SUBROUTINES = 2; //  (int)(0.5 * WILDCARD_MAX);
     constexpr int NESTED_MAX_DEPTH = 2;
     constexpr int SWARM_TESTING_GATESET_SIZE = 6;
 
@@ -106,6 +113,10 @@ namespace Common {
         ast node types
     */
     enum Rule_hash : U64 {
+        /*
+            gates
+            - all rules denoting gates
+        */
         // SINGLE QUBIT GATES
         h = 12638197096160295895ULL,
         x = 12638214688346347271ULL,
@@ -145,14 +156,29 @@ namespace Common {
         u = 12638200394695180528ULL,
         barrier = 11527731894837406848ULL,
 
-        // RULE NAMES
-        block = 1505885265403634530ULL,
+        /*
+            rules that need special attention during AST building
+        */
+        subroutine_defs = 16338711102002774808ULL,
+
+        circuit_def = 17654104105659481736ULL,
+
+        body = 14793735007222968981ULL,
+
+        qubit_defs = 10682880043223733083ULL,
+        bit_defs = 882498004770982501ULL,
+        qubit_def = 11301569403047543754ULL,
+        register_qubit_def = 16393191790828246050ULL,
+        singular_qubit_def = 3663840257195318050ULL,
+        bit_def = 11428494716284192756ULL,
+        register_bit_def = 7591478845252401516ULL,
+        singular_bit_def = 14132065875484436588ULL,
+
         circuit_name = 5389401364268778602ULL,
         float_list = 12337679196430086138ULL,
         float_literal = 6014115549703600901ULL,
         main_circuit_name = 15359974437464362266ULL,
 
-        body = 14793735007222968981ULL,
         qubit_def_name = 9637820166840754028ULL,
         bit_def_name = 10693244643305520522ULL,
         qreg_size = 11502232252882731618ULL,
@@ -162,7 +188,7 @@ namespace Common {
         qubit_op = 7363837753828900628ULL,
         gate_op = 17845938762380861480ULL,
         subroutine_op = 4275855153236832595ULL,
-        gate_op_kind = 14929235841933060947ULL,
+
         gate_name = 4107851538286704628ULL,
         qubit_list = 18380990572907722739ULL,
         bit_list = 3372974018932553881ULL,
@@ -170,26 +196,6 @@ namespace Common {
         qubit_def_size = 16541258826307231238ULL, 
         bit_def_list = 8034270308867516509ULL,
         bit_def_size = 2428654514965833632ULL,
-    
-        qubit_defs_internal = 15763474746718250229ULL,
-        qubit_def_internal = 8367506410210901254ULL,
-        register_qubit_def_internal = 7889892016210498366ULL,
-        singular_qubit_def_internal = 14695716164594440254ULL,
-    
-        qubit_defs_external = 12875408231208951867ULL,
-        qubit_defs_external_owned = 2338026120644312637ULL,
-        qubit_def_external = 9066873179617854836ULL,
-        register_qubit_def_external = 17118825122301876444ULL,
-        singular_qubit_def_external = 5477905196976266716ULL,
-
-        bit_defs_external = 9605680741777250781ULL,
-        bit_def_external = 13726870050363098110ULL,
-        bit_def_internal = 5486644757629614132ULL,
-        bit_defs_internal = 17430815952964625635ULL,
-        singular_bit_def_external = 4316476105238344134ULL,
-        register_bit_def_external = 8288554911174669510ULL,
-        singular_bit_def_internal = 11391126108199619852ULL,
-        register_bit_def_internal = 15363204914135945228ULL,
 
         singular_qubit = 358282167276964286ULL,
         register_qubit = 1224902788537856702ULL,
@@ -200,31 +206,11 @@ namespace Common {
         bit_name = 6055046893651473182ULL,
         qubit_index = 6830264791288854081ULL,
         bit_index = 8231177906794104931ULL,
-        subroutines = 3276487754481867520ULL,
+
         subroutine = 7419198593375467891ULL,
         circuit_id = 12523072865437646660ULL,
         total_num_qubits = 11347479691534777333ULL,
 
-        main_block = 9115425723233342258ULL,
-        main_block_def = 6816634947724795910ULL,
-        block_args = 8098915444984821122ULL,
-        indented_body = 11869103690287558935ULL,
-        type = 12075340201627130925ULL,
-        parameter_name = 12726161396389809054ULL,
-        discard_internal_qubits = 2953622336913522322ULL,
-        discard_internal_qubit = 1018654204566407765ULL,
-        discard_single_qubit = 11775807085076373088ULL,
-        discard_qreg = 13047647025597388553ULL,
-        measure_and_record_single_qubit = 15772338210910691146ULL,
-        measure_and_record_qreg = 12346547178136284519ULL,
-        comptime_block = 13310967149289622197ULL,
-        comptime_block_def = 5962160394468879029ULL,
-        non_comptime_block = 15717574089437842153ULL,
-        arg_singular_qubit = 18441410415153523ULL,
-        arg_register_qubits = 3829129026513754988ULL,
-        
-        simple_stmt = 15680233693926857886ULL,
-        simple_stmts = 7071648921283339959ULL,
         compound_stmt = 4421131487532525991ULL,
         compound_stmts = 17100464358870324028ULL,
         
@@ -241,7 +227,7 @@ namespace Common {
         inversion = 6572250267686125186ULL,
         expression = 17035010316065342411ULL,
         compare_op_bitwise_or_pair = 11179282617234990551ULL,
-        name = 14176396743819860870ULL,
+
         number = 9237349086447201248ULL,
     };
 }

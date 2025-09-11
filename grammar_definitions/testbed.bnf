@@ -1,8 +1,3 @@
-# expr = term "+" expr | term "-" expr | hello (term)+; 
-# term = factor "*" term | factor "/" term | factor ;
-# factor = integer | "(" expr ")" ;
-# ret = "q" "there";
-# integer = 1-4;
+hello = "my" NEWLINE dw;
 
-mt = 
-    | "test";
+dw : "wife";

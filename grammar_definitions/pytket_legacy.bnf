@@ -1,0 +1,86 @@
+
+program = imports NEWLINE subroutines NEWLINE block NEWLINE compiler_call;
+
+subroutines = (block NEWLINE circuit_name " = CircBox(" circuit_name ")" NEWLINE)*;
+
+block     = block_def NEWLINE qubit_defs_external_owned bit_defs_external NEWLINE body NEWLINE;
+
+block_def = circuit_name " = Circuit()";
+
+main_block_def = block_def;
+
+qubit_defs_external_owned = (qubit_def_external NEWLINE)+;
+
+bit_defs_external = (bit_def_external NEWLINE)+;
+
+body = compound_stmts;
+
+compound_stmts = (compound_stmt NEWLINE)+;
+
+qubit_def_external  = singular_qubit_def_external 
+                    | register_qubit_def_external;
+
+bit_def_external = singular_bit_def_external
+                 | register_bit_def_external;
+
+singular_qubit_def_external = qubit_def_name EQUALS "Qubit" LPAREN DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_qubit" LPAREN qubit_def_name RPAREN;
+register_qubit_def_external =  qubit_def_name EQUALS circuit_name ".add_q_register" LPAREN '"' qubit_def_name '",' qreg_size RPAREN;
+
+singular_bit_def_external = bit_def_name EQUALS "Bit" LPAREN DOUBLE_QUOTE bit_def_name DOUBLE_QUOTE COMMA "0" RPAREN NEWLINE circuit_name ".add_bit" LPAREN bit_def_name RPAREN;
+register_bit_def_external = bit_def_name EQUALS circuit_name ".add_c_register" LPAREN '"' bit_def_name '",' creg_size RPAREN;
+
+compound_stmt = qubit_op;
+
+qubit_op = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
+
+gate_op = circuit_name DOT gate_name gate_op_kind;
+subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list COMMA SPACE bit_list "])";
+
+gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg | CY
+            | H | T | S | CH | subroutine | Measure;
+gate_op_kind =
+    LPAREN qubit_list RPAREN 
+    | LPAREN qubit_list COMMA bit_list RPAREN
+    | LPAREN float_list COMMA qubit_list RPAREN
+    # | LPAREN qubit_list COMMA "condition_bits=[" bit RBRACK COMMA condition_value RPAREN      # Disabled temporarily to allow for pytket-guppy pipeline
+    ;
+
+condition_value = "condition_value=1"
+                | "condition_value=0";
+
+qubit_list  = qubit (COMMA SPACE qubit)*;
+
+float_list = float_literal (COMMA float_literal)*;
+
+qubit = singular_qubit | register_qubit;
+
+singular_qubit = qubit_name;
+
+register_qubit = qubit_name "[" qubit_index "]";
+
+
+bit_list = bit (COMMA SPACE bit)*;
+
+bit = singular_bit | register_bit;
+
+singular_bit = bit_name;
+
+register_bit = bit_name "[" bit_index "]";
+
+imports =   "from pytket import Circuit, Qubit, Bit" NEWLINE
+            "from pytket.circuit import Op, OpType, MultiplexorBox, CircBox" NEWLINE
+            swarm_testing_imports NEWLINE
+            "from diff_testing.lib import pytketTesting"
+            ;
+
+compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
+
+testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
+                # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run statevector simulator with measures
+                | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK COMMA LBRACK bit_def_list RBRACK RPAREN NEWLINE
+                # | main_circuit_name ".measure_all() " NEWLINE "pt.run_qir_pytket_diff(" main_circuit_name COMMA circuit_id RPAREN NEWLINE;  # No compatibility with circboxes and slow with Nexus
+                ;
+
+qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;
+
+bit_def_list = bit_def_size (COMMA SPACE bit_def_size)*;

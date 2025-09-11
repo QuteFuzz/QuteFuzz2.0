@@ -22,7 +22,7 @@ class Grammar{
 
         void peek();
 
-        std::shared_ptr<Rule> get_rule_pointer(std::string rule_name);
+        std::shared_ptr<Rule> get_rule_pointer(std::string rule_name, U8 scope = NO_SCOPE);
 
         inline void reset_current_branches(){current_branches.clear();}
         
@@ -68,8 +68,6 @@ class Grammar{
 
         void add_term_to_branch(const Token::Token& token, Branch& branch);
 
-        void expand_range();
-
         void build_grammar();
 
         void print_grammar() const;
@@ -78,34 +76,44 @@ class Grammar{
 
         void print_tokens() const;
 
-        inline bool is_rule(const std::string rule_name){
-            return rule_pointers.find(rule_name) != rule_pointers.end();
+        /// @brief TODO: compare with varying rule scope
+        /// @param rule_name 
+        /// @param scope 
+        /// @return 
+        inline bool is_rule(const std::string& rule_name, const U8& scope = NO_SCOPE){
+            Rule dummy(rule_name, scope);
+            return rule_defined(dummy);            
         }
 
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}
 
-        inline void mark_as_commons_grammar(){
-            for(auto& [f, s] : rule_pointers){
-                s->mark_as_common();
-            }
-        }
-
-        std::unordered_map<std::string, std::shared_ptr<Rule>> get_rule_pointers() const {
+        std::vector<std::shared_ptr<Rule>> get_rule_pointers() const {
             return rule_pointers;
         }
 
         Grammar& operator+=(const Grammar& other){
-            std::unordered_map<std::string, std::shared_ptr<Rule>> other_rule_pointers = other.get_rule_pointers();
+            std::vector<std::shared_ptr<Rule>> other_rule_pointers = other.get_rule_pointers();
 
-            for(const auto& [k ,v]: other_rule_pointers){
-                rule_pointers.insert_or_assign(k, v);
+            for(const auto& other_ptr: other_rule_pointers){
+
+                if(!rule_defined(*other_ptr)){
+                    rule_pointers.push_back(other_ptr);
+                }
             }
         
             return *this;
         }
 
+        bool rule_defined(const Rule& other){
+            for(const auto& ptr : rule_pointers){
+                if(*ptr == other){return true;}
+            }
+
+            return false;
+        }
+    
     private:
         std::vector<Token::Token> tokens;
         size_t num_tokens = 0;
@@ -119,10 +127,13 @@ class Grammar{
         std::vector<Branch> current_branches;
         std::shared_ptr<Rule> current_rule = nullptr;
 
+        U8 rule_def_scope = NO_SCOPE;
+        U8 rule_decl_scope = NO_SCOPE;
+
         unsigned int nesting_depth_base = 0;
         unsigned int nesting_depth = nesting_depth_base;
 
-        std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
+        std::vector<std::shared_ptr<Rule>> rule_pointers;
         
         Lexer::Lexer lexer;
         std::string name;

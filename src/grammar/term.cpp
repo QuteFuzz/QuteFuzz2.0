@@ -34,6 +34,10 @@ U64 Term::get_hash() const {
     return hashed_name;
 }
 
+U8 Term::get_scope() const { 
+    return is_pointer() ? std::get<std::shared_ptr<Rule>>(value)->get_scope() : 0; 
+}
+
 bool Term::is_syntax() const {
     return std::holds_alternative<std::string>(value);
 }

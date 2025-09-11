@@ -15,11 +15,11 @@ class Arg : public Node {
             Node("arg", Common::arg)
         {
             if(!qubit_def->is_register_def()){
-                add_constraint(Common::arg_singular_qubit, 1);
+                add_constraint(Common::qubit, 1);
                 qubit_def_size = 1;
             
             } else {
-                add_constraint(Common::arg_register_qubits, 1);
+                add_constraint(Common::qubit_list, 1);
                 qubit_def_size = std::stoi(qubit_def->get_size()->get_string());
             }
 

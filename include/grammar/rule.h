@@ -10,7 +10,7 @@ class Rule {
     public:
         Rule(){}
         
-        Rule(const std::string& _name) : name(_name) {
+        Rule(const std::string& _name, const U8& _scope) : name(_name), scope(_scope) {
             hash = hash_rule_name(name);
         }
         
@@ -22,6 +22,8 @@ class Rule {
 
         U64 get_hash() const {return hash;}
 
+        U8 get_scope() const {return scope;}
+
         bool get_recursive_flag() const {return recursive;}
         
         void print(std::ostream& os) const;
@@ -30,21 +32,22 @@ class Rule {
 
         void add(const Branch& b);
 
-        size_t size(){return branches.size();}
+        inline size_t size(){return branches.size();}
 
-        bool is_empty() const {return branches.empty();}
+        inline bool is_empty() const {return branches.empty();}
+
+        inline void clear(){branches.clear();}
 
         Branch pick_branch(std::shared_ptr<Node> parent);
 
-        inline void mark_as_common(){common = true;} 
-
-        bool is_marked_as_common(){return common;}
+        bool operator==(const Rule& other) const { return (name == other.get_name()) && (scope == other.get_scope()); }
 
     private:
         std::string name;
+        U8 scope = NO_SCOPE;
+
         U64 hash = 0ULL;
-        bool recursive = false; //Toggles recursion
-        bool common = false;
+        bool recursive = false;
     
         std::vector<Branch> branches;
 

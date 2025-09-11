@@ -23,6 +23,8 @@ class Term {
 
         U64 get_hash() const;
 
+        U8 get_scope() const;
+
         bool is_syntax() const;
 
         bool is_pointer() const;

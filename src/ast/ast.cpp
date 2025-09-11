@@ -6,7 +6,6 @@
 #include <block.h>
 #include <gate.h>
 #include <compound_stmts.h>
-#include <simple_stmt.h>
 #include <float.h>
 #include <float_list.h>
 #include <resource_list.h>
@@ -43,7 +42,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		return std::make_shared<Node>(term.get_syntax());
 	}
 
+	// std::cout << *parent << std::endl;
+	// getchar();
+
 	U64 hash = term.get_hash();
+	U8 scope = term.get_scope();
 	std::string str = term.get_string();
 
 	if(*parent == Common::compare_op_bitwise_or_pair){
@@ -63,12 +66,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 			return dummy;
 
-		case Common::block: case Common::main_block:
-			return context.new_block_node(str, hash);
+		// case Common::block: case Common::main_block:
+		// 	return context.new_block_node(str, hash);
 
-		case Common::non_comptime_block:
-			context.set_can_apply_subroutines(false);
-			return std::make_shared<Node>(str, hash);
+		// case Common::non_comptime_block:
+		// 	context.set_can_apply_subroutines(false);
+		// 	return std::make_shared<Node>(str, hash);
+
+		// TODO: add grammar syntax to allow certain rules to exclude other rules downstream, useful for non_comptime_block
+
+		case Common::circuit_def:
+			return context.new_block_node(str, hash);
 
 		case Common::body:
 			return std::make_shared<Node>(str, hash);
@@ -84,11 +92,11 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::arg:
 			return context.new_arg();
 
-		case Common::arg_singular_qubit:
-			return std::make_shared<Qubit_list>(1);
+		// case Common::arg_singular_qubit:
+		// 	return std::make_shared<Qubit_list>(1);
 
-		case Common::arg_register_qubits:
-			return std::make_shared<Qubit_list>(context.get_current_arg()->get_qubit_def_size());
+		// case Common::arg_register_qubits:
+		// 	return std::make_shared<Qubit_list>(context.get_current_arg()->get_qubit_def_size());
 		
 		case Common::compound_stmt:
 			return context.get_compound_stmt(parent);
@@ -108,8 +116,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::expression:
 			return std::make_shared<Expression>();
 		
-		case Common::simple_stmt:
-			return std::make_shared<Simple_stmt>();
+		// case Common::simple_stmt:
+		// 	return std::make_shared<Simple_stmt>();
 
 		case Common::circuit_id:
 			return context.get_circuit_id();
@@ -120,12 +128,12 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
-			
-		case Common::subroutines:
-			return context.new_subroutines_node();			
 
-		case Common::gate_op_kind:
-			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
+		case Common::subroutine_defs:
+			return context.new_subroutines_node();	
+
+		// case Common::gate_op_kind:
+		// 	return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
 
 		case Common::qubit_op:
 			return context.new_qubit_op_node();
@@ -139,19 +147,17 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qubit_def_name:
 			return context.get_current_qubit_definition_name();
 
-		case Common::qubit_def_external: case Common::qubit_def_internal: {
-			U8 scope_filter = ALL_SCOPES;
+		case Common::qubit_defs:
+			return context.get_qubit_defs_node(scope);
 
-			if (*parent == Common::qubit_defs_external_owned || *parent == Common::qubit_defs_internal) {
-				scope_filter = OWNED_SCOPE;
-			}
+		case Common::bit_defs:
+			return context.get_bit_defs_node(scope);
 
-			return context.new_qubit_definition(scope_filter);
-		}
+		case Common::qubit_def:
+			return context.new_qubit_definition(scope);
 
-		case Common::qubit_defs_external: case Common::qubit_defs_internal:
-		case Common::qubit_defs_external_owned:
-			return context.get_qubit_defs_node(str, hash);
+		case Common::bit_def:
+			return context.new_bit_definition(scope);
 
 		case Common::creg_size:
 			return context.get_current_bit_definition_size();
@@ -159,30 +165,25 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::bit_def_name:
 			return context.get_current_bit_definition_name();
 
-		case Common::bit_def_external: case Common::bit_def_internal:
-			return context.new_bit_definition();
 
-		case Common::bit_defs_external: case Common::bit_defs_internal:
-			return context.get_bit_defs_node(str, hash);
+		// /*
+		// 	go through the qubit definitions and discard them
+		// 	1. reset pointer, such that calls to `new_qubit_definition` traverse the definitions in order of definition
+		// 	2. Set constraint on number of `discard_internal_qubit` branches, only owned qubits are considered
+		// 	3. Traverse definitions, returning only owned definitions
+		// 	==============================================================
+		// */
+		// case Common::discard_internal_qubits: {
+		// 	context.get_current_block()->qubit_def_pointer_reset();
+		// 	unsigned int num_owned_qubit_defs = context.get_current_block()->num_owned_qubit_defs();
 
-		/*
-			go through the qubit definitions and discard them
-			1. reset pointer, such that calls to `new_qubit_definition` traverse the definitions in order of definition
-			2. Set constraint on number of `discard_internal_qubit` branches, only owned qubits are considered
-			3. Traverse definitions, returning only owned definitions
-			==============================================================
-		*/
-		case Common::discard_internal_qubits: {
-			context.get_current_block()->qubit_def_pointer_reset();
-			unsigned int num_owned_qubit_defs = context.get_current_block()->num_owned_qubit_defs();
-
-			return std::make_shared<Discard_internal_qubits>(num_owned_qubit_defs);			
-		}
+		// 	return std::make_shared<Discard_internal_qubits>(num_owned_qubit_defs);			
+		// }
 		
-		case Common::discard_internal_qubit:
-			return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE), context.get_current_block_owner());
+		// case Common::discard_internal_qubit:
+		// 	return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE), context.get_current_block_owner());
 
-		//	===============================================================
+		// //	===============================================================
 
 		case Common::qubit_list: {
 			unsigned int num_qubits = context.get_current_gate_num_qubits();
@@ -197,7 +198,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		// (qu)bit_def_list and (qu)bit_def_size are a special cases used only for pytket->guppy conversion
 		case Common::qubit_def_list:
 			context.get_current_block()->qubit_def_pointer_reset();
-			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_owned_qubit_defs()));
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_qubit_defs_of(OWNED_SCOPE)));
 
 		case Common::qubit_def_size: {
 			if (context.new_qubit_definition(OWNED_SCOPE)->is_register_def()) {
@@ -209,7 +210,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::bit_def_list:
 			context.get_current_block()->bit_def_pointer_reset();
-			return std::make_shared<Node>(str, hash, Node_constraint(Common::bit_def_size, context.get_current_block()->num_external_bit_defs()));
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::bit_def_size, context.get_current_block()->num_bit_defs_of(EXTERNAL_SCOPE)));
 
 		case Common::bit_def_size: {
 			if (context.new_bit_definition(EXTERNAL_SCOPE)->is_register_def()) {
@@ -253,8 +254,8 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
-			int num_sub_qubits = subroutine->num_external_qubits();
-			int num_sub_bits = subroutine->num_external_bits();
+			int num_sub_qubits = subroutine->num_qubits_of(EXTERNAL_SCOPE);
+			int num_sub_bits = subroutine->num_bits_of(EXTERNAL_SCOPE);
 
 			subroutine->qubit_def_pointer_reset();
 
@@ -263,7 +264,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 				- the hash of the node will be Common::subroutine, and the string will be the name of the block defining this subroutine
 				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
 			*/
-			return context.new_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_external_qubit_defs(), hash);
+			return context.new_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_qubit_defs_of(EXTERNAL_SCOPE), hash);
 		}
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
@@ -292,8 +293,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::Measure:
 			return context.new_gate(str, 1, 1, 0, hash);
-
-		/* Added hash to every new_gate instance. Not sure if this is intended but it is needed for swarm testing */
 		
 		case Common::barrier:
 			return context.get_barrier();
@@ -352,8 +351,8 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 		if(genome.has_value()){
 			dag = genome.value().dag;
 		} else {
-			std::shared_ptr<Block> current_block = context.get_current_block();
-			dag.make_dag(current_block->get_qubits(), current_block->get_bits());
+			std::shared_ptr<Block> main_circuit_block = context.get_current_block();
+			dag.make_dag(main_circuit_block);
 		}
 
 		context.print_block_info();

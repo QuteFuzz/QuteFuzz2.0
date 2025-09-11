@@ -33,8 +33,8 @@ namespace Context {
             for(std::shared_ptr<Block> block : blocks){
                 if (!block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) &&
                     !block->owned_by(current_block_owner) &&
-                    (block->num_external_qubits() <= current_block->total_num_qubits()) &&
-                    (block->num_external_bits() <= current_block->total_num_bits())
+                    (block->num_qubits_of(EXTERNAL_SCOPE) <= current_block->num_qubits_of(ALL_SCOPES)) &&
+                    (block->num_bits_of(EXTERNAL_SCOPE) <= current_block->num_bits_of(ALL_SCOPES))
                 )
                 {
                     #ifdef DEBUG
@@ -55,7 +55,7 @@ namespace Context {
         size_t res = Common::MIN_QUBITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
-            res = std::max(res, block->num_external_qubits());
+            res = std::max(res, block->num_qubits_of(EXTERNAL_SCOPE));
         }
 
         return res;
@@ -65,7 +65,7 @@ namespace Context {
         size_t res = Common::MIN_BITS;
 
         for(const std::shared_ptr<Block>& block : blocks){
-            res = std::max(res, block->num_external_bits());
+            res = std::max(res, block->num_bits_of(EXTERNAL_SCOPE));
         }
 
         return res;
@@ -93,8 +93,8 @@ namespace Context {
         
         while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
             block->owned_by(current_block_owner) ||
-            (block->num_external_qubits() > current_block->total_num_qubits()) ||
-            (block->num_external_bits() > current_block->total_num_bits()) //TODO: Add check for other parameters if needed
+            (block->num_qubits_of(EXTERNAL_SCOPE) > current_block->num_qubits_of(ALL_SCOPES)) ||
+            (block->num_bits_of(EXTERNAL_SCOPE) > current_block->num_bits_of(ALL_SCOPES))
         )
         {
             block = blocks.at(random_int(blocks.size()-1));
@@ -139,52 +139,33 @@ namespace Context {
         return current_block;
     }
 
-    std::shared_ptr<Qubit_defs> Context::get_qubit_defs_node(std::string str, U64 hash){
+    std::shared_ptr<Qubit_defs> Context::get_qubit_defs_node(U8& scope){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        U8 scope;
-
-        switch(hash){
-            case Common::qubit_defs_external: 
-                scope = EXTERNAL_SCOPE;
-                break;
-            case Common::qubit_defs_internal:
-                scope = INTERNAL_SCOPE | OWNED_SCOPE;
-                break;
-            case Common::qubit_defs_external_owned:
-                scope = EXTERNAL_SCOPE | OWNED_SCOPE;
-                break;
-            default:
-                scope = EXTERNAL_SCOPE;
-                ERROR("Unknown qubit defs hash: " + std::to_string(hash));
-        }
-
-        size_t num_defs;
+        unsigned int num_defs;
 
         if(can_copy_dag){
-            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_qubits());
+            num_defs = current_block->make_resource_definitions(genome->dag, scope, Resource::QUBIT);
         
         } else {
             num_defs = current_block->make_resource_definitions(scope, Resource::QUBIT);
         }
         
-        return std::make_shared<Qubit_defs>(str, hash, num_defs, scope);
+        return std::make_shared<Qubit_defs>(num_defs);
     }
 
-    std::shared_ptr<Bit_defs> Context::get_bit_defs_node(std::string str, U64 hash){
+    std::shared_ptr<Bit_defs> Context::get_bit_defs_node(U8& scope){
         std::shared_ptr<Block> current_block = get_current_block();
 
-        U8 scope = (hash == Common::bit_defs_external) ? EXTERNAL_SCOPE : INTERNAL_SCOPE;
-
-        size_t num_defs;
+        unsigned int num_defs;
         
         if(can_copy_dag){
-            num_defs = current_block->make_resource_definitions(scope, genome->dag.get_bits());
+            num_defs = current_block->make_resource_definitions(genome->dag, scope, Resource::BIT);
         } else {
             num_defs = current_block->make_resource_definitions(scope, Resource::BIT);
         }
     
-        return std::make_shared<Bit_defs>(str, hash, num_defs, scope);
+        return std::make_shared<Bit_defs>(num_defs);
     }
 
     std::optional<std::shared_ptr<Block>> Context::get_block(std::string owner){

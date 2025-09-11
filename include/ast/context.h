@@ -45,20 +45,22 @@ namespace Context {
 
             std::shared_ptr<Block> new_block_node(std::string str, U64 hash);
             
-			std::shared_ptr<Qubit_defs> get_qubit_defs_node(std::string str, U64 hash);
+			std::shared_ptr<Qubit_defs> get_qubit_defs_node(U8& scope);
 
-			std::shared_ptr<Bit_defs> get_bit_defs_node(std::string str, U64 hash);
+			std::shared_ptr<Bit_defs> get_bit_defs_node(U8& scope);
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
 			inline std::shared_ptr<Resource::Qubit> new_qubit(){
-				U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
+				// U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
 
-				Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
+				U8 scope;
+
+				auto random_qubit = get_current_block()->get_random_qubit(scope); 
 				
 				random_qubit->extend_flow_path(current_qubit_op, current_port++);
 
-				current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
+				current_qubit = random_qubit;
 
 				return current_qubit;
 			}
@@ -68,8 +70,8 @@ namespace Context {
 			std::shared_ptr<Integer> get_current_qubit_index();
 
 			inline std::shared_ptr<Resource::Bit> new_bit(){
-				Resource::Bit* random_bit = get_current_block()->get_random_bit();
-				current_bit = std::make_shared<Resource::Bit>(*random_bit);
+				auto random_bit = get_current_block()->get_random_bit(0);
+				current_bit = random_bit;
 				
 				return current_bit;
 			}
@@ -81,7 +83,7 @@ namespace Context {
 			inline std::shared_ptr<Arg> new_arg(){
 				if((current_gate != nullptr) && current_gate->is_subroutine_gate()){
 					std::shared_ptr<Block> subroutine = get_block(current_gate->get_string()).value();
-					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(EXTERNAL_SCOPE | OWNED_SCOPE);
+					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(0);
 
 					current_arg = std::make_shared<Arg>(qubit_def);
 				}
@@ -93,8 +95,8 @@ namespace Context {
 				return current_arg;
 			}
 
-			inline std::shared_ptr<Qubit_definition> new_qubit_definition(U8 scope_filter = ALL_SCOPES){
-				current_qubit_definition = get_current_block()->get_next_qubit_def(scope_filter);
+			inline std::shared_ptr<Qubit_definition> new_qubit_definition(const U8& scope){
+				current_qubit_definition = get_current_block()->get_next_qubit_def(scope);
 				return current_qubit_definition;
 			}
 
@@ -102,8 +104,8 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_qubit_definition_size();
 
-			inline std::shared_ptr<Bit_definition> new_bit_definition(U8 scope_filter = ALL_SCOPES){
-				current_bit_definition = get_current_block()->get_next_bit_def(scope_filter);
+			inline std::shared_ptr<Bit_definition> new_bit_definition(const U8& scope){
+				current_bit_definition = get_current_block()->get_next_bit_def(scope);
 				return current_bit_definition;
 			}
 			
@@ -131,7 +133,7 @@ namespace Context {
 			inline std::shared_ptr<Gate> get_barrier(){
 				std::shared_ptr<Block> current_block = get_current_block();
 
-				unsigned int n_qubits = std::min((unsigned int)WILDCARD_MAX, (unsigned int)current_block->total_num_qubits());
+				unsigned int n_qubits = std::min((unsigned int)WILDCARD_MAX, (unsigned int)current_block->num_qubit_defs_of(ALL_SCOPES));
 				unsigned int random_barrier_width = random_int(n_qubits, 1);
 
 				return new_gate("barrier", random_barrier_width, 0, 0);

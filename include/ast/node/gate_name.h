@@ -12,9 +12,9 @@ class Gate_name : public Node {
             Node("gate_name", Common::gate_name, swarm_testing_gateset)
         {
 
-            if(current_block->num_owned_qubits() == 0){
+            if(current_block->num_qubits_of(OWNED_SCOPE) == 0){
                 add_constraint(Common::measure_and_reset, 0);
-                if (current_block->total_num_bits() == 0) {
+                if (current_block->num_bits_of(ALL_SCOPES) == 0) {
                     add_constraint(Common::Measure, 0);
                 }
                 /*

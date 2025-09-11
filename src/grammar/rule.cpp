@@ -7,7 +7,7 @@ void Rule::print(std::ostream& os) const {
         os << "| ";
     }
 
-    os << " common: " << common;
+    os << STR_SCOPE(scope) << std::endl;
 }
 
 /// @brief need to have this check and store pointers to recursive branches separately
@@ -27,7 +27,7 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
         Branch branch = branches[random_int(size - 1)];
 
         #ifdef DEBUG
-        INFO("Picking branch for " + name + " while satisfying constraint " + parent->get_debug_constraint_string());
+        INFO("Picking branch for " + name + STR_SCOPE(scope) + " while satisfying constraint " + parent->get_debug_constraint_string());
         #endif
 
         while(!parent->branch_satisfies_constraint(branch)){

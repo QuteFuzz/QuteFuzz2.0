@@ -1,15 +1,18 @@
 #include <resource.h>
-#include <collection.h>
 #include <dag.h>
+#include <block.h>
 
-void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits){
+void Dag::Dag::make_dag(const std::shared_ptr<Block> block){
     reset();
 
-    qubits = _qubits;
-    bits = _bits;
+    qubits = block->get_qubits();
+    qubit_defs = block->get_qubit_defs();
+
+    bits = block->get_bits();
+    bit_defs = block->get_bit_defs();
     
-    for(const Resource::Qubit& qubit : qubits){
-        qubit.add_path_to_dag(*this);
+    for(const auto& qubit : qubits){
+        qubit->add_path_to_dag(*this);
     }
 }
 
@@ -70,8 +73,8 @@ void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "digraph G {\n";
 
-    for(const Resource::Qubit& qubit : qubits){
-        qubit.extend_dot_string(dot_string);
+    for(const auto& qubit : qubits){
+        qubit->extend_dot_string(dot_string);
     }
 
     dot_string << "}\n";

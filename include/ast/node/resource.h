@@ -8,19 +8,6 @@
 
 namespace Resource {
 
-    #define EXTERNAL_SCOPE (1UL << 0)
-    #define INTERNAL_SCOPE (1UL << 1)
-    #define OWNED_SCOPE (1UL << 2)
-    #define ALL_SCOPES (EXTERNAL_SCOPE | INTERNAL_SCOPE | OWNED_SCOPE)
-
-    inline bool is_external(U8 scope){
-        return scope & EXTERNAL_SCOPE;
-    }
-
-    inline bool is_owned(U8 scope){
-        return scope & OWNED_SCOPE;
-    }
-
     enum Classification {
         QUBIT,
         BIT
@@ -32,8 +19,7 @@ namespace Resource {
             /// @brief Dummy resource
             Resource() :
                 Node("resource", hash_rule_name("resource")),
-                value(Singular_resource()),
-                scope(EXTERNAL_SCOPE)
+                value(Singular_resource())
             {}
 
             Resource(std::string str, U64 hash, const Register_resource& resource, const U8& _scope) :
@@ -74,14 +60,6 @@ namespace Resource {
                 return std::visit([](auto&& val) -> std::shared_ptr<Variable> {
                     return val.get_name();
                 }, value);
-            }
-
-            inline bool is_external() const {
-                return scope & EXTERNAL_SCOPE;
-            }
-
-            inline bool is_owned() const {
-                return scope & OWNED_SCOPE;
             }
 
             inline bool is_register_def() const {
