@@ -5,11 +5,15 @@
 #include <resource_definition.h>
 #include <variable.h>
 #include <resource_defs.h>
+#include <resource_list.h>
+#include <arguments.h>
 #include <arg.h>
+#include <float_list.h>
 #include <compound_stmt.h>
 #include <compound_stmts.h>
 #include <gate.h>
 #include <gate_name.h>
+#include <gate_op_kind.h>
 #include <subroutines.h>
 #include <genome.h>
 #include <nested_stmt.h>
@@ -58,12 +62,66 @@ namespace Context {
 				U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
 
 				Resource::Qubit* random_qubit = get_current_block()->get_random_qubit(scope); 
-				
+
 				random_qubit->extend_flow_path(current_qubit_op, current_port++);
 
 				current_qubit = std::make_shared<Resource::Qubit>(*random_qubit);
 
+
 				return current_qubit;
+			}
+
+			std::shared_ptr<Gate_op_kind> new_gate_op_kind_node(std::string str, U64 hash) {
+				if (Common::cross_qss && genome.has_value()) {
+					std::shared_ptr<Gate_op_kind> current_gate_op_kind = std::static_pointer_cast<Gate_op_kind>(current_qubit_op->find(Common::gate_op_kind));
+					current_qubit_list = current_gate_op_kind->find(Common::qubit_list);
+					current_float_list = current_gate_op_kind->find(Common::float_list);
+					current_argument_list = (current_qubit_list == nullptr) ? current_gate_op_kind->find(Common::arguments) : nullptr;
+					
+					/*
+						Weird workaround to accomodate swapped float_list and qubit_list in gate_op_kind
+						between guppy and pytket
+					*/
+					if (current_gate_op_kind != nullptr && current_float_list == nullptr) {
+						current_gate_op_kind->set_from_dag();
+						return current_gate_op_kind;
+					} else {
+						#ifdef DEBUG
+						if (current_gate_op_kind == nullptr) {
+							ERROR("Gate_op_kind not found in DAG!");
+						} 
+						#endif
+						return std::make_shared<Gate_op_kind>(str, hash, get_current_gate_num_params(), get_current_gate_num_bits(), get_current_gate_num_qubit_params());
+					}
+
+				} else {
+					return std::make_shared<Gate_op_kind>(str, hash, get_current_gate_num_params(), get_current_gate_num_bits(), get_current_gate_num_qubit_params());
+				}
+			}
+
+			std::shared_ptr<Qubit_list> new_qubit_list_node() {
+				unsigned int num_qubits = get_current_gate_num_qubits();
+				
+				// Return the qubit list from the DAG. This only gets called for non-subroutine gates
+				if (Common::cross_qss && genome.has_value() && current_qubit_list != nullptr) {
+					std::shared_ptr<Qubit_list> qubit_list = std::static_pointer_cast<Qubit_list>(current_qubit_list);
+					qubit_list->set_from_dag();
+					return qubit_list;
+				} else {
+					return std::make_shared<Qubit_list>(num_qubits);
+				}
+			}
+
+			std::shared_ptr<Float_list> new_float_list_node(std::string str, U64 hash) {
+				unsigned int num_floats = get_current_gate_num_params();
+
+				if (Common::cross_qss && genome.has_value() && current_float_list != nullptr) {
+					std::shared_ptr<Float_list> float_list = std::static_pointer_cast<Float_list>(current_float_list);
+					float_list->set_from_dag();
+					return float_list;
+				} else {
+					return std::make_shared<Float_list>(str, hash, num_floats);
+				}
 			}
 
 			std::shared_ptr<Variable> get_current_qubit_name();
@@ -90,6 +148,17 @@ namespace Context {
 				}
 
 				return current_arg;
+			}
+
+			/// @brief This only gets called when creating qubit lists for subroutines in cross-qss mode, or guppy subroutines
+			std::shared_ptr<Arguments> new_arguments_node() {
+				if (Common::cross_qss && genome.has_value() && current_gate->is_subroutine_gate() && current_argument_list != nullptr) {
+					std::shared_ptr<Arguments> arguments = std::static_pointer_cast<Arguments>(current_argument_list);
+					arguments->set_from_dag();
+					return arguments;
+				} else {
+					return std::make_shared<Arguments>(get_current_gate_num_qubit_params());
+				}
 			}
 
 			inline std::shared_ptr<Arg> get_current_arg(){
@@ -183,15 +252,14 @@ namespace Context {
 			std::shared_ptr<Node> make_gate_name(const std::shared_ptr<Node> parent, const std::optional<Node_constraint>& swarm_testing_gateset) {
 				// Gate name is one of the children of the child of the DAG qubit_op
 				if (Common::cross_qss && genome.has_value()) {
-					WARNING("Dag gate_op num_children : " + std::to_string(current_qubit_op->get_children().at(0)->get_num_children()));
-					for (const std::shared_ptr<Node>& child : current_qubit_op->get_children().at(0)->get_children()) {
-						if (child->get_hash() == Common::gate_name) {
-							Common::Rule_hash gate_name_node = Common::Rule_hash(child->get_children().at(0)->get_hash()); // Note: this gate_name refers to name of gate (i.e. "cx", "h", etc)
-							return std::make_shared<Gate_name>(gate_name_node);
-						}
-						WARNING("Child hash: " + std::to_string(child->get_hash()));
-					}
-					
+
+					std::shared_ptr<Node> current_gate_op = current_qubit_op->find(Common::gate_op) == nullptr ? current_qubit_op->find(Common::subroutine_op) : current_qubit_op->find(Common::gate_op); 
+					/*
+						Assume only 1 child to qubit_op, which is either gate_op or subroutine_op
+					*/ 
+
+					return std::make_shared<Gate_name>(Common::Rule_hash(current_gate_op->find(Common::gate_name)->get_children().at(0)->get_hash()));
+
 					WARNING("Could not find gate_name node in qubit_op children! Generating random gate name instead");
 					return std::make_shared<Gate_name>(parent, get_current_block(), swarm_testing_gateset);
 				}
@@ -229,6 +297,7 @@ namespace Context {
 			unsigned int ast_counter = 0;
 			unsigned int current_port;
 	        unsigned int nested_depth;
+			unsigned int current_qubit_index = 0;
 		
 			std::shared_ptr<Qubit_definition> current_qubit_definition;
 			std::shared_ptr<Bit_definition> current_bit_definition;
@@ -237,6 +306,9 @@ namespace Context {
 			std::shared_ptr<Gate> current_gate;
 			std::shared_ptr<Qubit_op> current_qubit_op;
 			std::shared_ptr<Arg> current_arg;
+			std::shared_ptr<Node> current_qubit_list;
+			std::shared_ptr<Node> current_float_list;
+			std::shared_ptr<Node> current_argument_list;
 
 			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;

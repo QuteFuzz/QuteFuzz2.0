@@ -41,7 +41,7 @@ compound_stmt = qubit_op
 qubit_op  = gate_op | subroutine_op; # qubit op defined stricly as a operation that takes qubits and applies a state altering gate onto them, measure moves to gate_name
 
 gate_op = gate_name gate_op_kind;
-subroutine_op = gate_name LPAREN arguments RPAREN;
+subroutine_op = gate_name LPAREN gate_op_kind RPAREN;
 
 # For function calls, arguments need to match definition (e.g. qubit, array of qubits, etc.) IN ORDER
 arguments = arg (COMMA arg)*;
@@ -55,6 +55,7 @@ arg_register_qubits = qubit (COMMA SPACE qubit)*;
 
 gate_op_kind =  LPAREN qubit_list RPAREN 
                 | LPAREN qubit_list COMMA float_list RPAREN
+                | arguments
                 ;
 
 float_list = "angle" LPAREN float_literal RPAREN (COMMA "angle" LPAREN float_literal RPAREN)*;

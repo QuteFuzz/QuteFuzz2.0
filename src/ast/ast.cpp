@@ -74,8 +74,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_compound_stmts(parent);
 
 		case Common::arguments: {
-			unsigned int num_args = context.get_current_gate_num_qubit_params();
-			return std::make_shared<Arguments>(num_args);
+			return context.new_arguments_node();
 		}
 
 		case Common::arg:
@@ -122,7 +121,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.new_subroutines_node();			
 
 		case Common::gate_op_kind:
-			return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
+			return context.new_gate_op_kind_node(str, hash);
 
 		case Common::qubit_op:
 			return context.new_qubit_op_node();
@@ -182,8 +181,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		//	===============================================================
 
 		case Common::qubit_list: {
-			unsigned int num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Qubit_list>(num_qubits);
+			return context.new_qubit_list_node();
 		}
 
 		case Common::bit_list: {
@@ -222,7 +220,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qubit_name:
 			return context.get_current_qubit_name();
 
-		case Common::qubit: 
+		case Common::qubit:
 			return context.new_qubit();
 
 		case Common::bit_index:
@@ -235,8 +233,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.new_bit();
 		
 		case Common::float_list: {
-			unsigned int num_floats = context.get_current_gate_num_params();
-			return std::make_shared<Float_list>(str, hash, num_floats);
+			return context.new_float_list_node(str, hash);
 		}
 
 		case Common::float_literal:
