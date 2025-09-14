@@ -25,9 +25,7 @@ class Rule {
         U8 get_scope() const {return scope;}
 
         bool get_recursive_flag() const {return recursive;}
-        
-        void print(std::ostream& os) const;
-        
+                
         std::vector<Branch> get_branches(){return branches;}
 
         void add(const Branch& b);
@@ -41,6 +39,19 @@ class Rule {
         Branch pick_branch(std::shared_ptr<Node> parent);
 
         bool operator==(const Rule& other) const { return (name == other.get_name()) && (scope == other.get_scope()); }
+
+        friend std::ostream& operator<<(std::ostream& stream, const Rule& rule){
+            stream << rule.name << " = ";
+            
+            for(size_t i = 0; i < rule.branches.size(); i++){
+                stream << rule.branches[i];
+                if(i < rule.branches.size() - 1) stream << " | ";
+            }
+
+            stream << " ; " << STR_SCOPE(rule.scope) << std::endl;
+
+            return stream;
+        }
 
     private:
         std::string name;

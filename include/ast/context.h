@@ -5,7 +5,7 @@
 #include <resource_definition.h>
 #include <variable.h>
 #include <resource_defs.h>
-#include <arg.h>
+#include <subroutine_op_arg.h>
 #include <compound_stmt.h>
 #include <compound_stmts.h>
 #include <gate.h>
@@ -51,48 +51,28 @@ namespace Context {
 
 			std::optional<std::shared_ptr<Block>> get_block(std::string owner);
 
-			inline std::shared_ptr<Resource::Qubit> new_qubit(){
-				// U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
-
-				U8 scope;
-
-				auto random_qubit = get_current_block()->get_random_qubit(scope); 
-				
-				random_qubit->extend_flow_path(current_qubit_op, current_port++);
-
-				current_qubit = random_qubit;
-
-				return current_qubit;
-			}
+			std::shared_ptr<Resource::Qubit> new_qubit();
 
 			std::shared_ptr<Variable> get_current_qubit_name();
 
 			std::shared_ptr<Integer> get_current_qubit_index();
 
-			inline std::shared_ptr<Resource::Bit> new_bit(){
-				auto random_bit = get_current_block()->get_random_bit(0);
-				current_bit = random_bit;
-				
-				return current_bit;
-			}
+			std::shared_ptr<Resource::Bit> new_bit();
 
 			std::shared_ptr<Variable> get_current_bit_name();
 
 			std::shared_ptr<Integer> get_current_bit_index();
 
-			inline std::shared_ptr<Arg> new_arg(){
+			inline std::shared_ptr<Subroutine_op_arg> new_arg(){
 				if((current_gate != nullptr) && current_gate->is_subroutine_gate()){
-					std::shared_ptr<Block> subroutine = get_block(current_gate->get_string()).value();
-					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(0);
-
-					current_arg = std::make_shared<Arg>(qubit_def);
+					current_subroutine_op_arg = std::make_shared<Subroutine_op_arg>(current_gate->get_next_qubit_def());
 				}
 
-				return current_arg;
+				return current_subroutine_op_arg;
 			}
 
-			inline std::shared_ptr<Arg> get_current_arg(){
-				return current_arg;
+			inline std::shared_ptr<Subroutine_op_arg> get_current_arg(){
+				return current_subroutine_op_arg;
 			}
 
 			inline std::shared_ptr<Qubit_definition> new_qubit_definition(const U8& scope){
@@ -113,31 +93,23 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
-			inline std::shared_ptr<Gate> new_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL){
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, U64& hash, int num_qubits, int num_bits, int num_params){
 				current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
 
-				current_qubit_op->set_gate_node(current_gate);
+				if(current_qubit_op != nullptr) current_qubit_op->set_gate_node(current_gate);
 
 				return current_gate;
 			}
 
-			int get_current_gate_num_params();
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, U64& hash, const Collection<Qubit_definition>& qubit_defs){
+				current_gate = std::make_shared<Gate>(str, hash, qubit_defs);
 
-			int get_current_gate_num_qubits();
+				if(current_qubit_op != nullptr) current_qubit_op->set_gate_node(current_gate);
 
-			int get_current_gate_num_bits();
-
-			/// @brief Make barrier gate. The number of qubits used to choose the barrier width is a max of internal and external qubits, 
-			/// because a block could have either or both
-			/// @return 
-			inline std::shared_ptr<Gate> get_barrier(){
-				std::shared_ptr<Block> current_block = get_current_block();
-
-				unsigned int n_qubits = std::min((unsigned int)WILDCARD_MAX, (unsigned int)current_block->num_qubit_defs_of(ALL_SCOPES));
-				unsigned int random_barrier_width = random_int(n_qubits, 1);
-
-				return new_gate("barrier", random_barrier_width, 0, 0);
+				return current_gate;
 			}
+
+			inline std::shared_ptr<Gate> get_current_gate(){return current_gate;}
 
 			std::shared_ptr<Nested_branch> get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
 
@@ -153,7 +125,6 @@ namespace Context {
 				reset(QUBIT_OP);
 
 				current_qubit_op = can_copy_dag ? genome.value().dag.get_next_node() : std::make_shared<Qubit_op>(get_current_block());
-				// current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
 
 				return current_qubit_op;
 			}
@@ -195,7 +166,7 @@ namespace Context {
 			std::shared_ptr<Resource::Bit> current_bit;
 			std::shared_ptr<Gate> current_gate;
 			std::shared_ptr<Qubit_op> current_qubit_op;
-			std::shared_ptr<Arg> current_arg;
+			std::shared_ptr<Subroutine_op_arg> current_subroutine_op_arg;
 
 			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;

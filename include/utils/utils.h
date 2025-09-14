@@ -80,6 +80,28 @@ std::string escape(const std::string& str);
 
 std::string random_hex_colour();
 
+template<typename T>
+std::vector<T> multiply_vector(std::vector<T> vec, int mult){
+    std::vector<T> multiplied_vec;
+    
+    multiplied_vec.reserve(vec.size() * mult);
+
+    for(int i = 0; i < mult; ++i){
+        multiplied_vec.insert(multiplied_vec.end(), vec.begin(), vec.end());
+    }
+
+    return multiplied_vec;
+}
+
+template<typename T>
+std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
+    std::vector<T> result = vec1;
+
+    result.insert(result.end(), vec2.begin(), vec2.end());
+
+    return result;
+}
+
 namespace Common {
     /*
         names 
@@ -218,8 +240,9 @@ namespace Common {
         dedent = 2224769550356995471ULL,
 
         if_stmt = 5300980200188049869ULL,
-        arguments = 16442092644301152671ULL,
-        arg = 16669728881526232807ULL,
+        subroutine_op_args = 4098213824854424185ULL,
+        gate_op_args = 5968085974550298764ULL,
+        subroutine_op_arg = 11699520117738358096ULL,
         else_stmt = 2582766405432659795ULL,
         elif_stmt = 9453565397799917274ULL,
         disjunction = 13554539731759707019ULL,

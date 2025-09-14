@@ -20,7 +20,7 @@ class Compound_stmt : public Node {
         }
 
         static std::shared_ptr<Compound_stmt> from_num_qubit_ops(unsigned int target_num_qubit_ops){
-            Compound_stmt stmt;            
+            Compound_stmt stmt;
 
             if(target_num_qubit_ops == 1){
                 /*

@@ -14,7 +14,7 @@ class Grammar{
     public:
         Grammar(){}
 
-        Grammar(const fs::path& filename);
+        Grammar(const fs::path& filename, std::vector<Token::Token>& meta_grammar_tokens);
 
         void consume(int n);
 
@@ -70,7 +70,13 @@ class Grammar{
 
         void build_grammar();
 
-        void print_grammar() const;
+        friend std::ostream& operator<<(std::ostream& stream, const Grammar& grammar){
+            for(const auto& p : grammar.rule_pointers){
+                std::cout << *p << std::endl;
+            }
+
+            return stream;
+        }
 
         void print_rules() const;
 
@@ -89,22 +95,17 @@ class Grammar{
 
         inline std::string get_path(){return path.string();}
 
-        std::vector<std::shared_ptr<Rule>> get_rule_pointers() const {
-            return rule_pointers;
-        }
+        // std::vector<std::shared_ptr<Rule>> get_rule_pointers() const {
+        //     return rule_pointers;
+        // }
 
-        Grammar& operator+=(const Grammar& other){
-            std::vector<std::shared_ptr<Rule>> other_rule_pointers = other.get_rule_pointers();
-
-            for(const auto& other_ptr: other_rule_pointers){
-
-                if(!rule_defined(*other_ptr)){
-                    rule_pointers.push_back(other_ptr);
-                }
-            }
-        
-            return *this;
-        }
+        // /// @brief Deep copy rule pointers from the other grammar
+        // /// @param other 
+        // void operator=(const Grammar& other){
+        //     for(const std::shared_ptr<Rule>& orp :  other.get_rule_pointers()){
+        //         rule_pointers.push_back(std::make_shared<Rule>(*orp));
+        //     }
+        // }
 
         bool rule_defined(const Rule& other){
             for(const auto& ptr : rule_pointers){

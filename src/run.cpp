@@ -4,25 +4,21 @@
 
 
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
+
+    std::vector<Token::Token> meta_grammar_tokens;
+    
     // build all grammars
     try{
 
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
-            Grammar commons_grammar;
-
             /*
-                find tokens grammar and parse that first
+                find meta grammar
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().stem() == Common::META_GRAMMAR_NAME)){
-                    Grammar grammar(file);
-                    grammar.build_grammar();
-
-                    commons_grammar = std::move(grammar);
-
-                    std::cout << "Built " << Common::META_GRAMMAR_NAME << std::endl;
-                    generators[Common::META_GRAMMAR_NAME] = std::make_shared<Generator>(commons_grammar);
+                if(file.is_regular_file() && (file.path().stem() == Common::META_GRAMMAR_NAME)){                    
+                    Lexer::Lexer lexer(file.path().string());
+                    meta_grammar_tokens = std::move(lexer.get_tokens());
                     break;
                 }
             }
@@ -34,17 +30,14 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
                 if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != Common::META_GRAMMAR_NAME)){
 
-                    Grammar grammar(file);
+                    Grammar grammar(file, meta_grammar_tokens);
                     grammar.build_grammar();
-
-                    grammar += commons_grammar;
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;
-                    generators[name] = std::make_shared<Generator>(grammar);
                     
+                    generators[name] = std::make_shared<Generator>(grammar);
                 }
-
             }
 
             /* 

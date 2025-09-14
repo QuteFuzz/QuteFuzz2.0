@@ -8,7 +8,9 @@ class Rule;
 class Term {
     public:
         Term(){}
+
         Term(const std::string& name, unsigned int nd, unsigned int id = 0): _name(name), nesting_depth(nd), indent_depth(id) {}
+        
         ~Term() = default;
 
         void set(std::shared_ptr<Rule> term);

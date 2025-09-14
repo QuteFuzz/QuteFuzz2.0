@@ -153,9 +153,9 @@ class Block : public Node {
             return bit_defs;
         }
 
-        std::shared_ptr<Resource::Qubit> get_random_qubit(U8 scope_filter);
+        std::shared_ptr<Resource::Qubit> get_random_qubit(const U8& scope);
         
-        std::shared_ptr<Resource::Bit> get_random_bit(U8 scope_filter );
+        std::shared_ptr<Resource::Bit> get_random_bit(const U8& scope);
 
         std::shared_ptr<Qubit_definition> get_next_qubit_def(const U8& scope);
 

@@ -1,11 +1,5 @@
 #include <branch.h>
 
-void Branch::print(std::ostream& os) const {
-    for(const auto& elem : terms){
-        os << elem << " ";
-    }
-}
-
 void Branch::add(const Term& term){
     terms.push_back(term);
 }

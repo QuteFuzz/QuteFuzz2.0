@@ -25,12 +25,14 @@ struct Generator {
         }
 
         void print_grammar(){
-            grammar->print_grammar();
+            std::cout << *grammar;
         }
 
         void print_tokens(){
             grammar->print_tokens();
         }
+
+        inline std::shared_ptr<Grammar> get_grammar() const { return grammar; }
 
         Dag::Dag crossover(const Dag::Dag& dag1, const Dag::Dag& dag2);
 

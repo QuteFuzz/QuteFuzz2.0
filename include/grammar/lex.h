@@ -62,13 +62,11 @@ namespace Lexer {
         {R"(RBRACK)", Token::SYNTAX, std::make_optional<std::string>("]")},
         {R"(LBRACE)", Token::SYNTAX, std::make_optional<std::string>("{")},
         {R"(RBRACE)", Token::SYNTAX, std::make_optional<std::string>("}")},
-
         {R"(COMMA)", Token::SYNTAX, std::make_optional<std::string>(",")},
         {R"(SPACE)", Token::SYNTAX, std::make_optional<std::string>(" ")},
         {R"(DOT)", Token::SYNTAX, std::make_optional<std::string>(".")},
         {R"(SINGLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\'")},
         {R"(DOUBLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\"")},
-
         {R"(EQUALS)", Token::SYNTAX, std::make_optional<std::string>("=")},
         {R"(NEWLINE)", Token::SYNTAX, std::make_optional<std::string>("\n")},
 

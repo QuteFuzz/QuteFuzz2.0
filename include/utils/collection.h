@@ -29,12 +29,16 @@ struct Collection {
 
         std::shared_ptr<T> at(size_t index) {
             if(index < coll.size()){
-                return coll.at(index); 
+                return coll.at(index);
 
             } else {
                 return nullptr;
 
             }
+        }
+
+        size_t size() const {
+            return coll.size();
         }
 
         size_t get_num_of(const U8& scope) const {

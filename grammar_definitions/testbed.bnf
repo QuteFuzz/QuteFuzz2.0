@@ -1,3 +1,5 @@
 hello = "my" NEWLINE dw;
 
 dw : "wife";
+
+compound_stmt = qubit_op;

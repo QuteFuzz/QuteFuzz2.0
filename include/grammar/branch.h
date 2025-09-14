@@ -63,7 +63,13 @@ class Branch {
 
         void setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const;
 
-        void print(std::ostream& os) const;
+        friend std::ostream& operator<<(std::ostream& stream, const Branch& branch){
+            for(const auto& elem : branch.terms){
+                stream << elem << " ";
+            }
+
+            return stream;
+        }
 
     private:
         std::string name;

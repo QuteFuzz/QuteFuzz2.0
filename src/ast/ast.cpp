@@ -9,10 +9,10 @@
 #include <float.h>
 #include <float_list.h>
 #include <resource_list.h>
-#include <arguments.h>
+#include <subroutine_op_args.h>
 #include <resource_defs.h>
 #include <qubit_op.h>
-#include <gate_op_kind.h>
+#include <gate_op_args.h>
 #include <subroutines.h>
 #include <compound_stmt.h>
 #include <nested_branch.h>
@@ -39,16 +39,15 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 	}
 
 	if(term.is_syntax()){
+		// std::cout << term.get_syntax() << std::endl;
 		return std::make_shared<Node>(term.get_syntax());
 	}
 
-	// std::cout << *parent << std::endl;
-	// getchar();
-
 	U64 hash = term.get_hash();
 	U8 scope = term.get_scope();
-	std::string str = term.get_string();
 
+	std::string str = term.get_string();
+	
 	if(*parent == Common::compare_op_bitwise_or_pair){
 		return std::make_shared<Compare_op_bitwise_or_pair_child>(str, hash);
 	}
@@ -66,14 +65,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 			return dummy;
 
-		// case Common::block: case Common::main_block:
-		// 	return context.new_block_node(str, hash);
-
+		/// TODO: add grammar syntax to allow certain rules to exclude other rules downstream, useful for non_comptime_block
 		// case Common::non_comptime_block:
 		// 	context.set_can_apply_subroutines(false);
 		// 	return std::make_shared<Node>(str, hash);
-
-		// TODO: add grammar syntax to allow certain rules to exclude other rules downstream, useful for non_comptime_block
 
 		case Common::circuit_def:
 			return context.new_block_node(str, hash);
@@ -84,14 +79,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::compound_stmts:
 			return context.get_compound_stmts(parent);
 		
-		case Common::arguments: {			
-			unsigned int num_args = context.get_current_gate_num_params();
-			return std::make_shared<Arguments>(num_args);
-		}
-
-		case Common::arg:
-			return context.new_arg();
-
 		// case Common::arg_singular_qubit:
 		// 	return std::make_shared<Qubit_list>(1);
 
@@ -122,18 +109,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::circuit_id:
 			return context.get_circuit_id();
 
-		case Common::total_num_qubits: {
+		case Common::total_num_qubits:
 			return std::make_shared<Integer>(context.get_max_external_qubits());
-		}
 
 		case Common::main_circuit_name:				
 			return std::make_shared<Variable>(Common::TOP_LEVEL_CIRCUIT_NAME);
 
 		case Common::subroutine_defs:
 			return context.new_subroutines_node();	
-
-		// case Common::gate_op_kind:
-		// 	return std::make_shared<Gate_op_kind>(str, hash, context.get_current_gate_num_params(), context.get_current_gate_num_bits());
 
 		case Common::qubit_op:
 			return context.new_qubit_op_node();
@@ -185,40 +168,37 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		// //	===============================================================
 
-		case Common::qubit_list: {
-			unsigned int num_qubits = context.get_current_gate_num_qubits();
-			return std::make_shared<Qubit_list>(num_qubits);
-		}
+		case Common::qubit_list:
+			return std::make_shared<Qubit_list>(context.get_current_gate()->get_num_external_qubits());
 
-		case Common::bit_list: {
-			unsigned int num_bits = context.get_current_gate_num_bits();
-			return std::make_shared<Bit_list>(num_bits);
-		}
+		case Common::bit_list:
+			return std::make_shared<Bit_list>(context.get_current_gate()->get_num_external_bits());
+
+		case Common::float_list:
+			return std::make_shared<Float_list>(context.get_current_gate()->get_num_floats());
 
 		// (qu)bit_def_list and (qu)bit_def_size are a special cases used only for pytket->guppy conversion
 		case Common::qubit_def_list:
 			context.get_current_block()->qubit_def_pointer_reset();
-			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_qubit_defs_of(OWNED_SCOPE)));
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_qubit_defs_of(EXTERNAL_SCOPE)));
 
-		case Common::qubit_def_size: {
+		case Common::qubit_def_size:
 			if (context.new_qubit_definition(OWNED_SCOPE)->is_register_def()) {
 				return context.get_current_qubit_definition_size();
 			} else {
 				return std::make_shared<Integer>(0);
 			}
-		}
 
 		case Common::bit_def_list:
 			context.get_current_block()->bit_def_pointer_reset();
 			return std::make_shared<Node>(str, hash, Node_constraint(Common::bit_def_size, context.get_current_block()->num_bit_defs_of(EXTERNAL_SCOPE)));
 
-		case Common::bit_def_size: {
+		case Common::bit_def_size:
 			if (context.new_bit_definition(EXTERNAL_SCOPE)->is_register_def()) {
 				return context.get_current_bit_definition_size();
 			} else {
 				return std::make_shared<Integer>(0);
 			}
-		}
 
 		case Common::qubit_index:
 			return context.get_current_qubit_index();
@@ -226,7 +206,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::qubit_name:
 			return context.get_current_qubit_name();
 
-		case Common::qubit: 
+		case Common::qubit:
 			return context.new_qubit();
 
 		case Common::bit_index:
@@ -238,11 +218,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		case Common::bit:
 			return context.new_bit();
 		
-		case Common::float_list: {
-			unsigned int num_floats = context.get_current_gate_num_params();
-			return std::make_shared<Float_list>(str, hash, num_floats);
-		}
-
 		case Common::float_literal:
 			return std::make_shared<Float>();
 
@@ -254,48 +229,59 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::subroutine: {
 			std::shared_ptr<Block> subroutine = context.get_random_block();
-			int num_sub_qubits = subroutine->num_qubits_of(EXTERNAL_SCOPE);
-			int num_sub_bits = subroutine->num_bits_of(EXTERNAL_SCOPE);
-
-			subroutine->qubit_def_pointer_reset();
-
+			
 			/*
 				create gate from subroutine
 				- the hash of the node will be Common::subroutine, and the string will be the name of the block defining this subroutine
 				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
 			*/
-			return context.new_gate(subroutine->get_owner(), num_sub_qubits, num_sub_bits, subroutine->num_qubit_defs_of(EXTERNAL_SCOPE), hash);
+			return context.new_gate(subroutine->get_owner(), hash, subroutine->get_qubit_defs());
 		}
 
+		case Common::subroutine_op_args:
+			return std::make_shared<Subroutine_op_args>(context.get_current_gate()->get_num_external_qubit_defs());
+
+		case Common::subroutine_op_arg:
+			return context.new_arg();
+	
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 		case Common::tdg: case Common::s: case Common::sdg: case Common::project_z: case Common::measure_and_reset:
 		case Common::v: case Common::vdg:
-			return context.new_gate(str, 1, 0, 0, hash);
+			return context.new_gate(str, hash, 1, 0, 0);
 
 		case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
 		case Common::ch:
-			return context.new_gate(str, 2, 0, 0, hash);
+			return context.new_gate(str, hash, 2, 0, 0);
 
 		case Common::crz:
-			return context.new_gate(str, 2, 0, 1, hash);
+			return context.new_gate(str, hash, 2, 0, 1);
 
 		case Common::ccx: case Common::cswap: case Common::toffoli:
-			return context.new_gate(str, 3, 0, 0, hash);
+			return context.new_gate(str, hash, 3, 0, 0);
 
 		case Common::u1: case Common::rx: case Common::ry: case Common::rz:
-			return context.new_gate(str, 1, 0, 1, hash);
+			return context.new_gate(str, hash, 1, 0, 1);
 
 		case Common::u2:
-			return context.new_gate(str, 1, 0, 2, hash);
+			return context.new_gate(str, hash, 1, 0, 2);
 
 		case Common::u3: case Common::u:
-			return context.new_gate(str, 1, 0, 3, hash);
+			return context.new_gate(str, hash, 1, 0, 3);
 		
 		case Common::Measure:
-			return context.new_gate(str, 1, 1, 0, hash);
+			return context.new_gate(str, hash, 1, 1, 0);
 		
-		case Common::barrier:
-			return context.get_barrier();
+		case Common::barrier:{
+			std::shared_ptr<Block> current_block = context.get_current_block();
+
+			unsigned int n_qubits = std::min((unsigned int)WILDCARD_MAX, (unsigned int)current_block->num_qubits_of(ALL_SCOPES));
+			unsigned int random_barrier_width = random_int(n_qubits, 1);
+
+			return context.new_gate(str, hash, random_barrier_width, 0, 0);
+		}
+
+		case Common::gate_op_args:
+			return std::make_shared<Gate_op_args>(context.get_current_gate());
 
 		default:
 			return std::make_shared<Node>(str, hash);

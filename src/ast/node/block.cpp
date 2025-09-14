@@ -1,7 +1,7 @@
 #include <block.h>
 
-std::shared_ptr<Resource::Qubit> Block::get_random_qubit(U8 scope_filter){
-    size_t total_qubits = qubits.get_num_of(ALL_SCOPES);
+std::shared_ptr<Resource::Qubit> Block::get_random_qubit(const U8& scope){
+    size_t total_qubits = qubits.get_num_of(scope);
     
     if(total_qubits){
 
@@ -11,7 +11,7 @@ std::shared_ptr<Resource::Qubit> Block::get_random_qubit(U8 scope_filter){
 
         std::shared_ptr<Resource::Qubit> qubit = qubits.at(random_int(total_qubits - 1));
 
-        while(qubit->is_used() || !(qubit->get_scope() & scope_filter)){
+        while(qubit->is_used() || !(qubit->get_scope() & scope)){
             qubit = qubits.at(random_int(total_qubits - 1));
         }
 
@@ -24,8 +24,8 @@ std::shared_ptr<Resource::Qubit> Block::get_random_qubit(U8 scope_filter){
     }
 }
 
-std::shared_ptr<Resource::Bit> Block::get_random_bit(U8 scope_filter){
-    size_t total_bits = bits.get_num_of(ALL_SCOPES);
+std::shared_ptr<Resource::Bit> Block::get_random_bit(const U8& scope){
+    size_t total_bits = bits.get_num_of(scope);
     
     if(total_bits){
 
@@ -35,7 +35,7 @@ std::shared_ptr<Resource::Bit> Block::get_random_bit(U8 scope_filter){
 
         std::shared_ptr<Resource::Bit> bit = bits.at(random_int(total_bits - 1));
 
-        while(bit->is_used() || !(bit->get_scope() & scope_filter)){
+        while(bit->is_used() || !(bit->get_scope() & scope)){
             bit = bits.at(random_int(total_bits - 1));
         }
 
@@ -93,7 +93,7 @@ unsigned int Block::make_register_resource_definition(unsigned int max_size, U8&
     if (classification == Resource::QUBIT) {
         Register_qubit_definition def(
             Variable("qreg" + std::to_string(qubit_defs.get_num_of(ALL_SCOPES))),
-            Integer(std::to_string(size))
+            Integer(size)
         );
 
         def.make_resources(qubits, scope);
@@ -103,7 +103,7 @@ unsigned int Block::make_register_resource_definition(unsigned int max_size, U8&
     } else {
         Register_bit_definition def(
             Variable("creg" + std::to_string(bit_defs.get_num_of(ALL_SCOPES))),
-            Integer(std::to_string(size))
+            Integer(size)
         );
 
         def.make_resources(bits, scope);
@@ -223,6 +223,7 @@ void Block::print_info() const {
 
         std::cout << std::endl;
     }
+
     std::cout << "=======================================" << std::endl;
 
 }

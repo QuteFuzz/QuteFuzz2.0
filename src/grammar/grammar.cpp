@@ -1,31 +1,11 @@
 #include <grammar.h>
 
-template<typename T>
-std::vector<T> multiply_vector(std::vector<T> vec, int mult){
-    std::vector<T> multiplied_vec;
+Grammar::Grammar(const fs::path& filename, std::vector<Token::Token>& meta_grammar_tokens): lexer(filename.string()), name(filename.stem()), path(filename) {
+    // remove EOF from meta grammar's tokens
+    meta_grammar_tokens.pop_back();
     
-    multiplied_vec.reserve(vec.size() * mult);
+    tokens = append_vectors(meta_grammar_tokens, lexer.get_tokens());
 
-    for(int i = 0; i < mult; ++i){
-        multiplied_vec.insert(multiplied_vec.end(), vec.begin(), vec.end());
-    }
-
-    return multiplied_vec;
-}
-
-template<typename T>
-std::vector<T> append_vectors(std::vector<T> vec1, std::vector<T> vec2){
-    std::vector<T> result = vec1;
-
-    result.insert(result.end(), vec2.begin(), vec2.end());
-
-    return result;
-}
-
-Grammar::Grammar(const fs::path& filename): lexer(filename.string()), name(filename.stem()), path(filename) {
-    // lexer.print_tokens();
-
-    tokens = lexer.get_tokens();
     num_tokens = tokens.size();
 
     consume(0); // prepare current token
@@ -111,6 +91,7 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
 void Grammar::add_term_to_current_branches(const Token::Token& token){
     if(current_branches.size() == 0){
         Branch b;
+
         add_term_to_branch(token, b);
         current_branches.push_back(b);
  
@@ -142,10 +123,8 @@ void Grammar::extend_current_branches(const Token::Token& wildcard){
             // use basis to get extensions depending on the wildcard being processed
             for(unsigned int mult = 2; mult <= WILDCARD_MAX; ++mult){
 
-                auto terms = append_vectors(
-                                basis.remainders, 
-                                multiply_vector(basis.mults, mult)
-                        );
+                auto terms = append_vectors(basis.remainders, multiply_vector(basis.mults, mult));
+                
                 Branch extension(terms);
                 extensions.push_back(extension);
             }
@@ -185,7 +164,6 @@ void Grammar::build_grammar(){
                 reset_current_branches();
                 
                 current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
-                current_rule->clear();
                 break;
             }
 
@@ -206,13 +184,10 @@ void Grammar::build_grammar(){
 
                 break;
 
-            case Token::SEPARATOR: {
-
+            case Token::SEPARATOR:
                 add_current_branches_to_rule();
                 reset_current_branches();
-
                 break;
-            }
 
             case Token::OPTIONAL: case Token::ZERO_OR_MORE: case Token::ONE_OR_MORE:
                 extend_current_branches(token);
@@ -274,15 +249,6 @@ void Grammar::build_grammar(){
 
 void Grammar::print_tokens() const {
     lexer.print_tokens();
-}
-
-void Grammar::print_grammar() const {
-
-    for(const auto& p : rule_pointers){
-        std::cout << p->get_name() << " = ";
-        p->print(std::cout);
-        std::cout << ";" << std::endl;
-    }
 }
 
 void Grammar::print_rules() const {

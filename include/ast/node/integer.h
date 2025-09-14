@@ -22,6 +22,10 @@ class Integer : public Node {
             string = std::to_string(num);
         }
 
+        inline int get_num(){
+            return num;
+        }
+
     private:
         int num;
 

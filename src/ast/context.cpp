@@ -178,7 +178,19 @@ namespace Context {
         return std::nullopt;
     }
 
-    
+    std::shared_ptr<Resource::Qubit> Context::new_qubit(){
+        // U8 scope = (*current_gate == Common::Measure) ? OWNED_SCOPE : ALL_SCOPES;
+
+        auto random_qubit = get_current_block()->get_random_qubit(ALL_SCOPES); 
+        
+        random_qubit->extend_flow_path(current_qubit_op, current_port++);
+
+        current_qubit = random_qubit;
+
+        std::cout << *get_current_block() << std::endl;
+
+        return current_qubit;
+    }
 
     std::shared_ptr<Integer> Context::get_current_qubit_index(){
         if(current_qubit != nullptr){
@@ -187,6 +199,13 @@ namespace Context {
             WARNING("Current qubit not set but trying to get index! Using dummy instead");
             return std::make_shared<Integer>(dummy_int);
         }
+    }
+
+    std::shared_ptr<Resource::Bit> Context::new_bit(){
+        auto random_bit = get_current_block()->get_random_bit(ALL_SCOPES);
+        current_bit = random_bit;
+        
+        return current_bit;
     }
 
     std::shared_ptr<Integer> Context::get_current_bit_index(){
@@ -317,34 +336,6 @@ namespace Context {
         subroutines_node = std::make_optional<std::shared_ptr<Subroutines>>(node);
 
         return node;
-    }
-
-
-    int Context::get_current_gate_num_params(){
-        if(current_gate != nullptr){
-            return current_gate->get_num_params();
-        } else {
-            WARNING("Current gate not set but trying to get num params! 1 parameter will be returned");
-            return 1;
-        }
-    }
-
-    int Context::get_current_gate_num_qubits(){
-        if(current_gate != nullptr){
-            return current_gate->get_num_qubits();
-        } else {
-            WARNING("Current gate not set but trying to get num params! 1 qubit will be returned");
-            return 1;
-        }
-    }
-
-    int Context::get_current_gate_num_bits(){
-        if(current_gate != nullptr){
-            return current_gate->get_num_bits();
-        } else {
-            WARNING("Current gate not set but trying to get num bits! 1 bit will be returned");
-            return 1;
-        }
     }
 
     void Context::set_genome(const std::optional<Genome>& _genome){
