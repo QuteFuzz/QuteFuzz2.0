@@ -4,7 +4,8 @@ void Lexer::Lexer::lex(){
     std::string input, matched_string;
     std::vector<Token::Token> tokens;
     std::ifstream stream(_filename);
-    std::regex full_pattern(FULL_REGEX);
+    
+    std::regex full_pattern(FULL_REGEX, std::regex::icase);
 
     std::sregex_iterator end;
 
@@ -29,7 +30,7 @@ void Lexer::Lexer::lex(){
 
             } else {
             
-                for(const Token_rule& tr : TOKEN_RULES){
+                for(const Token::Rule& tr : TOKEN_RULES){
                     if(string_is(matched_string, tr.pattern)){
 
                         if(tr.kind == Token::SYNTAX){

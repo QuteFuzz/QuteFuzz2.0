@@ -10,7 +10,8 @@
 #include <result.h>
 
 namespace Token {
-    enum Token_kind {
+
+    enum Kind {
         _EOF = 0,
         RULE_KINDS_TOP,
 /*
@@ -109,6 +110,7 @@ namespace Token {
 
         SEPARATOR,
         RULE_START,
+        RULE_APPEND,
         RULE_END,
         SYNTAX,
         LPAREN,
@@ -131,7 +133,7 @@ namespace Token {
 
     struct Token{
         std::string value;
-        Token_kind kind;
+        Kind kind;
 
         friend std::ostream& operator<<(std::ostream& stream, const Token t){
             if(t.kind == SYNTAX) std::cout << t.kind << " " << std::quoted(t.value);        
@@ -140,141 +142,168 @@ namespace Token {
             return stream;
         }
     };
+
+    struct Rule {
+
+        Rule(const std::string& p, const Kind& k, bool match_exact = true){
+            pattern = p;
+            kind = k;
+
+            mod_pattern(match_exact);
+        }
+
+        Rule(const std::string& p, const Kind& k, std::optional<std::string> v, bool match_exact = true){
+            pattern = p;
+            kind = k;
+            value = v;
+
+            mod_pattern(match_exact);
+        }
+
+        void mod_pattern(const bool& match_exact){
+        
+            if(match_exact){
+                pattern = "^" + pattern + "$";
+            }
+        }
+
+        std::string pattern;
+        Kind kind;
+
+        std::optional<std::string> value = std::nullopt;
+    };
+    
 }
 
 namespace Lexer {
 
-    struct Token_rule {
-        std::string pattern;
-        Token::Token_kind kind;
+    const std::vector<Token::Rule> TOKEN_RULES = {
 
-        std::optional<std::string> value = std::nullopt;
-    };
+        Token::Rule(R"(subroutine_defs)", Token::SUBROUTINE_DEFS),
+        Token::Rule(R"(block)", Token::BLOCK),
+        Token::Rule(R"(body)", Token::BODY),
+        Token::Rule(R"(qubit_defs)", Token::QUBIT_DEFS),
+        Token::Rule(R"(bit_defs)", Token::BIT_DEFS),
+        Token::Rule(R"(qubit_def)", Token::QUBIT_DEF),
+        Token::Rule(R"(register_qubit_def)", Token::REGISTER_QUBIT_DEF),
+        Token::Rule(R"(singular_qubit_def)", Token::SINGULAR_QUBIT_DEF),
+        Token::Rule(R"(register_bit_def)", Token::REGISTER_BIT_DEF),
+        Token::Rule(R"(singular_bit_def)", Token::SINGULAR_BIT_DEF),
+        Token::Rule(R"(circuit_name)", Token::CIRCUIT_NAME),
+        Token::Rule(R"(float_list)", Token::FLOAT_LIST),
+        Token::Rule(R"(float_literal)", Token::FLOAT_LITERAL),
+        Token::Rule(R"(main_circuit_name)", Token::MAIN_CIRCUIT_NAME),
+        Token::Rule(R"(qubit_def_name)", Token::QUBIT_DEF_NAME),
+        Token::Rule(R"(bit_def_name)", Token::BIT_DEF_NAME),
+        Token::Rule(R"(qreg_size)", Token::QREG_SIZE),
+        Token::Rule(R"(creg_size)", Token::CREG_SIZE),
+        Token::Rule(R"(qubit)", Token::QUBIT),
+        Token::Rule(R"(bit)", Token::BIT),
+        Token::Rule(R"(qubit_op)", Token::QUBIT_OP),
+        Token::Rule(R"(gate_op)", Token::GATE_OP),
+        Token::Rule(R"(subroutine_op)", Token::SUBROUTINE_OP),
+        Token::Rule(R"(gate_name)", Token::GATE_MAME),
+        Token::Rule(R"(qubit_list)", Token::QUBIT_LIST),
+        Token::Rule(R"(bit_list)", Token::BIT_LIST),
+        Token::Rule(R"(qubit_def_list)", Token::QUBIT_DEF_LIST),
+        Token::Rule(R"(qubit_def_size)", Token::QUBIT_DEF_SIZE),
+        Token::Rule(R"(bit_def_list)", Token::BIT_DEF_LIST),
+        Token::Rule(R"(bit_def_size)", Token::BIT_DEF_SIZE),
+        Token::Rule(R"(singular_qubit)", Token::SINGULAR_QUBIT),
+        Token::Rule(R"(register_qubit)", Token::REGISTER_QUBIT),
+        Token::Rule(R"(singular_bit)", Token::SINGULAR_BIT),
+        Token::Rule(R"(register_bit)", Token::REGISTER_BIT),
+        Token::Rule(R"(qubit_name)", Token::QUBIT_NAME),
+        Token::Rule(R"(bit_name)", Token::BIT_NAME),
+        Token::Rule(R"(qubit_index)", Token::QUBIT_INDEX),
+        Token::Rule(R"(bit_index)", Token::BIT_INDEX),
+        Token::Rule(R"(subroutine)", Token::SUBROUTINE),
+        Token::Rule(R"(circuit_id)", Token::CIRCUIT_ID),
+        Token::Rule(R"(INDENT)", Token::INDENT),
+        Token::Rule(R"(DEDENT)", Token::DEDENT),
+        Token::Rule(R"(if_stmt)", Token::IF_STMT),
+        Token::Rule(R"(else_stmt)", Token::ELSE_STMT),
+        Token::Rule(R"(elif_stmt)", Token::ELIF_STMT),
+        Token::Rule(R"(disjunction)", Token::DISJUNCTION),
+        Token::Rule(R"(conjunction)", Token::CONJUNCTION),
+        Token::Rule(R"(inversion)", Token::INVERSION),
+        Token::Rule(R"(expression)", Token::EXPRESSION),
+        Token::Rule(R"(compare_op_bitwise_or_pair)", Token::COMPARE_OP_BITWISE_OR_PAIR),
+        Token::Rule(R"(NUMBER)", Token::NUMBER),
+        Token::Rule(R"(subroutine_op_args)", Token::SUBROUTINE_OP_ARGS),
+        Token::Rule(R"(gate_op_args)", Token::GATE_OP_ARGS),
+        Token::Rule(R"(subroutine_op_arg)", Token::SUBROUTINE_OP_ARG),
 
-    const std::vector<Token_rule> TOKEN_RULES = {
+        Token::Rule(R"(h)", Token::H),
+        Token::Rule(R"(x)", Token::X),
+        Token::Rule(R"(y)", Token::Y),
+        Token::Rule(R"(z)", Token::Z),
+        Token::Rule(R"(rz)", Token::RZ),
+        Token::Rule(R"(rx)", Token::RX),
+        Token::Rule(R"(ry)", Token::RY),
+        Token::Rule(R"(u1)", Token::U1),
+        Token::Rule(R"(s)", Token::S),
+        Token::Rule(R"(sgd)", Token::SGD),
+        Token::Rule(R"(t)", Token::T),
+        Token::Rule(R"(tdg)", Token::TDG),
+        Token::Rule(R"(v)", Token::V),
+        Token::Rule(R"(vdg)", Token::VDG),
+        Token::Rule(R"(phasedxpowgate)", Token::PHASEDXPOWGATE),
+        Token::Rule(R"(project_z)", Token::PROJECT_Z),
+        Token::Rule(R"(measure_and_reset)", Token::MEASURE_AND_RESET),
+        Token::Rule(R"(measure)", Token::MEASURE),
+        Token::Rule(R"(cx)", Token::CX),
+        Token::Rule(R"(cy)", Token::CY),
+        Token::Rule(R"(cz)", Token::CZ),
+        Token::Rule(R"(ccx)", Token::CCX),
+        Token::Rule(R"(u2)", Token::U2),
+        Token::Rule(R"(cnot)", Token::CNOT),
+        Token::Rule(R"(ch)", Token::CH),
+        Token::Rule(R"(crz)", Token::CRZ),
+        Token::Rule(R"(u3)", Token::U3),
+        Token::Rule(R"(cswap)", Token::CSWAP),
+        Token::Rule(R"(toffoli)", Token::TOFFOLI),
+        Token::Rule(R"(u)", Token::U),
+        Token::Rule(R"(barrier)", Token::BARRIER),
 
-        // {R"(subroutine_defs)", Token::SUBROUTINE_DEFS},
-        // {R"(block)", Token::BLOCK},
-        // {R"(body)", Token::BODY},
-        // {R"(qubit_defs)", Token::QUBIT_DEFS},
-        // {R"(bit_defs)", Token::BIT_DEFS},
-        // {R"(qubit_def)", Token::QUBIT_DEF},
-        // {R"(register_qubit_def)", Token::REGISTER_QUBIT_DEF},
-        // {R"(singular_qubit_def)", Token::SINGULAR_QUBIT_DEF},
-        // {R"(register_bit_def)", Token::REGISTER_BIT_DEF},
-        // {R"(singular_bit_def)", Token::SINGULAR_BIT_DEF},
-        // {R"(circuit_name)", Token::CIRCUIT_NAME},
-        // {R"(float_list)", Token::FLOAT_LIST},
-        // {R"(float_literal)", Token::FLOAT_LITERAL},
-        // {R"(main_circuit_name)", Token::MAIN_CIRCUIT_NAME},
-        // {R"(qubit_def_name)", Token::QUBIT_DEF_NAME},
-        // {R"(bit_def_name)", Token::BIT_DEF_NAME},
-        // {R"(qreg_size)", Token::QREG_SIZE},
-        // {R"(creg_size)", Token::CREG_SIZE},
-        // {R"(qubit)", Token::QUBIT},
-        // {R"(bit)", Token::BIT},
-        // {R"(qubit_op)", Token::QUBIT_OP},
-        // {R"(gate_op)", Token::GATE_OP},
-        // {R"(subroutine_op)", Token::SUBROUTINE_OP},
-        // {R"(gate_name)", Token::GATE_MAME},
-        // {R"(qubit_list)", Token::QUBIT_LIST},
-        // {R"(bit_list)", Token::BIT_LIST},
-        // {R"(qubit_def_list)", Token::QUBIT_DEF_LIST},
-        // {R"(qubit_def_size)", Token::QUBIT_DEF_SIZE},
-        // {R"(bit_def_list)", Token::BIT_DEF_LIST},
-        // {R"(bit_def_size)", Token::BIT_DEF_SIZE},
-        // {R"(singular_qubit)", Token::SINGULAR_QUBIT},
-        // {R"(register_qubit)", Token::REGISTER_QUBIT},
-        // {R"(singular_bit)", Token::SINGULAR_BIT},
-        // {R"(register_bit)", Token::REGISTER_BIT},
-        // {R"(qubit_name)", Token::QUBIT_NAME},
-        // {R"(bit_name)", Token::BIT_NAME},
-        // {R"(qubit_index)", Token::QUBIT_INDEX},
-        // {R"(bit_index)", Token::BIT_INDEX},
-        // {R"(subroutine)", Token::SUBROUTINE},
-        // {R"(circuit_id)", Token::CIRCUIT_ID},
-        // {R"(INDENT)", Token::INDENT},
-        // {R"(DEDENT)", Token::DEDENT},
-        // {R"(if_stmt)", Token::IF_STMT},
-        // {R"(else_stmt)", Token::ELSE_STMT},
-        // {R"(elif_stmt)", Token::ELIF_STMT},
-        // {R"(disjunction)", Token::DISJUNCTION},
-        // {R"(conjunction)", Token::CONJUNCTION},
-        // {R"(inversion)", Token::INVERSION},
-        // {R"(expression)", Token::EXPRESSION},
-        // {R"(compare_op_bitwise_or_pair)", Token::COMPARE_OP_BITWISE_OR_PAIR},
-        // {R"(NUMBER)", Token::NUMBER},
-        // {R"(subroutine_op_args)", Token::SUBROUTINE_OP_ARGS},
-        // {R"(gate_op_args)", Token::GATE_OP_ARGS},
-        // {R"(subroutine_op_arg)", Token::SUBROUTINE_OP_ARG},
+        Token::Rule(R"(LPAREN)", Token::SYNTAX, std::make_optional<std::string>("(")),
+        Token::Rule(R"(RPAREN)", Token::SYNTAX, std::make_optional<std::string>(")")),
+        Token::Rule(R"(LBRACK)", Token::SYNTAX, std::make_optional<std::string>("[")),
+        Token::Rule(R"(RBRACK)", Token::SYNTAX, std::make_optional<std::string>("]")),
+        Token::Rule(R"(LBRACE)", Token::SYNTAX, std::make_optional<std::string>("{")),
+        Token::Rule(R"(RBRACE)", Token::SYNTAX, std::make_optional<std::string>("}")),
+        Token::Rule(R"(COMMA)", Token::SYNTAX, std::make_optional<std::string>(",")),
+        Token::Rule(R"(SPACE)", Token::SYNTAX, std::make_optional<std::string>(" ")),
+        Token::Rule(R"(DOT)", Token::SYNTAX, std::make_optional<std::string>(".")),
+        Token::Rule(R"(SINGLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\'")),
+        Token::Rule(R"(DOUBLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\"")),
+        Token::Rule(R"(EQUALS)", Token::SYNTAX, std::make_optional<std::string>("=")),
+        Token::Rule(R"(NEWLINE)", Token::SYNTAX, std::make_optional<std::string>("\n")),
+        Token::Rule(R"(\".*?\"|\'.*?\')", Token::SYNTAX, false),
 
-        // {R"(h)", Token::H},
-        // {R"(x)", Token::X},
-        // {R"(y)", Token::Y},
-        // {R"(z)", Token::Z},
-        // {R"(rz)", Token::RZ},
-        // {R"(rx)", Token::RX},
-        // {R"(ry)", Token::RY},
-        // {R"(u1)", Token::U1},
-        // {R"(s)", Token::S},
-        // {R"(sgd)", Token::SGD},
-        // {R"(t)", Token::T},
-        // {R"(tdg)", Token::TDG},
-        // {R"(v)", Token::V},
-        // {R"(vdg)", Token::VDG},
-        // {R"(phasedxpowgate)", Token::PHASEDXPOWGATE},
-        // {R"(project_z)", Token::PROJECT_Z},
-        // {R"(measure_and_reset)", Token::MEASURE_AND_RESET},
-        // {R"(measure)", Token::MEASURE},
-        // {R"(cx)", Token::CX},
-        // {R"(cy)", Token::CY},
-        // {R"(cz)", Token::CZ},
-        // {R"(ccx)", Token::CCX},
-        // {R"(u2)", Token::U2},
-        // {R"(cnot)", Token::CNOT},
-        // {R"(ch)", Token::CH},
-        // {R"(crz)", Token::CRZ},
-        // {R"(u3)", Token::U3},
-        // {R"(cswap)", Token::CSWAP},
-        // {R"(toffoli)", Token::TOFFOLI},
-        // {R"(u)", Token::U},
-        // {R"(barrier)", Token::BARRIER},
+        Token::Rule(R"(EXTERNAL(::)?)", Token::EXTERNAL, false),
+        Token::Rule(R"(INTERNAL(::)?)", Token::INTERNAL, false),
+        Token::Rule(R"(OWNED(::)?)", Token::OWNED, false),
 
-        {R"(LPAREN)", Token::SYNTAX, std::make_optional<std::string>("(")},
-        {R"(RPAREN)", Token::SYNTAX, std::make_optional<std::string>(")")},
-        {R"(LBRACK)", Token::SYNTAX, std::make_optional<std::string>("[")},
-        {R"(RBRACK)", Token::SYNTAX, std::make_optional<std::string>("]")},
-        {R"(LBRACE)", Token::SYNTAX, std::make_optional<std::string>("{")},
-        {R"(RBRACE)", Token::SYNTAX, std::make_optional<std::string>("}")},
-        {R"(COMMA)", Token::SYNTAX, std::make_optional<std::string>(",")},
-        {R"(SPACE)", Token::SYNTAX, std::make_optional<std::string>(" ")},
-        {R"(DOT)", Token::SYNTAX, std::make_optional<std::string>(".")},
-        {R"(SINGLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\'")},
-        {R"(DOUBLE_QUOTE)", Token::SYNTAX, std::make_optional<std::string>("\"")},
-        {R"(EQUALS)", Token::SYNTAX, std::make_optional<std::string>("=")},
-        {R"(NEWLINE)", Token::SYNTAX, std::make_optional<std::string>("\n")},
+        Token::Rule(R"(\(\*)", Token::MULTI_COMMENT_START, false),
+        Token::Rule(R"(\*\))", Token::MULTI_COMMENT_END, false),
+        Token::Rule(R"(=|:)", Token::RULE_START, false),
+        Token::Rule(R"(\+=)", Token::RULE_APPEND, false),
+        Token::Rule(R"(\|)", Token::SEPARATOR, false),
+        Token::Rule(R"(;)", Token::RULE_END, false),
+        Token::Rule(R"(\()", Token::LPAREN, false),
+        Token::Rule(R"(\))", Token::RPAREN, false),
+        Token::Rule(R"(\[)", Token::LBRACK, false),
+        Token::Rule(R"(\])", Token::RBRACK, false),
+        Token::Rule(R"(\{)", Token::LBRACE, false),
+        Token::Rule(R"(\})", Token::RBRACE, false),
+        Token::Rule(R"(\*)", Token::ZERO_OR_MORE, false),
+        Token::Rule(R"(\?)", Token::OPTIONAL, false),
+        Token::Rule(R"(\+)", Token::ONE_OR_MORE, false),
+        Token::Rule(R"(\-\>)", Token::ARROW, false),
+        Token::Rule(R"(#)", Token::COMMENT, false),
 
-        {R"(\(\*)", Token::MULTI_COMMENT_START},
-        {R"(\*\))", Token::MULTI_COMMENT_END},
-        {R"(EXTERNAL(::)?)", Token::EXTERNAL},
-        {R"(INTERNAL(::)?)", Token::INTERNAL},
-        {R"(OWNED(::)?)", Token::OWNED},
-        {R"([a-zA-Z_]+)", Token::RULE},
-        {R"(\".*?\"|\'.*?\')", Token::SYNTAX},
-        {R"(=|:)", Token::RULE_START},
-        {R"(\|)", Token::SEPARATOR},
-        {R"(;)", Token::RULE_END},
-        {R"(\()", Token::LPAREN},
-        {R"(\))", Token::RPAREN},
-        {R"(\[)", Token::LBRACK},
-        {R"(\])", Token::RBRACK},
-        {R"(\{)", Token::LBRACE},
-        {R"(\})", Token::RBRACE},
-        {R"(\*)", Token::ZERO_OR_MORE},
-        {R"(\?)", Token::OPTIONAL},
-        {R"(\+)", Token::ONE_OR_MORE},
-        {R"(\-\>)", Token::ARROW},
-        {R"(#)", Token::COMMENT}
+        Token::Rule(R"([a-zA-Z_]+)", Token::RULE, false),
     };
 
     const std::string FULL_REGEX = [] {

@@ -18,7 +18,7 @@ class Grammar{
 
         void consume(int n);
 
-        void consume(const Token::Token_kind kind);
+        void consume(const Token::Kind kind);
 
         void peek();
 
@@ -58,7 +58,7 @@ class Grammar{
             }
         }
 
-        inline bool is_wildcard(const Token::Token_kind& kind) const {
+        inline bool is_wildcard(const Token::Kind& kind) const {
             return 
                 (kind ==  Token::OPTIONAL) || 
                 (kind == Token::ZERO_OR_MORE) || 
@@ -66,14 +66,14 @@ class Grammar{
                 ;
         }
 
-        inline bool is_kind_of_rule(const Token::Token_kind& kind) const { 
+        inline bool is_kind_of_rule(const Token::Kind& kind) const { 
             return 
                 (Token::RULE_KINDS_TOP < kind) && 
                 (Token::RULE_KINDS_BOTTOM > kind)
                 ;
         }
 
-        inline bool is_quiet(const Token::Token_kind& kind) const {
+        inline bool is_quiet(const Token::Kind& kind) const {
             return 
                 (kind == Token::MULTI_COMMENT_START)|| 
                 (kind == Token::MULTI_COMMENT_END) || 

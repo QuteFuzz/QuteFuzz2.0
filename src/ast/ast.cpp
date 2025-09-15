@@ -237,7 +237,7 @@ std::shared_ptr<Node> Ast::get_node(const std::shared_ptr<Node> parent, const Te
 				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
 			*/
 
-			// subroutine->print_info();
+			subroutine->print_info();
 
 			return context.new_gate(subroutine->get_owner(), hash, subroutine->get_qubit_defs());
 		}

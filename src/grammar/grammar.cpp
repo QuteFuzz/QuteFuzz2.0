@@ -21,7 +21,7 @@ void Grammar::consume(int n){
     }
 }
 
-void Grammar::consume(const Token::Token_kind kind){
+void Grammar::consume(const Token::Kind kind){
 
     if(curr_token.get_ok().kind == kind){
         consume(1);
@@ -159,6 +159,11 @@ void Grammar::build_grammar(){
             }
         
         } else if (token.kind == Token::RULE_START) {
+            reset_current_branches();
+            current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
+            current_rule->clear();
+        
+        } else if (token.kind == Token::RULE_APPEND){
             reset_current_branches();
             current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
         

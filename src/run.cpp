@@ -31,7 +31,7 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != Common::META_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().extension() == ".qf") && (file.path().stem() != Common::META_GRAMMAR_NAME)){
 
                     Grammar grammar(file, meta_grammar_tokens);
                     grammar.build_grammar();

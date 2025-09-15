@@ -1,4 +1,25 @@
 
+x = "X";
+y = "Y";
+z = "Z";
+cx = "CX";
+ch = "CH";
+cy = "CY";
+cz = "CZ";
+rx = "Rx";
+ry = "Ry";
+rz = "Rz";
+ccx = "CCX";
+v = "V";
+vdg = "Vdg";
+tdg = "Tdg";
+t = "T";
+sdg = "Sdg";
+h = "H";
+t = "T";
+s = "S";
+measure = "Measure";
+
 block = circuit_def_header NEWLINE body NEWLINE;
 
 body = EXTERNAL::qubit_defs EXTERNAL::bit_defs NEWLINE compound_stmts;
@@ -9,10 +30,6 @@ EXTERNAL {
 qubit_defs = (qubit_def NEWLINE)+;
 
 bit_defs = (bit_def NEWLINE)+;
-
-qubit_def = singular_qubit_def | register_qubit_def;
-
-bit_def = singular_bit_def | register_bit_def;
 
 singular_qubit_def = 
     qubit_def_name ' = Qubit("'  qubit_def_name '",0)' NEWLINE circuit_name ".add_qubit(" qubit_def_name ")";
@@ -46,9 +63,6 @@ compound_stmt = qubit_op;
 gate_op = circuit_name "." gate_name "(" gate_op_args ")";
 
 subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
-
-gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg | CY
-            | H | T | S | CH | Measure;
 
 condition_value = "condition_value=1"
                 | "condition_value=0";

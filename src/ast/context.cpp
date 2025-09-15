@@ -26,16 +26,25 @@ namespace Context {
         }
     }
 
+    bool Context::can_apply_subroutine(const std::shared_ptr<Block> dest, const std::shared_ptr<Block> block){
+        unsigned int max_qubits = dest->num_qubits_of(ALL_SCOPES);
+        unsigned int max_bits = dest->num_bits_of(ALL_SCOPES);
+
+        unsigned int num_external_qubits = block->num_qubits_of(EXTERNAL_SCOPE);
+        unsigned int num_external_bits = block->num_qubits_of(EXTERNAL_SCOPE);
+
+        bool has_enough_qubits = (num_external_qubits >= 1 && num_external_qubits <= max_qubits);
+        bool has_enough_bits = (num_external_bits >= 1 && num_external_qubits <= max_bits);
+        bool is_subroutine = !block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !block->owned_by(dest->get_owner());
+
+        return is_subroutine && has_enough_qubits && has_enough_bits;
+    }
+
     void Context::set_can_apply_subroutines(){
         std::shared_ptr<Block> current_block = get_current_block();
-        unsigned int max_qubits = current_block->num_qubits_of(ALL_SCOPES);
 
         for(std::shared_ptr<Block> block : blocks){
-            unsigned int num_external_qubits = block->num_qubits_of(EXTERNAL_SCOPE);
-            bool has_enough_qubits = (num_external_qubits >= 1 && num_external_qubits <= max_qubits);
-            bool is_subroutine = !block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !block->owned_by(current_block_owner);
-
-            if (is_subroutine && has_enough_qubits)
+            if (can_apply_subroutine(current_block, block))
             {
                 #ifdef DEBUG
                 INFO("Block " + current_block_owner + " can apply subroutines");
@@ -94,15 +103,12 @@ namespace Context {
             INFO("Getting random block");
             #endif
             
-            while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
-                block->owned_by(current_block_owner) ||
-                (block->num_qubits_of(EXTERNAL_SCOPE) > current_block->num_qubits_of(ALL_SCOPES))
-            )
-            {
+            while(!can_apply_subroutine(current_block, block)){
                 block = blocks.at(random_int(blocks.size()-1));
             }
 
             return block;
+        
         } else {
             return dummy_block;
         }

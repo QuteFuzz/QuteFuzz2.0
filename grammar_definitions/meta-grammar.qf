@@ -1,6 +1,18 @@
 
 # META-GRAMMAR
 
+INTERNAL {
+    qubit_def = singular_qubit_def | register_qubit_def;
+
+    bit_def = singular_bit_def | register_bit_def;
+}
+
+EXTERNAL {
+    qubit_def = singular_qubit_def | register_qubit_def;
+
+    bit_def = singular_bit_def | register_bit_def;
+}
+
 program       = imports NEWLINE subroutine_defs NEWLINE block NEWLINE compiler_call;
 
 subroutine_defs = (block NEWLINE subroutine_def_footer)*;
@@ -10,6 +22,26 @@ compound_stmts = (compound_stmt NEWLINE)+;
 
 qubit_op = gate_op | subroutine_op;
 
+gate_name = h
+    | x
+    | y
+    | z
+    | rz
+    | rx
+    | ry
+    | s
+    | sdg
+    | t
+    | tdg
+    | v
+    | vdg
+    | measure
+    | cx
+    | cy
+    | cz
+    | ccx
+    | ch;
+    
 gate_op_args = qubit_list
     | qubit_list ", " bit_list
     | float_list ", " qubit_list
