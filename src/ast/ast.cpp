@@ -21,8 +21,6 @@
 #include <compare_op_bitwise_or_pair_child.h>
 #include <expression.h>
 #include <gate_name.h>
-#include <discard_internal_qubits.h>
-#include <discard_internal_qubit.h>
 
 #include <generator.h>
 
@@ -138,26 +136,6 @@ std::shared_ptr<Node> Ast::get_node(const std::shared_ptr<Node> parent, const Te
 
 		case Common::bit_def_name:
 			return context.get_current_bit_definition_name();
-
-
-		// /*
-		// 	go through the qubit definitions and discard them
-		// 	1. reset pointer, such that calls to `new_qubit_definition` traverse the definitions in order of definition
-		// 	2. Set constraint on number of `discard_internal_qubit` branches, only owned qubits are considered
-		// 	3. Traverse definitions, returning only owned definitions
-		// 	==============================================================
-		// */
-		// case Common::discard_internal_qubits: {
-		// 	context.get_current_block()->qubit_def_pointer_reset();
-		// 	unsigned int num_owned_qubit_defs = context.get_current_block()->num_owned_qubit_defs();
-
-		// 	return std::make_shared<Discard_internal_qubits>(num_owned_qubit_defs);			
-		// }
-		
-		// case Common::discard_internal_qubit:
-		// 	return std::make_shared<Discard_internal_qubit>(context.new_qubit_definition(OWNED_SCOPE), context.get_current_block_owner());
-
-		// //	===============================================================
 
 		case Common::qubit_list: {
 

@@ -65,24 +65,6 @@ compound_stmt = qubit_op | if_stmt;
 
 float_list = "angle(" float_literal ")" (", angle(" float_literal ")")*; # override
 
-# TODO: think about how discard stuff should be added
-# -----------------------------------------------------------------------------------------
-
-discard_internal_qubits = (discard_internal_qubit NEWLINE)*;
-
-discard_internal_qubit = discard_single_qubit
-                        | discard_qreg
-                        | measure_and_record_single_qubit
-                        | measure_and_record_qreg
-                        ;
-
-discard_qreg =  "measure_array" LPAREN qubit_def_name RPAREN
-                | "discard_array" LPAREN qubit_def_name RPAREN
-                ;
-discard_single_qubit = "measure" LPAREN qubit_def_name RPAREN
-                | "discard" LPAREN qubit_def_name RPAREN
-                ;
-
 measure_and_record_qreg =  "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure_array" LPAREN qubit_def_name RPAREN RPAREN;
 
 measure_and_record_single_qubit = "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure" LPAREN qubit_def_name RPAREN RPAREN;
