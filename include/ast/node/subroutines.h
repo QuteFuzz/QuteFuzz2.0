@@ -10,7 +10,7 @@ class Subroutines : public Node {
         Subroutines(unsigned int n_blocks):
             Node("subroutines", Common::subroutine_defs)
         {
-            add_constraint(Common::circuit_def, n_blocks);
+            add_constraint(Common::block, n_blocks);
         }
 
     private:

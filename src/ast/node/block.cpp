@@ -9,6 +9,8 @@ std::shared_ptr<Resource::Qubit> Block::get_random_qubit(const U8& scope){
         INFO("Getting random qubit");
         #endif
 
+        // std::cout << *this << std::endl;
+
         std::shared_ptr<Resource::Qubit> qubit = qubits.at(random_int(total_qubits - 1));
 
         while(qubit->is_used() || !(qubit->get_scope() & scope)){
@@ -221,9 +223,20 @@ void Block::print_info() const {
             std::cout << "size: " << qubit_def->get_size()->get_string();
         }
 
-        std::cout << std::endl;
+        std::cout << STR_SCOPE(qubit_def->get_scope()) << std::endl;
+    }
+
+    std::cout << "Bit definitions " << std::endl;
+
+    for(const auto& bit_def : bit_defs){
+        std::cout << "name: " << bit_def->get_name()->get_string() << " " ;
+
+        if(bit_def->is_register_def()){
+            std::cout << "size: " << bit_def->get_size()->get_string();
+        }
+
+        std::cout << STR_SCOPE(bit_def->get_scope()) << std::endl;
     }
 
     std::cout << "=======================================" << std::endl;
-
 }

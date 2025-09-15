@@ -104,7 +104,6 @@ namespace Dag {
                 if(node_pointer < nodewise_data.size()){
                     return nodewise_data.at(node_pointer++).node;
                 } else {
-                    dummy_qubit_op->set_from_dag();
                     return dummy_qubit_op;
                 }
             }

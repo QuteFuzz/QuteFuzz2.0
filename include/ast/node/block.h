@@ -46,7 +46,7 @@ class Block : public Node {
     public:
 
         Block() : 
-            Node("circuit_def", Common::circuit_def),
+            Node("block", Common::block),
             owner("dummy")
         {}
 
@@ -89,10 +89,12 @@ class Block : public Node {
             return can_apply_subroutines;
         }
 
+        /// Cannnot sum internal and external targets because rule to generate using the target may not be in grammar
         inline size_t num_qubits_of(const U8& scope) const {
             return qubits.get_num_of(scope);
         }
 
+        /// Cannnot sum internal and external targets because rule to generate using the target may not be in grammar
         inline size_t num_bits_of(const U8& scope) const {
             return bits.get_num_of(scope);
         }
@@ -192,12 +194,6 @@ class Block : public Node {
 
         std::shared_ptr<Resource::Qubit> dummy_qubit = std::make_shared<Resource::Qubit>();
         std::shared_ptr<Resource::Bit> dummy_bit = std::make_shared<Resource::Bit>();
-
-        // Resource::Qubit dummy_qubit;
-        // Resource::Bit dummy_bit;
-
-        // Qubit_definition dummy_qubit_def;
-        // Bit_definition dummy_bit_def;
 
         std::shared_ptr<Qubit_definition> dummy_qubit_def = std::make_shared<Qubit_definition>();
         std::shared_ptr<Bit_definition> dummy_bit_def = std::make_shared<Bit_definition>();

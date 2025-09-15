@@ -15,7 +15,7 @@ struct Generator {
             builder(std::make_shared<Ast>())
         {}
 
-        void setup_builder(const std::string entry_name);
+        void setup_builder(const std::string entry_name, const U8& scope);
 
         friend std::ostream& operator<<(std::ostream& stream, Generator generator){
             stream << "  . " << generator.grammar->get_name() << ": ";

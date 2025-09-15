@@ -22,6 +22,8 @@
 
 #define WILDCARD_MAX 5
 
+#define BIT64(pos) (1ULL << pos)
+
 #define UNUSED(x) (void)(x)
 
 // colours
@@ -46,7 +48,7 @@
 #define OWNED_SCOPE (1UL << 2)
 #define ALL_SCOPES (EXTERNAL_SCOPE | INTERNAL_SCOPE | OWNED_SCOPE)
 
-#define STR_SCOPE(scope) (" scope flag (OWNED  INTERNAL  EXTERNAL): " + std::bitset<8>(scope).to_string())
+#define STR_SCOPE(scope) (" [scope flag (OWD INT EXT): " + std::bitset<3>(scope).to_string() + "]")
 
 using U64 = uint64_t;
 
@@ -183,7 +185,7 @@ namespace Common {
         */
         subroutine_defs = 16338711102002774808ULL,
 
-        circuit_def = 17654104105659481736ULL,
+        block = 1505885265403634530ULL,
 
         body = 14793735007222968981ULL,
 

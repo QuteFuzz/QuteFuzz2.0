@@ -28,11 +28,8 @@
 
 std::string Node::indentation_tracker = "";
 
-/// @brief Given a term, return a node for that term. `parent` is guaranteed to never be `nullptr` but runtime error thrown incase not true
-/// @param parent 
-/// @param term 
-/// @return 
-std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent, const Term& term){
+
+std::shared_ptr<Node> Ast::get_node(const std::shared_ptr<Node> parent, const Term& term){
 
 	if(parent == nullptr){
 		throw std::runtime_error(ANNOT("Node must have a parent!"));
@@ -70,7 +67,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		// 	context.set_can_apply_subroutines(false);
 		// 	return std::make_shared<Node>(str, hash);
 
-		case Common::circuit_def:
+		case Common::block:
 			return context.new_block_node(str, hash);
 
 		case Common::body:
@@ -78,12 +75,6 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::compound_stmts:
 			return context.get_compound_stmts(parent);
-		
-		// case Common::arg_singular_qubit:
-		// 	return std::make_shared<Qubit_list>(1);
-
-		// case Common::arg_register_qubits:
-		// 	return std::make_shared<Qubit_list>(context.get_current_arg()->get_qubit_def_size());
 		
 		case Common::compound_stmt:
 			return context.get_compound_stmt(parent);
@@ -168,8 +159,18 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		// //	===============================================================
 
-		case Common::qubit_list:
-			return std::make_shared<Qubit_list>(context.get_current_gate()->get_num_external_qubits());
+		case Common::qubit_list: {
+
+			unsigned int num_qubits;
+
+			if(*parent == Common::subroutine_op_arg){
+				num_qubits = context.get_current_gate()->get_next_qubit_def()->get_size()->get_num();
+			} else {
+				num_qubits = context.get_current_gate()->get_num_external_qubits();
+			}
+
+			return std::make_shared<Qubit_list>(num_qubits);
+		}
 
 		case Common::bit_list:
 			return std::make_shared<Bit_list>(context.get_current_gate()->get_num_external_bits());
@@ -207,7 +208,7 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 			return context.get_current_qubit_name();
 
 		case Common::qubit:
-			return context.new_qubit();
+			return context.new_qubit(); 
 
 		case Common::bit_index:
 			return context.get_current_bit_index();
@@ -235,6 +236,9 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 				- the hash of the node will be Common::subroutine, and the string will be the name of the block defining this subroutine
 				- we can then use the hash later to detect which gate nodes are subroutines, and get their names by getting the string of the node 
 			*/
+
+			// subroutine->print_info();
+
 			return context.new_gate(subroutine->get_owner(), hash, subroutine->get_qubit_defs());
 		}
 
@@ -294,19 +298,17 @@ void Ast::write_branch(std::shared_ptr<Node> parent, const Term& term){
 
 		Branch branch = term.get_rule()->pick_branch(parent);
 
-        for(size_t i = 0; i < branch.size(); i++){
+		for(const Term& child_term : branch){
 			
-			Term child_term = branch.at(i);
-			
-			std::shared_ptr<Node> child_node = get_node_from_term(parent, child_term);
+			std::shared_ptr<Node> child_node = get_node(parent, child_term);
 
 			parent->add_child(child_node);
 
-			if(child_node->is_from_dag()) continue;
+			if(child_node->get_num_children()) continue;
 
 			write_branch(child_node, child_term);
-        }
 
+		}
 	}
 
 	// done
@@ -324,15 +326,14 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 		swarm_testing_gateset = _swarm_testing_gateset;
 
 		context.reset(Context::PROGRAM);
-
-		Term entry_as_term;
-		entry_as_term.set(entry);
-
-		std::shared_ptr<Node> root_ptr = get_node_from_term(dummy, entry_as_term);
-
 		context.set_genome(genome);
 
-		write_branch(root_ptr, entry_as_term);
+		Term term;
+		term.set(entry);
+
+		std::shared_ptr<Node> root = get_node(std::make_shared<Node>(""), term);
+
+		write_branch(root, term);
 
 		if(genome.has_value()){
 			dag = genome.value().dag;
@@ -345,7 +346,7 @@ Result<Node> Ast::build(const std::optional<Genome>& genome, std::optional<Node_
 
 		std::cout << dag << std::endl;
 
-		res.set_ok(*root_ptr);
+		res.set_ok(*root);
 	}
 
 	return res;

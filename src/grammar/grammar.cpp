@@ -1,9 +1,7 @@
 #include <grammar.h>
 
 Grammar::Grammar(const fs::path& filename, std::vector<Token::Token>& meta_grammar_tokens): lexer(filename.string()), name(filename.stem()), path(filename) {
-    // remove EOF from meta grammar's tokens
-    meta_grammar_tokens.pop_back();
-    
+
     tokens = append_vectors(meta_grammar_tokens, lexer.get_tokens());
 
     num_tokens = tokens.size();
@@ -65,7 +63,7 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
     if(token.kind == Token::SYNTAX){
         term.set(token.value);
 
-    } else if (token.kind == Token::RULE){
+    } else if (is_kind_of_rule(token.kind)){
         /*
             each term within the branch of a rule has a scope associated with it
             if explicitly specified like EXTERNAL::term, then the term takes on that scope, otherwise, it 
@@ -81,7 +79,7 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
 
     branch.add(term);
 
-    if((current_rule != nullptr) && (token.value == current_rule->get_name()) && (token.kind == Token::RULE)){
+    if((current_rule != nullptr) && (token.value == current_rule->get_name()) && is_kind_of_rule(token.kind)){
         branch.set_recursive_flag();
     }
 }
@@ -146,91 +144,75 @@ void Grammar::build_grammar(){
         // I set this for only the specific cases where I use it to avoid an extra if statement checking for ok here
         Token::Token next;
 
-        switch(token.kind){
-            case Token::RULE : case Token::SYNTAX: {
+        if (token.kind == Token::_EOF) {
+            // must not peek if at EOF
+            return;
+        }
 
-                next = next_token.get_ok();
+        if(is_kind_of_rule(token.kind) || token.kind == Token::SYNTAX){
+            next = next_token.get_ok();
 
-                // rules that are within branches, rules before `RULE_START` are handled at `RULE_START`
-                if(current_rule != nullptr){
-                    add_term_to_current_branches(token);
-                    rule_decl_scope = NO_SCOPE;
-                }
+            // rules that are within branches, rules before `RULE_START` are handled at `RULE_START`
+            if(current_rule != nullptr){
+                add_term_to_current_branches(token);
+                rule_decl_scope = NO_SCOPE;
+            }
+        
+        } else if (token.kind == Token::RULE_START) {
+            reset_current_branches();
+            current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
+        
+        } else if (token.kind == Token::RULE_END){
+            complete_rule(); current_rule = nullptr;
 
-                break;
+        } else if (token.kind == Token::LPAREN){
+            nesting_depth += 1;
+
+        } else if (token.kind == Token::RPAREN){
+            nesting_depth -= 1; 
+
+            next = next_token.get_ok();
+
+            if(!is_wildcard(next.kind)){
+                increment_nesting_depth_base();
+            }
+        
+        } else if (token.kind == Token::SEPARATOR){
+            add_current_branches_to_rule();
+            reset_current_branches();
+
+        } else if (is_wildcard(token.kind)){
+            extend_current_branches(token);
+
+        } else if (token.kind == Token::RBRACE){
+            rule_def_scope = NO_SCOPE;
+        
+        } else if (token.kind == Token::EXTERNAL){
+
+            if(current_rule == nullptr){
+                rule_def_scope |= EXTERNAL_SCOPE;
+            } else {
+                rule_decl_scope |= EXTERNAL_SCOPE;
+            }
+        
+        } else if (token.kind == Token::INTERNAL){
+            if(current_rule == nullptr){
+                rule_def_scope |= INTERNAL_SCOPE;
+            } else {
+                rule_decl_scope |= INTERNAL_SCOPE;
+            }
+        
+        } else if (token.kind == Token::OWNED){
+            if(current_rule == nullptr){
+                rule_def_scope |= OWNED_SCOPE;
+            } else {
+                rule_decl_scope |= OWNED_SCOPE;
             }
 
-            case Token::RULE_START: {
-                reset_current_branches();
-                
-                current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
-                break;
-            }
+        } else if (is_quiet(token.kind)){
 
-            case Token::RULE_END: complete_rule(); current_rule = nullptr; break;
-
-            case Token::_EOF: return; // should never peek if current token was EOF
-
-            case Token::LPAREN: case Token::LBRACK: nesting_depth += 1; break;
-
-            case Token::RBRACK: case Token::RPAREN: 
-                nesting_depth -= 1; 
-
-                next = next_token.get_ok();
-
-                if(!is_wilcard(next)){
-                    increment_nesting_depth_base();
-                }
-
-                break;
-
-            case Token::SEPARATOR:
-                add_current_branches_to_rule();
-                reset_current_branches();
-                break;
-
-            case Token::OPTIONAL: case Token::ZERO_OR_MORE: case Token::ONE_OR_MORE:
-                extend_current_branches(token);
-                break;
-
-            case Token::LBRACE: 
-                break;
-            
-            case Token::RBRACE: rule_def_scope = NO_SCOPE; break;
-
-            case Token::EXTERNAL:
-                if(current_rule == nullptr){
-                    rule_def_scope |= EXTERNAL_SCOPE;
-                } else {
-                    rule_decl_scope |= EXTERNAL_SCOPE;
-                }
-
-                break;
-                        
-            case Token::INTERNAL:
-                if(current_rule == nullptr){
-                    rule_def_scope |= INTERNAL_SCOPE;
-                } else {
-                    rule_decl_scope |= INTERNAL_SCOPE;
-                }
-                
-                break;
-            
-            case Token::OWNED: 
-                if(current_rule == nullptr){
-                    rule_def_scope |= OWNED_SCOPE;
-                } else {
-                    rule_decl_scope |= OWNED_SCOPE;
-                }
-
-                break;
-
-            case Token::ARROW: break;
-
-            case Token::COMMENT: case Token::MULTI_COMMENT_START: case Token::MULTI_COMMENT_END: break;
-
-            default:
-                throw std::runtime_error(ANNOT("Unknown token: " + token.value)); 
+        } else {
+            throw std::runtime_error(ANNOT("Unknown token: " + token.value)); 
         }
 
         prev_token = token;
@@ -247,6 +229,7 @@ void Grammar::build_grammar(){
     }
 }
 
+/// @brief Does not include meta-grammar tokens
 void Grammar::print_tokens() const {
     lexer.print_tokens();
 }

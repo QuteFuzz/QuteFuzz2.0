@@ -19,6 +19,9 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
                 if(file.is_regular_file() && (file.path().stem() == Common::META_GRAMMAR_NAME)){                    
                     Lexer::Lexer lexer(file.path().string());
                     meta_grammar_tokens = std::move(lexer.get_tokens());
+                    
+                    // remove EOF from meta grammar's tokens
+                    meta_grammar_tokens.pop_back();
                     break;
                 }
             }
@@ -61,25 +64,36 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
 void Run::set_grammar(){
 
-    std::string grammar_name = tokens[0], entry_name = tokens[1];
+    std::string grammar_name = tokens[0], entry_name;
+    tokenise(tokens[1], ',');
+
+    entry_name = tokens[0];
+
+    U8 scope = 0;
+
+    for(const auto& t : tokens){
+        scope |= ((t == "E") & EXTERNAL_SCOPE);
+        scope |= ((t == "I") & INTERNAL_SCOPE);
+        scope |= ((t == "O") & OWNED_SCOPE);
+    }
 
     if(is_grammar(grammar_name)){
         current_generator = generators[grammar_name];
-        current_generator->setup_builder(entry_name);
+        current_generator->setup_builder(entry_name, scope);
 
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
     }
 }
 
-void Run::tokenise(const std::string& command){
+void Run::tokenise(const std::string& command, const char& delim){
 
     std::stringstream ss(command);
     std::string token;
 
     tokens.clear();
 
-    while(std::getline(ss, token, ' ')){
+    while(std::getline(ss, token, delim)){
         tokens.push_back(token);
     }
 }
@@ -159,7 +173,7 @@ void Run::loop(){
         std::cout << "> ";
 
         std::getline(std::cin, current_command);
-        tokenise(current_command);
+        tokenise(current_command, ' ');
 
         if(tokens.size() == 2){
             set_grammar();

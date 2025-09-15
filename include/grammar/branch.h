@@ -44,7 +44,9 @@ class Branch {
 
         size_t size() const {return terms.size();}
 
-        Term at(size_t index) const {return terms.at(index);}
+        const Term& at(size_t index) const {return terms.at(index);}
+
+        Term& at(size_t index) {return terms.at(index);}
 
         size_t count_rule_occurances(const U64& hash) const {
 
@@ -69,6 +71,22 @@ class Branch {
             }
 
             return stream;
+        }
+
+        std::vector<Term>::iterator begin(){
+            return terms.begin();
+        }
+
+        std::vector<Term>::iterator end(){
+            return terms.end();
+        }
+
+        std::vector<Term>::const_iterator begin() const {
+            return terms.begin();
+        }
+
+        std::vector<Term>::const_iterator end() const {
+            return terms.end();
         }
 
     private:

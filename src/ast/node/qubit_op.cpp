@@ -13,7 +13,7 @@ Qubit_op::Qubit_op(std::shared_ptr<Block> current_block):
 
 void Qubit_op::add_gate_if_subroutine(std::vector<std::shared_ptr<Node>>& subroutine_gates){
     
-    if(gate_node.has_value() && gate_node.value()->is_subroutine_gate()){
+    if(gate_node.has_value() && *gate_node.value() == Common::subroutine){
         for(std::shared_ptr<Node>& gate : subroutine_gates){
             if(*gate == gate_node.value()->get_string()){return;}
         }

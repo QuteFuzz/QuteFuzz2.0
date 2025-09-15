@@ -33,8 +33,6 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
     unsigned int source_node_input_port = edge.get_dest_port();
     std::shared_ptr<Qubit_op> source_node = edge.get_node();
 
-    source_node->set_from_dag();
-
     std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
     unsigned int pos = maybe_pos.value_or(nodewise_data.size());
 

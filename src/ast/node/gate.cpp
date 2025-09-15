@@ -42,9 +42,5 @@ std::shared_ptr<Qubit_definition> Gate::get_next_qubit_def(){
 }
 
 unsigned int Gate::get_num_external_qubits(){
-    if(hash == Common::subroutine){
-        return get_next_qubit_def()->get_size()->get_num();
-    } else {
-        return num_external_qubits;
-    }
+    return num_external_qubits;
 }

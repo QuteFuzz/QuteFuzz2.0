@@ -190,17 +190,11 @@ class Node {
 
         std::shared_ptr<Node> find(const U64 _hash) const;
 
-        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
-
         int get_next_qubit_op_target();
 
         void make_partition(int target, int n_children);
 
         void make_control_flow_partition(int target, int n_children);
-
-        inline void set_from_dag(){from_dag = true;}
-
-        inline bool is_from_dag(){return from_dag;}
 
     protected:
         std::string string;
@@ -213,8 +207,6 @@ class Node {
         Node_build_state state = NB_BUILD;
         std::vector<int> qubit_op_target_partition;
         unsigned int partition_counter = 0;
-
-        bool from_dag = false;
     
     private:
         std::optional<Node_constraint> constraint;

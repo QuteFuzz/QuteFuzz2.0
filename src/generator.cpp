@@ -2,12 +2,12 @@
 
 /// @brief TODO: make it such that user can call entry point with particular scope
 /// @param entry_name 
-void Generator::setup_builder(const std::string entry_name){
-    if(grammar->is_rule(entry_name)){
-        builder->set_entry(grammar->get_rule_pointer(entry_name));
+void Generator::setup_builder(const std::string entry_name, const U8& scope){
+    if(grammar->is_rule(entry_name, scope)){
+        builder->set_entry(grammar->get_rule_pointer(entry_name, scope));
 
     } else if(builder->entry_set()){
-        WARNING("Rule " + entry_name + " is not defined for grammar " + grammar->get_name() + ". Will use previous entry instead");
+        WARNING("Rule " + entry_name + STR_SCOPE(scope) + " is not defined for grammar " + grammar->get_name() + ". Will use previous entry instead");
 
     } else {
         ERROR("Rule " + entry_name + " is not defined for grammar " + grammar->get_name());  

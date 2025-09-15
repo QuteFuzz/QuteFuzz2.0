@@ -33,7 +33,7 @@ namespace Context {
 				return current_block_owner;
 			}
 
-            void set_can_apply_subroutines(bool flag = true);
+            void set_can_apply_subroutines();
 
             unsigned int get_max_external_qubits();
 
@@ -64,7 +64,7 @@ namespace Context {
 			std::shared_ptr<Integer> get_current_bit_index();
 
 			inline std::shared_ptr<Subroutine_op_arg> new_arg(){
-				if((current_gate != nullptr) && current_gate->is_subroutine_gate()){
+				if((current_gate != nullptr) && *current_gate == Common::subroutine){
 					current_subroutine_op_arg = std::make_shared<Subroutine_op_arg>(current_gate->get_next_qubit_def());
 				}
 
@@ -151,7 +151,7 @@ namespace Context {
 			std::string current_block_owner;
             std::vector<std::shared_ptr<Block>> blocks;
 			
-			Block dummy_block;
+			std::shared_ptr<Block> dummy_block = std::make_shared<Block>();
 			Integer dummy_int;
 			Variable dummy_var;
 

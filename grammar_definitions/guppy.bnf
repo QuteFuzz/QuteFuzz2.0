@@ -31,7 +31,7 @@ decorator = comptime_decorator | guppy_decorator;
 
 
 
-circuit_def = circuit_def_header NEWLINE INDENT body "return" DEDENT NEWLINE;
+block = circuit_def_header NEWLINE INDENT body "    return" DEDENT NEWLINE;
 
 circuit_def_header = "@guppy.comptime" NEWLINE "def " circuit_name "() -> None:";
 
@@ -41,8 +41,9 @@ circuit_def_header = "@guppy.comptime" NEWLINE "def " circuit_name "() -> None:"
 # circuit_def_header->subroutine_defs = decorator NEWLINE "def " circuit_name "(" EXTERNAL::qubit_defs "):";
 
 
-body   = INTERNAL::qubit_defs NEWLINE compound_stmts;
+body  = INTERNAL::qubit_defs NEWLINE compound_stmts;
 
+compound_stmt = qubit_op | if_stmt;
 
 float_list = "angle(" float_literal ")" (", angle(" float_literal ")")*; # override
 
@@ -70,9 +71,9 @@ measure_and_record_single_qubit = "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_Q
 
 # -----------------------------------------------------------------------------------------
 
-gate_op = gate_name "(" arguments ")";
+gate_op = gate_name "(" gate_op_args ")";
 
-subroutine_op = gate_name "(" arguments ")";
+subroutine_op = gate_name "(" subroutine_op_args ")";
 
 gate_name = x | y | z | h | cx | cy | cz | toffoli | rz | rx | ry | v | vdg
     | t | tdg | s | sdg | ch | crz | project_z | measure_and_reset | subroutine

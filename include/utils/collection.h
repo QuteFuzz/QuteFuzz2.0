@@ -45,7 +45,7 @@ struct Collection {
             size_t sum = 0;
 
             for(const auto& elem : coll){
-                sum += (elem->get_scope() & scope);
+                if (elem->get_scope() & scope) sum += 1;
             }
 
             return sum;

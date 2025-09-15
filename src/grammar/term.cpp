@@ -53,7 +53,6 @@ std::ostream& operator<<(std::ostream& stream, Term term){
 
         } else {
             stream << "\"" << term._name << "\"";
-    
         }
         
     } else {

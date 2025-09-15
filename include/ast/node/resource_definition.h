@@ -42,7 +42,7 @@ class Resource_definition : public Node {
                 return std::get<Register_resource_definition>(value).get_size();   
             }
 
-            ERROR("Singular resource definitions do not have sizes!");
+            WARNING("Singular resource definitions do not have sizes! Using default size = " + default_size);
 
             return std::make_shared<Integer>(default_size);
         }

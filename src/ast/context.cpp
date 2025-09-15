@@ -26,28 +26,29 @@ namespace Context {
         }
     }
 
-    void Context::set_can_apply_subroutines(bool override_flag){
+    void Context::set_can_apply_subroutines(){
         std::shared_ptr<Block> current_block = get_current_block();
+        unsigned int max_qubits = current_block->num_qubits_of(ALL_SCOPES);
 
-        if (current_block->get_can_apply_subroutines() && override_flag) {
-            for(std::shared_ptr<Block> block : blocks){
-                if (!block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) &&
-                    !block->owned_by(current_block_owner) &&
-                    (block->num_qubits_of(EXTERNAL_SCOPE) <= current_block->num_qubits_of(ALL_SCOPES)) &&
-                    (block->num_bits_of(EXTERNAL_SCOPE) <= current_block->num_bits_of(ALL_SCOPES))
-                )
-                {
-                    #ifdef DEBUG
-                    INFO("Block " + current_block_owner + " can apply subroutines");
-                    #endif
-                    return;
-                }
+        for(std::shared_ptr<Block> block : blocks){
+            unsigned int num_external_qubits = block->num_qubits_of(EXTERNAL_SCOPE);
+            bool has_enough_qubits = (num_external_qubits >= 1 && num_external_qubits <= max_qubits);
+            bool is_subroutine = !block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) && !block->owned_by(current_block_owner);
+
+            if (is_subroutine && has_enough_qubits)
+            {
+                #ifdef DEBUG
+                INFO("Block " + current_block_owner + " can apply subroutines");
+                #endif
+
+                return;
             }
         }
 
         #ifdef DEBUG
         INFO("Block " + current_block_owner + " can't apply subroutines");
         #endif
+
         current_block->set_can_apply_subroutines(false);
     }
 
@@ -75,7 +76,7 @@ namespace Context {
         if(blocks.size()) {
             return blocks.back();
         } else {
-            return std::make_shared<Block>(dummy_block);
+            return dummy_block;
         }
     }
 
@@ -84,23 +85,27 @@ namespace Context {
     /// Qubit comparison needed because `set_can_apply_subroutines` only tells you that there's at least one block that can be picked
     /// @return 
     std::shared_ptr<Block> Context::get_random_block(){
-        std::shared_ptr<Block> block = blocks.at(random_int(blocks.size()-1));
-        std::shared_ptr<Block> current_block = get_current_block();
+        if(blocks.size()){
 
-        #ifdef DEBUG
-        INFO("Getting random block");
-        #endif
-        
-        while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
-            block->owned_by(current_block_owner) ||
-            (block->num_qubits_of(EXTERNAL_SCOPE) > current_block->num_qubits_of(ALL_SCOPES)) ||
-            (block->num_bits_of(EXTERNAL_SCOPE) > current_block->num_bits_of(ALL_SCOPES))
-        )
-        {
-            block = blocks.at(random_int(blocks.size()-1));
+            std::shared_ptr<Block> block = blocks.at(random_int(blocks.size()-1));
+            std::shared_ptr<Block> current_block = get_current_block();
+
+            #ifdef DEBUG
+            INFO("Getting random block");
+            #endif
+            
+            while(block->owned_by(Common::TOP_LEVEL_CIRCUIT_NAME) || 
+                block->owned_by(current_block_owner) ||
+                (block->num_qubits_of(EXTERNAL_SCOPE) > current_block->num_qubits_of(ALL_SCOPES))
+            )
+            {
+                block = blocks.at(random_int(blocks.size()-1));
+            }
+
+            return block;
+        } else {
+            return dummy_block;
         }
-
-        return block;
     }
 
     std::shared_ptr<Block> Context::new_block_node(std::string str, U64 hash){
@@ -186,8 +191,6 @@ namespace Context {
         random_qubit->extend_flow_path(current_qubit_op, current_port++);
 
         current_qubit = random_qubit;
-
-        std::cout << *get_current_block() << std::endl;
 
         return current_qubit;
     }

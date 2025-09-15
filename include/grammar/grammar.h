@@ -58,8 +58,30 @@ class Grammar{
             }
         }
 
-        inline bool is_wilcard(const Token::Token& token) const {
-            return (token.kind ==  Token::OPTIONAL) || (token.kind == Token::ZERO_OR_MORE) || (token.kind == Token::ONE_OR_MORE);
+        inline bool is_wildcard(const Token::Token_kind& kind) const {
+            return 
+                (kind ==  Token::OPTIONAL) || 
+                (kind == Token::ZERO_OR_MORE) || 
+                (kind == Token::ONE_OR_MORE)
+                ;
+        }
+
+        inline bool is_kind_of_rule(const Token::Token_kind& kind) const { 
+            return 
+                (Token::RULE_KINDS_TOP < kind) && 
+                (Token::RULE_KINDS_BOTTOM > kind)
+                ;
+        }
+
+        inline bool is_quiet(const Token::Token_kind& kind) const {
+            return 
+                (kind == Token::MULTI_COMMENT_START)|| 
+                (kind == Token::MULTI_COMMENT_END) || 
+                (kind == Token::LBRACK) || 
+                (kind == Token::RBRACK) ||
+                (kind == Token::LBRACE) ||
+                (kind == Token::COMMENT) || 
+                (kind == Token::ARROW);
         }
 
         void extend_current_branches(const Token::Token& wildcard);
@@ -86,7 +108,7 @@ class Grammar{
         /// @param rule_name 
         /// @param scope 
         /// @return 
-        inline bool is_rule(const std::string& rule_name, const U8& scope = NO_SCOPE){
+        inline bool is_rule(const std::string& rule_name, const U8& scope){
             Rule dummy(rule_name, scope);
             return rule_defined(dummy);            
         }
@@ -94,18 +116,6 @@ class Grammar{
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}
-
-        // std::vector<std::shared_ptr<Rule>> get_rule_pointers() const {
-        //     return rule_pointers;
-        // }
-
-        // /// @brief Deep copy rule pointers from the other grammar
-        // /// @param other 
-        // void operator=(const Grammar& other){
-        //     for(const std::shared_ptr<Rule>& orp :  other.get_rule_pointers()){
-        //         rule_pointers.push_back(std::make_shared<Rule>(*orp));
-        //     }
-        // }
 
         bool rule_defined(const Rule& other){
             for(const auto& ptr : rule_pointers){

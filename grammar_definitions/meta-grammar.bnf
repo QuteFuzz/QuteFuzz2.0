@@ -1,16 +1,14 @@
 
 # META-GRAMMAR
 
-program       = imports NEWLINE subroutine_defs NEWLINE circuit_def NEWLINE compiler_call;
+program       = imports NEWLINE subroutine_defs NEWLINE block NEWLINE compiler_call;
 
-subroutine_defs = (circuit_def NEWLINE subroutine_def_footer)*;
+subroutine_defs = (block NEWLINE subroutine_def_footer)*;
 
 
 compound_stmts = (compound_stmt NEWLINE)+;
 
 qubit_op = gate_op | subroutine_op;
-
-# qubit_op = gate_op;
 
 gate_op_args = qubit_list
     | qubit_list ", " bit_list
@@ -118,5 +116,4 @@ shift_expr:
 primary:
     atom;
 
-atom: NUMBER
-    ;
+atom: NUMBER;

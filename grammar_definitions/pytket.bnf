@@ -1,5 +1,5 @@
 
-circuit_def = circuit_def_header NEWLINE body NEWLINE;
+block = circuit_def_header NEWLINE body NEWLINE;
 
 body = EXTERNAL::qubit_defs EXTERNAL::bit_defs NEWLINE compound_stmts;
 
@@ -21,7 +21,7 @@ register_qubit_def =
     qubit_def_name "=" circuit_name '.add_q_register("' qubit_def_name '",' qreg_size ")";
 
 singular_bit_def = 
-    bit_def_name '= Bit("' bit_def_name "\", 0)" NEWLINE circuit_name ".add_bit(" bit_def_name ")";
+    bit_def_name '= Bit("' bit_def_name '", 0)' NEWLINE circuit_name ".add_bit(" bit_def_name ")";
 
 register_bit_def = 
     bit_def_name "=" circuit_name '.add_c_register("' bit_def_name '",' creg_size ")";
@@ -45,7 +45,7 @@ compound_stmt = qubit_op;
 
 gate_op = circuit_name "." gate_name "(" gate_op_args ")";
 
-subroutine_op = circuit_name ".add_gate(" subroutine ",[" subroutine_op_args "])";
+subroutine_op = circuit_name ".add_gate(" subroutine ",[" qubit_list "])";
 
 gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg | CY
             | H | T | S | CH | Measure;
