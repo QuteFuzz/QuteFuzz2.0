@@ -1,5 +1,7 @@
 # guppy
 
+# WORK IN PROGRESS: Circuits will not be well-formed
+
 x = "x";
 y = "y";
 z = "z";
