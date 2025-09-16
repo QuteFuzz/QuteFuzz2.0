@@ -18,7 +18,7 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
         Branch branch = branches[random_int(size - 1)];
 
         #ifdef DEBUG
-        INFO("Picking branch for " + name + STR_SCOPE(scope) + " while satisfying constraint " + parent->get_debug_constraint_string());
+        INFO("Picking branch for " + token.value + STR_SCOPE(scope) + " while satisfying constraint " + parent->get_debug_constraint_string());
         #endif
 
         while(!parent->branch_satisfies_constraint(branch)){
@@ -29,7 +29,7 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
 
     } else {
         #ifdef DEBUG
-        INFO(name + STR_SCOPE(scope) + " is an empty rule");
+        INFO(token.value + STR_SCOPE(scope) + " is an empty rule");
         #endif
 
         return Branch();

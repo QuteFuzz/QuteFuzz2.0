@@ -9,7 +9,7 @@
 #include <compound_stmt.h>
 #include <compound_stmts.h>
 #include <gate.h>
-#include <subroutines.h>
+#include <subroutine_defs.h>
 #include <genome.h>
 #include <nested_stmt.h>
 #include <nested_branch.h>
@@ -45,7 +45,7 @@ namespace Context {
 
 			std::shared_ptr<Block> get_random_block();
 
-            std::shared_ptr<Block> new_block_node(std::string str, U64 hash);
+            std::shared_ptr<Block> new_block_node();
             
 			std::shared_ptr<Qubit_defs> get_qubit_defs_node(U8& scope);
 
@@ -66,7 +66,7 @@ namespace Context {
 			std::shared_ptr<Integer> get_current_bit_index();
 
 			inline std::shared_ptr<Subroutine_op_arg> new_arg(){
-				if((current_gate != nullptr) && *current_gate == Common::subroutine){
+				if((current_gate != nullptr) && *current_gate == Token::SUBROUTINE){
 					current_subroutine_op_arg = std::make_shared<Subroutine_op_arg>(current_gate->get_next_qubit_def());
 				}
 
@@ -95,16 +95,16 @@ namespace Context {
 
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
-			inline std::shared_ptr<Gate> new_gate(const std::string& str, U64& hash, int num_qubits, int num_bits, int num_params){
-				current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params);
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, Token::Kind& kind, int num_qubits, int num_bits, int num_params){
+				current_gate = std::make_shared<Gate>(str, kind, num_qubits, num_bits, num_params);
 
 				if(current_qubit_op != nullptr) current_qubit_op->set_gate_node(current_gate);
 
 				return current_gate;
 			}
 
-			inline std::shared_ptr<Gate> new_gate(const std::string& str, U64& hash, const Collection<Qubit_definition>& qubit_defs){
-				current_gate = std::make_shared<Gate>(str, hash, qubit_defs);
+			inline std::shared_ptr<Gate> new_gate(const std::string& str, Token::Kind& kind, const Collection<Qubit_definition>& qubit_defs){
+				current_gate = std::make_shared<Gate>(str, kind, qubit_defs);
 
 				if(current_qubit_op != nullptr) current_qubit_op->set_gate_node(current_gate);
 
@@ -113,15 +113,15 @@ namespace Context {
 
 			inline std::shared_ptr<Gate> get_current_gate(){return current_gate;}
 
-			std::shared_ptr<Nested_branch> get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
+			std::shared_ptr<Nested_branch> get_nested_branch(const std::string& str, const Token::Kind& kind, std::shared_ptr<Node> parent);
 
-			std::shared_ptr<Nested_stmt> get_nested_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent);
+			std::shared_ptr<Nested_stmt> get_nested_stmt(const std::string& str, const Token::Kind& kind, std::shared_ptr<Node> parent);
 
 			std::shared_ptr<Compound_stmt> get_compound_stmt(std::shared_ptr<Node> parent);
 
 			std::shared_ptr<Compound_stmts> get_compound_stmts(std::shared_ptr<Node> parent);
 
-			std::shared_ptr<Subroutines> new_subroutines_node();
+			std::shared_ptr<Subroutine_defs> new_subroutines_node();
 
 			std::shared_ptr<Qubit_op> new_qubit_op_node(){
 				reset(QUBIT_OP);
@@ -170,7 +170,7 @@ namespace Context {
 			std::shared_ptr<Qubit_op> current_qubit_op;
 			std::shared_ptr<Subroutine_op_arg> current_subroutine_op_arg;
 
-			std::optional<std::shared_ptr<Subroutines>> subroutines_node = std::nullopt;
+			std::optional<std::shared_ptr<Subroutine_defs>> subroutines_node = std::nullopt;
 			std::optional<Genome> genome;
 
 			bool can_copy_dag;

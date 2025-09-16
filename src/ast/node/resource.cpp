@@ -7,9 +7,9 @@
 std::string Resource::Resource::resolved_name() const {
 
     if(is_register_def()){
-        return get_name()->get_string() + "[" + get_index()->get_string() + "]";
+        return get_name()->get_content() + "[" + get_index()->get_content() + "]";
     } else {
-        return get_name()->get_string();
+        return get_name()->get_content();
     }
 
 }

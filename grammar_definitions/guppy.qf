@@ -21,13 +21,13 @@ s = "s";
 measure = "measure";
 cnot = "cnot";
 
-INTERNAL {
+INTERNAL OWNED {
 
 qubit_defs = (qubit_def NEWLINE)*;
 
 singular_qubit_def = qubit_def_name "= qubit()";
 
-register_qubit_def = qubit_def_name "=array(qubit() for _ in range(" qreg_size "))";
+register_qubit_def = qubit_def_name "=array(qubit() for _ in range(" qubit_def_size "))";
 
 }
 
@@ -37,7 +37,7 @@ qubit_defs = qubit_def (COMMA qubit_def)*;
 
 singular_qubit_def = qubit_def_name COLON "qubit";
 
-register_qubit_def = qubit_def_name ":array[qubit, " qreg_size "]";
+register_qubit_def = qubit_def_name ":array[qubit, " qubit_def_size "]";
 
 }
 

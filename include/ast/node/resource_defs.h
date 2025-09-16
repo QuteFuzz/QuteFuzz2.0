@@ -8,9 +8,9 @@ class Qubit_defs : public Node {
     public:
 
         Qubit_defs(unsigned int num_defs):
-            Node("qubit_defs", Common::qubit_defs, indentation_tracker)
+            Node("qubit_defs", Token::QUBIT_DEFS, indentation_tracker)
         {
-            add_constraint(Common::qubit_def, num_defs);
+            add_constraint(Token::QUBIT_DEF, num_defs);
         }
 
     private:
@@ -22,9 +22,9 @@ class Bit_defs : public Node {
     public:
 
         Bit_defs(unsigned int num_defs):
-            Node("bit_defs", Common::bit_defs, indentation_tracker)
+            Node("bit_defs", Token::BIT_DEFS, indentation_tracker)
         {
-            add_constraint(Common::bit_def, num_defs);
+            add_constraint(Token::BIT_DEF, num_defs);
         }
 
     private:

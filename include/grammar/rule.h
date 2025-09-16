@@ -10,17 +10,20 @@ class Rule {
     public:
         Rule(){}
         
-        Rule(const std::string& _name, const U8& _scope) : name(_name), scope(_scope) {
-            hash = hash_rule_name(name);
-        }
+        Rule(const Token::Token& _token, const U8& _scope) :
+            token(_token),
+            scope(_scope)
+        {}
         
-        Rule(const std::vector<Branch>& _branches) : branches(_branches) {}
+        Rule(const std::vector<Branch>& _branches) : 
+            branches(_branches) 
+        {}
 
         ~Rule(){}
 
-        std::string get_name() const {return name;}
+        std::string get_name() const {return token.value;}
 
-        U64 get_hash() const {return hash;}
+        Token::Token get_token() const {return token;}
 
         U8 get_scope() const {return scope;}
 
@@ -38,10 +41,20 @@ class Rule {
 
         Branch pick_branch(std::shared_ptr<Node> parent);
 
-        bool operator==(const Rule& other) const { return (name == other.get_name()) && (scope == other.get_scope()); }
+        bool operator==(const Rule& other) const { 
+            bool scope_matches = (scope == NO_SCOPE) ? (scope == other.get_scope()) : (scope & other.get_scope());
+
+            return (token == other.get_token()) && scope_matches;
+        }
+
+        bool matches(const std::string& name, const U8& _scope) { 
+            bool scope_matches = (scope == NO_SCOPE) ? (scope == _scope) : (scope & _scope);
+
+            return (token.value == name) && scope_matches;
+        }
 
         friend std::ostream& operator<<(std::ostream& stream, const Rule& rule){
-            stream << rule.name << " = ";
+            stream << rule.get_name() << " = ";
             
             for(size_t i = 0; i < rule.branches.size(); i++){
                 stream << rule.branches[i];
@@ -54,14 +67,13 @@ class Rule {
         }
 
     private:
-        std::string name;
+        Token::Token token;
         U8 scope = NO_SCOPE;
 
-        U64 hash = 0ULL;
-        bool recursive = false;
-    
         std::vector<Branch> branches;
 
+        bool recursive = false;
+    
 };
 
 #endif

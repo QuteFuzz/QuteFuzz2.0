@@ -217,10 +217,10 @@ void Block::print_info() const {
     }
 
     for(const auto& qubit_def : qubit_defs){
-        std::cout << "name: " << qubit_def->get_name()->get_string() << " " ;
+        std::cout << "name: " << qubit_def->get_name()->get_content() << " " ;
 
         if(qubit_def->is_register_def()){
-            std::cout << "size: " << qubit_def->get_size()->get_string();
+            std::cout << "size: " << qubit_def->get_size()->get_content();
         }
 
         std::cout << STR_SCOPE(qubit_def->get_scope()) << std::endl;
@@ -229,10 +229,10 @@ void Block::print_info() const {
     std::cout << "Bit definitions " << std::endl;
 
     for(const auto& bit_def : bit_defs){
-        std::cout << "name: " << bit_def->get_name()->get_string() << " " ;
+        std::cout << "name: " << bit_def->get_name()->get_content() << " " ;
 
         if(bit_def->is_register_def()){
-            std::cout << "size: " << bit_def->get_size()->get_string();
+            std::cout << "size: " << bit_def->get_size()->get_content();
         }
 
         std::cout << STR_SCOPE(bit_def->get_scope()) << std::endl;

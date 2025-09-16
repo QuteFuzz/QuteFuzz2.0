@@ -12,7 +12,7 @@ void Branch::add(const Term& term){
 void Branch::setup_basis(Branch_multiply& basis, unsigned int nesting_depth) const {
 
     for(const Term& t : terms){
-        if(t.get_nesting_depth() > nesting_depth){  // only multiply the term if it is in the correct grouping scope
+        if(t.get_branch_nesting_depth() > nesting_depth){  // only multiply the term if it is in the correct grouping scope
             basis.mults.push_back(t);
         } else {
             basis.remainders.push_back(t);

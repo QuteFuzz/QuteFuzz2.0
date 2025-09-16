@@ -19,10 +19,10 @@ class Integer : public Node {
 
         void operator++(int){
             num += 1;
-            string = std::to_string(num);
+            content = std::to_string(num);
         }
 
-        inline int get_num(){
+        inline int get_num() const {
             return num;
         }
 

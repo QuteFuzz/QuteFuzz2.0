@@ -22,7 +22,9 @@ class Grammar{
 
         void peek();
 
-        std::shared_ptr<Rule> get_rule_pointer(std::string rule_name, U8 scope = NO_SCOPE);
+        std::shared_ptr<Rule> get_rule_pointer_if_exists(const std::string& name, const U8& scope = NO_SCOPE);
+
+        std::shared_ptr<Rule> get_rule_pointer(const Token::Token& token, const U8& scope = NO_SCOPE);
 
         inline void reset_current_branches(){current_branches.clear();}
         
@@ -58,32 +60,6 @@ class Grammar{
             }
         }
 
-        inline bool is_wildcard(const Token::Kind& kind) const {
-            return 
-                (kind ==  Token::OPTIONAL) || 
-                (kind == Token::ZERO_OR_MORE) || 
-                (kind == Token::ONE_OR_MORE)
-                ;
-        }
-
-        inline bool is_kind_of_rule(const Token::Kind& kind) const { 
-            return 
-                (Token::RULE_KINDS_TOP < kind) && 
-                (Token::RULE_KINDS_BOTTOM > kind)
-                ;
-        }
-
-        inline bool is_quiet(const Token::Kind& kind) const {
-            return 
-                (kind == Token::MULTI_COMMENT_START)|| 
-                (kind == Token::MULTI_COMMENT_END) || 
-                (kind == Token::LBRACK) || 
-                (kind == Token::RBRACK) ||
-                (kind == Token::LBRACE) ||
-                (kind == Token::COMMENT) || 
-                (kind == Token::ARROW);
-        }
-
         void extend_current_branches(const Token::Token& wildcard);
 
         void add_term_to_current_branches(const Token::Token& tokens);
@@ -104,26 +80,17 @@ class Grammar{
 
         void print_tokens() const;
 
-        /// @brief TODO: compare with varying rule scope
-        /// @param rule_name 
-        /// @param scope 
-        /// @return 
         inline bool is_rule(const std::string& rule_name, const U8& scope){
-            Rule dummy(rule_name, scope);
-            return rule_defined(dummy);            
+            for(const auto& ptr : rule_pointers){
+                if((ptr->get_name() == rule_name) && (ptr->get_scope() == scope)){return true;}
+            }
+
+            return false;            
         }
 
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}
-
-        bool rule_defined(const Rule& other){
-            for(const auto& ptr : rule_pointers){
-                if(*ptr == other){return true;}
-            }
-
-            return false;
-        }
     
     private:
         std::vector<Token::Token> tokens;

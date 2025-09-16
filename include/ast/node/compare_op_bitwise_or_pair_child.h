@@ -12,8 +12,8 @@
 class Compare_op_bitwise_or_pair_child : public Node {
 
     public:
-        Compare_op_bitwise_or_pair_child(std::string str, U64 hash) :
-            Node(str, hash)         
+        Compare_op_bitwise_or_pair_child(const std::string& content, const Token::Kind& kind) :
+            Node(content, kind)
         {}
 
         void print(std::ostream& stream) const override {

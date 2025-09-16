@@ -6,12 +6,12 @@
 class Nested_stmt : public Node {
 
     public:
-        Nested_stmt(const std::string& str, U64 hash):
-            Node(str, hash)
+        Nested_stmt(const std::string& str, const Token::Kind& kind):
+            Node(str, kind)
         {}
     
-        Nested_stmt(const std::string& str, U64 hash, unsigned int target_num_qubit_ops):
-            Node(str, hash)
+        Nested_stmt(const std::string& str, const Token::Kind& kind, unsigned int target_num_qubit_ops):
+            Node(str, kind)
         {
             /*
                 control flow with just compound stmts, or control flow with compound stmts and control flow branch

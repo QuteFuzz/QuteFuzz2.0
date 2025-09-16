@@ -16,7 +16,7 @@ class Singular_resource_definition : public Node {
         {}
 
         Singular_resource_definition(const Variable& _name) : 
-            Node("singular_resource_def", hash_rule_name("singular_resource_def")),
+            Node("singular_resource_def", Token::SINGULAR_RESOURCE_DEF),
             name(_name)
         {}
 
@@ -33,16 +33,11 @@ class Singular_qubit_definition : public Singular_resource_definition {
     
     public:
         Singular_qubit_definition(const Variable& _name) : 
-            Singular_resource_definition(
-                _name
-            )
-        
+            Singular_resource_definition(_name)
         {}
 
         Singular_qubit_definition(const Resource::Qubit& qubit) :
-            Singular_resource_definition(
-                *qubit.get_name()
-            )
+            Singular_resource_definition(*qubit.get_name())
         {}
 
         void make_resources(Collection<Resource::Qubit>& output, U8& scope) const {
@@ -58,15 +53,11 @@ class Singular_bit_definition : public Singular_resource_definition {
     
     public:
         Singular_bit_definition(const Variable& _name) : 
-            Singular_resource_definition(
-                _name
-            )
+            Singular_resource_definition(_name)
         {}
 
         Singular_bit_definition(const Resource::Bit& bit) :
-            Singular_resource_definition(
-                *bit.get_name()
-            )
+            Singular_resource_definition(*bit.get_name())
         {}
 
         void make_resources(Collection<Resource::Bit>& output, U8& scope) const {

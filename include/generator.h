@@ -15,7 +15,7 @@ struct Generator {
             builder(std::make_shared<Ast>())
         {}
 
-        void setup_builder(const std::string entry_name, const U8& scope);
+        void setup_builder(const std::string& entry_name, const U8& scope);
 
         friend std::ostream& operator<<(std::ostream& stream, Generator generator){
             stream << "  . " << generator.grammar->get_name() << ": ";
@@ -38,7 +38,7 @@ struct Generator {
 
         std::pair<Genome&, Genome&> pick_parents();
 
-        std::vector<Common::Rule_hash> get_available_gate_hashes();
+        std::vector<Token::Kind> get_available_gates();
 
         Node_constraint get_swarm_testing_gateset();
 

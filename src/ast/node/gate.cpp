@@ -2,27 +2,17 @@
 #include <resource_definition.h>
 #include "assert.h"
 
-/// @brief Use for predefined gates
-/// @param str 
-/// @param _hash 
-/// @param _qubits 
-/// @param _bits 
-/// @param _floats 
-Gate::Gate(const std::string& str, const U64& hash, unsigned int qubits, unsigned int bits, unsigned int floats) :
-    Node(str, hash),
+Gate::Gate(const std::string& str, const Token::Kind& kind, unsigned int qubits, unsigned int bits, unsigned int floats) :
+    Node(str, kind),
     num_external_qubits(qubits),
     num_external_bits(bits),
     num_floats(floats)
 {}
 
-/// @brief Use for subroutines. Filters out qubits defs in `EXTERNAL_SCOPE`
-/// @param str 
-/// @param _hash 
-/// @param qubit_defs 
-Gate::Gate(const std::string& str, const U64& hash, const Collection<Qubit_definition>& qubit_defs) :
-    Node(str, hash)
+Gate::Gate(const std::string& str, const Token::Kind& kind, const Collection<Qubit_definition>& qubit_defs) :
+    Node(str, kind)
 {
-    assert(hash == Common::subroutine);
+    assert(kind == Token::SUBROUTINE);
 
     // filter out external qubit defs
     for(const auto& qubit_def : qubit_defs){

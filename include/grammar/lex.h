@@ -27,7 +27,7 @@ namespace Token {
         RY,
         U1,
         S,
-        SGD,
+        SDG,
         T,
         TDG,
         V,
@@ -55,6 +55,7 @@ namespace Token {
         QUBIT_DEFS,
         BIT_DEFS,
         QUBIT_DEF,
+        BIT_DEF,
         REGISTER_QUBIT_DEF,
         SINGULAR_QUBIT_DEF,
         REGISTER_BIT_DEF,
@@ -65,8 +66,6 @@ namespace Token {
         MAIN_CIRCUIT_NAME,
         QUBIT_DEF_NAME,
         BIT_DEF_NAME,
-        QREG_SIZE,
-        CREG_SIZE,
         QUBIT,
         BIT,
         QUBIT_OP,
@@ -103,11 +102,30 @@ namespace Token {
         SUBROUTINE_OP_ARGS,
         GATE_OP_ARGS,
         SUBROUTINE_OP_ARG,
-/*
-        RULE_KINDS_BOTTOM: add new rule kinds above
-*/
+        COMPOUND_STMT,
+        COMPOUND_STMTS,
+        /*
+            these aren't used in the lexer, but in the AST node creation. maybe will be used in the lexer if these rules are needed later
+        */
+        REGISTER_RESOURCE,  
+        REGISTER_RESOURCE_DEF,
+        SINGULAR_RESOURCE,
+        SINGULAR_RESOURCE_DEF,
+        RESOURCE_DEF,
+        /*
+            ----------------------------------------------------------------------------------------------------------------------------------
+        */
+    
+        /*
+            RULE_KINDS_BOTTOM: add new rule kinds above
+        */
         RULE_KINDS_BOTTOM,
 
+        GRAMMAR_SYNTAX_TOP,
+        /*
+            Tokens that aren't special rule types, but rather, are syntax used in the language
+            Add new syntax below
+        */
         SEPARATOR,
         RULE_START,
         RULE_APPEND,
@@ -128,16 +146,51 @@ namespace Token {
         OWNED,
         COMMENT,
         MULTI_COMMENT_START,
-        MULTI_COMMENT_END
+        MULTI_COMMENT_END,
+
+        /*
+            Grammar syntax end, add new syntax above
+        */
+        GRAMMAR_SYNTAX_BOTTOM,
     };
+
+    inline bool is_wildcard(const Kind& kind) {
+        return 
+            (kind ==  OPTIONAL) || 
+            (kind == ZERO_OR_MORE) || 
+            (kind == ONE_OR_MORE)
+            ;
+    }
+
+    inline bool is_kind_of_rule(const Kind& kind){ 
+        return 
+            (RULE_KINDS_TOP < kind) && 
+            (RULE_KINDS_BOTTOM > kind)
+            ;
+    }
+
+    inline bool is_quiet(const Kind& kind){
+        return 
+            (kind == MULTI_COMMENT_START)|| 
+            (kind == MULTI_COMMENT_END) || 
+            (kind == LBRACK) || 
+            (kind == RBRACK) ||
+            (kind == LBRACE) ||
+            (kind == COMMENT) || 
+            (kind == ARROW);
+    }
 
     struct Token{
         std::string value;
         Kind kind;
 
+        bool operator==(const Token& other) const {
+            return (value == other.value) && (kind == other.kind);
+        }
+
         friend std::ostream& operator<<(std::ostream& stream, const Token t){
             if(t.kind == SYNTAX) std::cout << t.kind << " " << std::quoted(t.value);        
-            else std::cout << t.kind << " " << t.value;        
+            else std::cout << t.kind << " " << t.value;
             
             return stream;
         }
@@ -185,6 +238,7 @@ namespace Lexer {
         Token::Rule(R"(qubit_defs)", Token::QUBIT_DEFS),
         Token::Rule(R"(bit_defs)", Token::BIT_DEFS),
         Token::Rule(R"(qubit_def)", Token::QUBIT_DEF),
+        Token::Rule(R"(bit_def)", Token::BIT_DEF),
         Token::Rule(R"(register_qubit_def)", Token::REGISTER_QUBIT_DEF),
         Token::Rule(R"(singular_qubit_def)", Token::SINGULAR_QUBIT_DEF),
         Token::Rule(R"(register_bit_def)", Token::REGISTER_BIT_DEF),
@@ -195,8 +249,6 @@ namespace Lexer {
         Token::Rule(R"(main_circuit_name)", Token::MAIN_CIRCUIT_NAME),
         Token::Rule(R"(qubit_def_name)", Token::QUBIT_DEF_NAME),
         Token::Rule(R"(bit_def_name)", Token::BIT_DEF_NAME),
-        Token::Rule(R"(qreg_size)", Token::QREG_SIZE),
-        Token::Rule(R"(creg_size)", Token::CREG_SIZE),
         Token::Rule(R"(qubit)", Token::QUBIT),
         Token::Rule(R"(bit)", Token::BIT),
         Token::Rule(R"(qubit_op)", Token::QUBIT_OP),
@@ -233,6 +285,8 @@ namespace Lexer {
         Token::Rule(R"(subroutine_op_args)", Token::SUBROUTINE_OP_ARGS),
         Token::Rule(R"(gate_op_args)", Token::GATE_OP_ARGS),
         Token::Rule(R"(subroutine_op_arg)", Token::SUBROUTINE_OP_ARG),
+        Token::Rule(R"(compound_stmt)", Token::COMPOUND_STMT),
+        Token::Rule(R"(compound_stmts)", Token::COMPOUND_STMTS),
 
         Token::Rule(R"(h)", Token::H),
         Token::Rule(R"(x)", Token::X),
@@ -243,7 +297,7 @@ namespace Lexer {
         Token::Rule(R"(ry)", Token::RY),
         Token::Rule(R"(u1)", Token::U1),
         Token::Rule(R"(s)", Token::S),
-        Token::Rule(R"(sgd)", Token::SGD),
+        Token::Rule(R"(sdg)", Token::SDG),
         Token::Rule(R"(t)", Token::T),
         Token::Rule(R"(tdg)", Token::TDG),
         Token::Rule(R"(v)", Token::V),
@@ -285,6 +339,8 @@ namespace Lexer {
         Token::Rule(R"(INTERNAL(::)?)", Token::INTERNAL, false),
         Token::Rule(R"(OWNED(::)?)", Token::OWNED, false),
 
+        Token::Rule(R"([a-zA-Z_]+)", Token::RULE, false),
+
         Token::Rule(R"(\(\*)", Token::MULTI_COMMENT_START, false),
         Token::Rule(R"(\*\))", Token::MULTI_COMMENT_END, false),
         Token::Rule(R"(=|:)", Token::RULE_START, false),
@@ -302,8 +358,6 @@ namespace Lexer {
         Token::Rule(R"(\+)", Token::ONE_OR_MORE, false),
         Token::Rule(R"(\-\>)", Token::ARROW, false),
         Token::Rule(R"(#)", Token::COMMENT, false),
-
-        Token::Rule(R"([a-zA-Z_]+)", Token::RULE, false),
     };
 
     const std::string FULL_REGEX = [] {

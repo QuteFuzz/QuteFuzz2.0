@@ -114,7 +114,7 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Block> Context::new_block_node(std::string str, U64 hash){
+    std::shared_ptr<Block> Context::new_block_node(){
         std::shared_ptr<Block> current_block;
 
         reset(BLOCK);
@@ -125,20 +125,20 @@ namespace Context {
                 std::shared_ptr<Node> subroutine = genome.value().dag.get_next_subroutine_gate();
 
                 std::cout << YELLOW("setting block from DAG ") << std::endl;
-                std::cout << YELLOW("owner: " + subroutine->get_string()) << std::endl; 
+                std::cout << YELLOW("owner: " + subroutine->get_content()) << std::endl; 
                 std::cout << YELLOW("n ports: " + std::to_string(subroutine->get_n_ports())) << std::endl; 
 
-                current_block_owner = subroutine->get_string();
-                current_block = std::make_shared<Block>(str, hash, current_block_owner, subroutine->get_n_ports());
+                current_block_owner = subroutine->get_content();
+                current_block = std::make_shared<Block>(current_block_owner, subroutine->get_n_ports());
 
             } else {
                 current_block_owner = "sub"+std::to_string(subroutine_counter++);
-                current_block = std::make_shared<Block>(str, hash, current_block_owner);
+                current_block = std::make_shared<Block>(current_block_owner);
             }
 
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
-            current_block = std::make_shared<Block>(str, hash, Common::TOP_LEVEL_CIRCUIT_NAME);
+            current_block = std::make_shared<Block>(Common::TOP_LEVEL_CIRCUIT_NAME);
 
             subroutine_counter = 0;
 
@@ -280,30 +280,30 @@ namespace Context {
         }
     }
 
-    std::shared_ptr<Nested_branch> Context::get_nested_branch(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+    std::shared_ptr<Nested_branch> Context::get_nested_branch(const std::string& str, const Token::Kind& kind, std::shared_ptr<Node> parent){
         if(can_copy_dag){
-            return std::make_shared<Nested_branch>(str, hash, parent->get_next_qubit_op_target());
+            return std::make_shared<Nested_branch>(str, kind, parent->get_next_child_target());
 
         } else {
-            return std::make_shared<Nested_branch>(str, hash);
+            return std::make_shared<Nested_branch>(str, kind);
         }
     }
 
-    std::shared_ptr<Nested_stmt> Context::get_nested_stmt(const std::string& str, const U64& hash, std::shared_ptr<Node> parent){
+    std::shared_ptr<Nested_stmt> Context::get_nested_stmt(const std::string& str, const Token::Kind& kind, std::shared_ptr<Node> parent){
         nested_depth -= 1;
 
         if(can_copy_dag){
-            return std::make_shared<Nested_stmt>(str, hash, parent->get_next_qubit_op_target());
+            return std::make_shared<Nested_stmt>(str, kind, parent->get_next_child_target());
 
         } else {
-            return std::make_shared<Nested_stmt>(str, hash);
+            return std::make_shared<Nested_stmt>(str, kind);
         }
     }
 
     std::shared_ptr<Compound_stmt> Context::get_compound_stmt(std::shared_ptr<Node> parent){
         
         if(can_copy_dag){
-            return Compound_stmt::from_num_qubit_ops(parent->get_next_qubit_op_target());
+            return Compound_stmt::from_num_qubit_ops(parent->get_next_child_target());
         } else {
             return Compound_stmt::from_nested_depth(nested_depth);
         }
@@ -317,7 +317,7 @@ namespace Context {
             call within the body in control flow
         */
 
-        if(*parent == Common::body){
+        if(*parent == Token::BODY){
             set_can_apply_subroutines();
 
             if(can_copy_dag){
@@ -326,23 +326,23 @@ namespace Context {
         }
 
         if(can_copy_dag){
-            return Compound_stmts::from_num_qubit_ops(parent->get_next_qubit_op_target());
+            return Compound_stmts::from_num_qubit_ops(parent->get_next_child_target());
 
         } else {
             return Compound_stmts::from_num_compound_stmts(WILDCARD_MAX);
         }   
     }
 
-    std::shared_ptr<Subroutines> Context::new_subroutines_node(){
+    std::shared_ptr<Subroutine_defs> Context::new_subroutines_node(){
         unsigned int n_blocks = random_int(Common::MAX_SUBROUTINES);
 
         if(genome.has_value()){
             n_blocks = genome.value().dag.n_subroutines();
         }
 
-        std::shared_ptr<Subroutines> node = std::make_shared<Subroutines>(n_blocks);
+        std::shared_ptr<Subroutine_defs> node = std::make_shared<Subroutine_defs>(n_blocks);
 
-        subroutines_node = std::make_optional<std::shared_ptr<Subroutines>>(node);
+        subroutines_node = std::make_optional<std::shared_ptr<Subroutine_defs>>(node);
 
         return node;
     }

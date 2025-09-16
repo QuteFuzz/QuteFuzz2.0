@@ -39,11 +39,17 @@ void Grammar::peek(){
 
 }
 
-/// @brief If rule_name hasn't been initialsed, this adds a rule pointer for it and returns that pointer
-/// @param rule_name 
-/// @return 
-std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name, U8 scope){
-    auto dummy = std::make_shared<Rule>(rule_name, scope);
+std::shared_ptr<Rule> Grammar::get_rule_pointer_if_exists(const std::string& name, const U8& scope){
+
+    for(const auto& rp : rule_pointers){
+        if(rp->matches(name, scope)){return rp;}
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<Rule> Grammar::get_rule_pointer(const Token::Token& token, const U8& scope){
+    auto dummy = std::make_shared<Rule>(token, scope);
 
     for(const auto& rp : rule_pointers){
         if(*rp == *dummy){return rp;}
@@ -57,11 +63,9 @@ std::shared_ptr<Rule> Grammar::get_rule_pointer(std::string rule_name, U8 scope)
 /// @brief Convert a single token into a term and add it to the given branch
 /// @param token 
 void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
-
-    Term term(token.value, nesting_depth);
     
     if(token.kind == Token::SYNTAX){
-        term.set(token.value);
+        branch.add(Term(token.value, token.kind, nesting_depth));
 
     } else if (is_kind_of_rule(token.kind)){
         /*
@@ -70,14 +74,12 @@ void Grammar::add_term_to_branch(const Token::Token& token, Branch& branch){
             takes on the scope of the current rule (i.e the rule def)
         */
         U8 scope = (rule_decl_scope == NO_SCOPE) && (current_rule != nullptr) ? current_rule->get_scope() : rule_decl_scope;
-    
-        term.set(get_rule_pointer(token.value, scope));
 
+        branch.add(Term(get_rule_pointer(token, scope), token.kind, nesting_depth));
+    
     } else {
         throw std::runtime_error(ANNOT("Build branch should only be called on syntax or rule tokens!"));
     }
-
-    branch.add(term);
 
     if((current_rule != nullptr) && (token.value == current_rule->get_name()) && is_kind_of_rule(token.kind)){
         branch.set_recursive_flag();
@@ -149,7 +151,7 @@ void Grammar::build_grammar(){
             return;
         }
 
-        if(is_kind_of_rule(token.kind) || token.kind == Token::SYNTAX){
+        if(Token::is_kind_of_rule(token.kind) || token.kind == Token::SYNTAX){
             next = next_token.get_ok();
 
             // rules that are within branches, rules before `RULE_START` are handled at `RULE_START`
@@ -160,12 +162,12 @@ void Grammar::build_grammar(){
         
         } else if (token.kind == Token::RULE_START) {
             reset_current_branches();
-            current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
+            current_rule = get_rule_pointer(prev_token, rule_def_scope);
             current_rule->clear();
         
         } else if (token.kind == Token::RULE_APPEND){
             reset_current_branches();
-            current_rule = get_rule_pointer(prev_token.value, rule_def_scope);
+            current_rule = get_rule_pointer(prev_token, rule_def_scope);
         
         } else if (token.kind == Token::RULE_END){
             complete_rule(); current_rule = nullptr;
@@ -178,7 +180,7 @@ void Grammar::build_grammar(){
 
             next = next_token.get_ok();
 
-            if(!is_wildcard(next.kind)){
+            if(!Token::is_wildcard(next.kind)){
                 increment_nesting_depth_base();
             }
         
@@ -186,7 +188,7 @@ void Grammar::build_grammar(){
             add_current_branches_to_rule();
             reset_current_branches();
 
-        } else if (is_wildcard(token.kind)){
+        } else if (Token::is_wildcard(token.kind)){
             extend_current_branches(token);
 
         } else if (token.kind == Token::RBRACE){
@@ -214,7 +216,7 @@ void Grammar::build_grammar(){
                 rule_decl_scope |= OWNED_SCOPE;
             }
 
-        } else if (is_quiet(token.kind)){
+        } else if (Token::is_quiet(token.kind)){
 
         } else {
             throw std::runtime_error(ANNOT("Unknown token: " + token.value)); 

@@ -11,11 +11,11 @@ class Register_resource : public Node {
 
         /// @brief Dummy resource
         Register_resource() :
-            Node("Register_resource", hash_rule_name("register_resource"))
+            Node("register_resource", Token::REGISTER_RESOURCE)
         {}
 
-        Register_resource(std::string str, U64 hash, const Variable& _name, const Integer& _index) : 
-            Node(str, hash),
+        Register_resource(const std::string& str, const Token::Kind& kind, const Variable& _name, const Integer& _index) : 
+            Node(str, kind),
             name(_name),
             index(_index)
         {}
@@ -44,7 +44,7 @@ class Register_qubit : public Register_resource {
 
     public:
         Register_qubit(const Variable& _name, const Integer& _index) : 
-            Register_resource("register_qubit", Common::register_qubit, _name, _index)
+            Register_resource("register_qubit", Token::REGISTER_QUBIT, _name, _index)
         {}
 
     private:
@@ -55,7 +55,7 @@ class Register_bit : public Register_resource {
 
     public:
         Register_bit(const Variable& _name, const Integer& _index) : 
-            Register_resource("register_bit", Common::register_bit, _name, _index)
+            Register_resource("register_bit", Token::REGISTER_BIT, _name, _index)
         {}
 
     private:
