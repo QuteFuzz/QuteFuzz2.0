@@ -192,10 +192,10 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		// (qu)bit_def_list and (qu)bit_def_size are a special cases used only for pytket->guppy conversion
 		case Common::qubit_def_list:
 			context.get_current_block()->qubit_def_pointer_reset();
-			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_owned_qubit_defs()));
+			return std::make_shared<Node>(str, hash, Node_constraint(Common::qubit_def_size, context.get_current_block()->num_external_qubit_defs()));
 
 		case Common::qubit_def_size: {
-			if (context.new_qubit_definition(OWNED_SCOPE)->is_register_def()) {
+			if (context.new_qubit_definition(EXTERNAL_SCOPE)->is_register_def()) {
 				return context.get_current_qubit_definition_size();
 			} else {
 				return std::make_shared<Integer>(0);

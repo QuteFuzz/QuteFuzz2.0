@@ -78,12 +78,10 @@ imports =   "from pytket import Circuit, Qubit, Bit" NEWLINE
             "from diff_testing.lib import pytketTesting"
             ;
 
-compiler_call = "pt = pytketTesting() " NEWLINE testing_method;
+compiler_call = "def run_test(qss_main_circuit):" NEWLINE "    pt = pytketTesting() " NEWLINE testing_method;
 
-testing_method = main_circuit_name ".measure_all() " NEWLINE "pt.ks_diff_test(" main_circuit_name COMMA circuit_id RPAREN
-                # | "pt.run_circ_statevector(" main_circuit_name COMMA SPACE circuit_id RPAREN          # Can't run statevector simulator with measures
-                | "pt.run_guppy_pytket_diff(" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK COMMA LBRACK bit_def_list RBRACK RPAREN NEWLINE
-                # | main_circuit_name ".measure_all() " NEWLINE "pt.run_qir_pytket_diff(" main_circuit_name COMMA circuit_id RPAREN NEWLINE;  # No compatibility with circboxes and slow with Nexus
+testing_method = "    " main_circuit_name ".measure_all() " NEWLINE "    pt.cross_qss_ks_diff_test(" main_circuit_name COMMA "qss_" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN NEWLINE
+                "if __name__ == '__main__':" NEWLINE "    from circuit_cross_qss import main_circuit as qss_main_circuit" NEWLINE "    run_test(qss_main_circuit)"
                 ;
 
 qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;

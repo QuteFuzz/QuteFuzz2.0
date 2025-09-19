@@ -138,6 +138,7 @@ namespace Context {
         } else {
             current_block_owner = Common::TOP_LEVEL_CIRCUIT_NAME;
             current_block = std::make_shared<Block>(str, hash, Common::TOP_LEVEL_CIRCUIT_NAME);
+            current_block->add_constraint(Common::non_comptime_block, 0);
 
             subroutine_counter = 0;
 

@@ -90,6 +90,60 @@ class Base():
             return True
         except Exception as e:
             return False
+        
+    def load_guppy_circuit_from_file(self, circuit_number) -> Any:
+        '''
+        Loads a guppy circuit from a given file path
+        '''
+        filepath = self.OUTPUT_DIR / f"circuit{circuit_number}" / f"circuit_cross_qss.py"
+        if not filepath.exists():
+            raise FileNotFoundError(f"Guppy circuit file not found: {filepath}")
+        
+        # Read the file content
+        with open(filepath, 'r') as file:
+            file_content = file.read()
+        
+        # Prepare a local namespace to execute the file content
+        local_namespace = {}
+        
+        try:
+            exec(file_content, {}, local_namespace)
+        except Exception as e:
+            print(f"Error executing guppy circuit file: {e}")
+            raise
+        
+        # Assuming the main circuit function is named 'main_circuit'
+        if 'main_circuit' not in local_namespace:
+            raise ValueError("The guppy circuit file does not define 'main_circuit'")
+        
+        return local_namespace['main_circuit']
+    
+    def load_pytket_circuit_from_file(self, circuit_number) -> Circuit:
+        '''
+        Loads a pytket circuit from a given file path
+        '''
+        filepath = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit_cross_qss.py"
+        if not filepath.exists():
+            raise FileNotFoundError(f"Pytket circuit file not found: {filepath}")
+        
+        # Read the file content
+        with open(filepath, 'r') as file:
+            file_content = file.read()
+        
+        # Prepare a local namespace to execute the file content
+        local_namespace = {}
+        
+        try:
+            exec(file_content, {}, local_namespace)
+        except Exception as e:
+            print(f"Error executing pytket circuit file: {e}")
+            raise
+        
+        # Assuming the main circuit variable is named 'main_circuit'
+        if 'main_circuit' not in local_namespace:
+            raise ValueError("The pytket circuit file does not define 'main_circuit'")
+        
+        return local_namespace['main_circuit']
 
     def preprocess_counts(self, counts : Counter[Tuple[str, ...], int]) -> Counter[int, int]:
         '''
@@ -401,6 +455,77 @@ class pytketTesting(Base):
             print("Error during QIR conversion or execution:", e)
             print("Exception :", traceback.format_exc())
 
+    def cross_qss_ks_diff_test(self, circuit: Circuit, cross_qss_circuit: Any, circuit_number: int, qubit_defs_list : list[int]) -> None:
+        '''
+        Runs circuit on both qiskit and pytket simulators and compares results
+        '''
+        
+        backend = AerBackend()
+
+        @guppy.comptime
+        def main() -> None:
+            qubit_variables = []
+            
+            # qreg are always at the front, followed by singular qubits
+            for qubit_def in qubit_defs_list:
+                qubit_array = [qubit() for _ in range(qubit_def)] if qubit_def > 0 else qubit()
+                qubit_variables.append(qubit_array)
+            # At this point, bit and qubit ordering is different. Needs to be adapted here
+            cross_qss_circuit(*qubit_variables)
+
+            for r in range(len(qubit_variables)):
+                if isinstance(qubit_variables[r], list):
+                    result(f"q{r}", measure_array(qubit_variables[r]))
+                else:
+                    result(f"q{r}", measure(qubit_variables[r]))
+
+        try:
+            # Get original circuit shots
+            pytket_circ = backend.get_compiled_circuit(circuit, optimisation_level=0)
+            handle_pytket = backend.process_circuit(pytket_circ, n_shots=1000)
+            result_pytket = backend.get_result(handle_pytket)
+            counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+
+            # Cross qss circuit currently only surrports guppy circuits
+            hugr = main.compile()
+            runner = build(hugr)
+            results = QsysResult(
+                runner.run_shots(Quest(), n_qubits=circuit.n_qubits, n_shots=1000)
+            )
+            counts_guppy = results.collated_counts()
+            counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
+            counts_guppy = self.preprocess_counts(counts_guppy)
+
+            # Run the kstest on the two results
+            ks_value = self.ks_test(counts_pytket, counts_guppy, 1000)
+            print(f"Cross-qss ks-test p-value: {ks_value}")
+
+            # Heuristic to determine if the testcase is interesting
+            if ks_value < 0.05:
+                print(f"Interesting circuit found: {circuit_number}")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            
+            # plot results
+            if self.plot:
+                self.plot_histogram(counts_pytket, "Pytket Circuit Results", 0, circuit_number)
+                self.plot_histogram(counts_guppy, "Guppy Circuit Results", 0, circuit_number)
+
+        except Exception as e:
+            from guppylang_internals.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang_internals.diagnostic import DiagnosticsRenderer
+                from guppylang_internals.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+                return
+
+            print("Exception :", traceback.format_exc())
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            
+
 class qiskitTesting(Base):
     def __init__(self):
         super().__init__()
@@ -563,3 +688,72 @@ class guppyTesting(Base):
             print("Exception :", traceback.format_exc())
             self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
 
+    def cross_qss_ks_diff_test(self, circuit: Any, cross_qss_circuit: Circuit, circuit_number: int, qubit_defs_list : list[int]) -> None:
+        '''
+        Runs guppy circuit on selene and compares with pytket simulator results
+        '''
+
+        @guppy.comptime
+        def main() -> None:
+            qubit_variables = []
+            
+            # qreg are always at the front, followed by singular qubits
+            for qubit_def in qubit_defs_list:
+                qubit_array = [qubit() for _ in range(qubit_def)] if qubit_def > 0 else qubit()
+                qubit_variables.append(qubit_array)
+            # At this point, bit and qubit ordering is different. Needs to be adapted here
+            circuit(*qubit_variables)
+
+            for r in range(len(qubit_variables)):
+                if isinstance(qubit_variables[r], list):
+                    result(f"q{r}", measure_array(qubit_variables[r]))
+                else:
+                    result(f"q{r}", measure(qubit_variables[r]))
+
+        try:
+            hugr = main.compile()
+            # Circuit compiled successfully, now differential test hugr
+            # Running hugr on selene
+            runner = build(hugr)
+            results = QsysResult(
+                runner.run_shots(Quest(), n_qubits=cross_qss_circuit.n_qubits, n_shots=10000)
+            )
+            counts_guppy = results.collated_counts()
+            counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
+            counts_guppy = self.preprocess_counts(counts_guppy)
+
+            # Get pytket circuit shots
+            backend = AerBackend()
+            cross_qss_circuit.measure_all()
+            pytket_circ = backend.get_compiled_circuit(cross_qss_circuit, optimisation_level=0)
+            handle_pytket = backend.process_circuit(pytket_circ, n_shots=10000)
+            result_pytket = backend.get_result(handle_pytket)
+            counts_pytket = self.preprocess_counts(result_pytket.get_counts())
+
+            # Run the kstest on the two results
+            ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)
+            print(f"Guppy vs PyTket ks-test p-value: {ks_value}")
+
+            if ks_value < 0.05:
+                print(f"Interesting circuit found: {circuit_number}")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+
+            if self.plot:
+                self.plot_histogram(counts_guppy, "Guppy Circuit Results", 0, circuit_number)
+                self.plot_histogram(counts_pytket, "PyTket Circuit Results", 0, circuit_number)
+
+        except Exception as e:
+            from guppylang_internals.error import GuppyError
+            if isinstance(e, GuppyError):
+                from guppylang_internals.diagnostic import DiagnosticsRenderer
+                from guppylang_internals.engine import DEF_STORE
+
+                renderer = DiagnosticsRenderer(DEF_STORE.sources)
+                renderer.render_diagnostic(e.error)
+                sys.stderr.write("\n".join(renderer.buffer))
+                sys.stderr.write("\n\nGuppy compilation failed due to 1 previous error\n")
+                return
+            
+            print("Exception :", traceback.format_exc())
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            

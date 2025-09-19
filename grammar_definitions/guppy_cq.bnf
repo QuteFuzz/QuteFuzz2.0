@@ -93,16 +93,19 @@ singular_qubit = qubit_name;
 
 register_qubit = qubit_name "[" qubit_index "]"; 
 
-imports = "from guppylang.decorator import guppy " NEWLINE
+imports = "from guppylang import guppy " NEWLINE
         "from guppylang.std.angles import angle, pi " NEWLINE
         "from guppylang.std.builtins import array, owned, py, comptime, result, owned, barrier" NEWLINE
         "from guppylang.std.quantum import * " NEWLINE
         "from guppylang.std.qsystem import * " NEWLINE
         "from diff_testing.lib import guppyTesting " NEWLINE
-        "from pathlib import Path " NEWLINE;
+        ;
 
-compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
-
-testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE
-                # | "gt.guppy_qir_diff_test(main_circuit" COMMA circuit_id COMMA total_num_qubits RPAREN NEWLINE; # Currently too slow with Nexus
+compiler_call = "def run_test(qss_main_circuit):" NEWLINE "    gt = guppyTesting()" NEWLINE testing_method NEWLINE
+                "if __name__ == '__main__':" NEWLINE "    from circuit_cross_qss import main_circuit as qss_main_circuit" NEWLINE "    run_test(qss_main_circuit)"
                 ;
+
+testing_method = "    gt.cross_qss_ks_diff_test(main_circuit" COMMA "qss_" main_circuit_name COMMA circuit_id COMMA LBRACK qubit_def_list RBRACK RPAREN
+                ;
+
+qubit_def_list = qubit_def_size (COMMA SPACE qubit_def_size)*;
