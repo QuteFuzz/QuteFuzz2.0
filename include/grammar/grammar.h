@@ -14,15 +14,17 @@ class Grammar{
     public:
         Grammar(){}
 
-        Grammar(const fs::path& filename);
+        Grammar(const fs::path& filename, std::vector<Token::Token>& meta_grammar_tokens);
 
         void consume(int n);
 
-        void consume(const Token::Token_kind kind);
+        void consume(const Token::Kind kind);
 
         void peek();
 
-        std::shared_ptr<Rule> get_rule_pointer(std::string rule_name);
+        std::shared_ptr<Rule> get_rule_pointer_if_exists(const std::string& name, const U8& scope = NO_SCOPE);
+
+        std::shared_ptr<Rule> get_rule_pointer(const Token::Token& token, const U8& scope = NO_SCOPE);
 
         inline void reset_current_branches(){current_branches.clear();}
         
@@ -58,54 +60,38 @@ class Grammar{
             }
         }
 
-        inline bool is_wilcard(const Token::Token& token) const {
-            return (token.kind ==  Token::OPTIONAL) || (token.kind == Token::ZERO_OR_MORE) || (token.kind == Token::ONE_OR_MORE);
-        }
-
         void extend_current_branches(const Token::Token& wildcard);
 
         void add_term_to_current_branches(const Token::Token& tokens);
 
         void add_term_to_branch(const Token::Token& token, Branch& branch);
 
-        void expand_range();
-
         void build_grammar();
 
-        void print_grammar() const;
+        friend std::ostream& operator<<(std::ostream& stream, const Grammar& grammar){
+            for(const auto& p : grammar.rule_pointers){
+                std::cout << *p << std::endl;
+            }
+
+            return stream;
+        }
 
         void print_rules() const;
 
         void print_tokens() const;
 
-        inline bool is_rule(const std::string rule_name){
-            return rule_pointers.find(rule_name) != rule_pointers.end();
+        inline bool is_rule(const std::string& rule_name, const U8& scope){
+            for(const auto& ptr : rule_pointers){
+                if((ptr->get_name() == rule_name) && (ptr->get_scope() == scope)){return true;}
+            }
+
+            return false;            
         }
 
         inline std::string get_name(){return name;}
 
         inline std::string get_path(){return path.string();}
-
-        inline void mark_as_commons_grammar(){
-            for(auto& [f, s] : rule_pointers){
-                s->mark_as_common();
-            }
-        }
-
-        std::unordered_map<std::string, std::shared_ptr<Rule>> get_rule_pointers() const {
-            return rule_pointers;
-        }
-
-        Grammar& operator+=(const Grammar& other){
-            std::unordered_map<std::string, std::shared_ptr<Rule>> other_rule_pointers = other.get_rule_pointers();
-
-            for(const auto& [k ,v]: other_rule_pointers){
-                rule_pointers.insert_or_assign(k, v);
-            }
-        
-            return *this;
-        }
-
+    
     private:
         std::vector<Token::Token> tokens;
         size_t num_tokens = 0;
@@ -119,10 +105,13 @@ class Grammar{
         std::vector<Branch> current_branches;
         std::shared_ptr<Rule> current_rule = nullptr;
 
+        U8 rule_def_scope = NO_SCOPE;
+        U8 rule_decl_scope = NO_SCOPE;
+
         unsigned int nesting_depth_base = 0;
         unsigned int nesting_depth = nesting_depth_base;
 
-        std::unordered_map<std::string, std::shared_ptr<Rule>> rule_pointers;
+        std::vector<std::shared_ptr<Rule>> rule_pointers;
         
         Lexer::Lexer lexer;
         std::string name;

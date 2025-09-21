@@ -9,10 +9,18 @@ class Float : public Node {
         using Node::Node;
 
         Float() :
-            Node(std::to_string(random_float(10)))         
+            Node(std::to_string(random_float(10)))
         {}
 
+        Float(float n) :
+            Node(std::to_string(n)),
+            num(n)
+        {}
+
+        float get_num() const {return num;}
+
     private:
+        float num;
 
 };
 

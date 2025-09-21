@@ -10,44 +10,70 @@ class Rule {
     public:
         Rule(){}
         
-        Rule(const std::string& _name) : name(_name) {
-            hash = hash_rule_name(name);
-        }
+        Rule(const Token::Token& _token, const U8& _scope) :
+            token(_token),
+            scope(_scope)
+        {}
         
-        Rule(const std::vector<Branch>& _branches) : branches(_branches) {}
+        Rule(const std::vector<Branch>& _branches) : 
+            branches(_branches) 
+        {}
 
         ~Rule(){}
 
-        std::string get_name() const {return name;}
+        std::string get_name() const {return token.value;}
 
-        U64 get_hash() const {return hash;}
+        Token::Token get_token() const {return token;}
+
+        U8 get_scope() const {return scope;}
 
         bool get_recursive_flag() const {return recursive;}
-        
-        void print(std::ostream& os) const;
-        
+                
         std::vector<Branch> get_branches(){return branches;}
 
         void add(const Branch& b);
 
-        size_t size(){return branches.size();}
+        inline size_t size(){return branches.size();}
 
-        bool is_empty() const {return branches.empty();}
+        inline bool is_empty() const {return branches.empty();}
+
+        inline void clear(){branches.clear();}
 
         Branch pick_branch(std::shared_ptr<Node> parent);
 
-        inline void mark_as_common(){common = true;} 
+        bool operator==(const Rule& other) const { 
+            bool scope_matches = (scope == NO_SCOPE) ? (scope == other.get_scope()) : (scope & other.get_scope());
 
-        bool is_marked_as_common(){return common;}
+            return (token == other.get_token()) && scope_matches;
+        }
+
+        bool matches(const std::string& name, const U8& _scope) { 
+            bool scope_matches = (scope == NO_SCOPE) ? (scope == _scope) : (scope & _scope);
+
+            return (token.value == name) && scope_matches;
+        }
+
+        friend std::ostream& operator<<(std::ostream& stream, const Rule& rule){
+            stream << rule.get_name() << " = ";
+            
+            for(size_t i = 0; i < rule.branches.size(); i++){
+                stream << rule.branches[i];
+                if(i < rule.branches.size() - 1) stream << " | ";
+            }
+
+            stream << " ; " << STR_SCOPE(rule.scope) << std::endl;
+
+            return stream;
+        }
 
     private:
-        std::string name;
-        U64 hash = 0ULL;
-        bool recursive = false; //Toggles recursion
-        bool common = false;
-    
+        Token::Token token;
+        U8 scope = NO_SCOPE;
+
         std::vector<Branch> branches;
 
+        bool recursive = false;
+    
 };
 
 #endif

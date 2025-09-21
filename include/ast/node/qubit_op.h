@@ -10,7 +10,7 @@ class Qubit_op : public Node {
 
     public:
         Qubit_op(): 
-            Node("qubit_op", Common::qubit_op)
+            Node("qubit_op", Token::QUBIT_OP)
         {}
 
         Qubit_op(std::shared_ptr<Block> current_block);

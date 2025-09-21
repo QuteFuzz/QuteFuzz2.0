@@ -1,15 +1,6 @@
 #include <rule.h>
 #include <node.h>
 
-void Rule::print(std::ostream& os) const {
-    for(const auto& elem : branches){
-        elem.print(os);
-        os << "| ";
-    }
-
-    os << " common: " << common;
-}
-
 /// @brief need to have this check and store pointers to recursive branches separately
 /// @param branch 
 void Rule::add(const Branch& branch){
@@ -27,7 +18,7 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
         Branch branch = branches[random_int(size - 1)];
 
         #ifdef DEBUG
-        INFO("Picking branch for " + name + " while satisfying constraint " + parent->get_debug_constraint_string());
+        INFO("Picking branch for " + token.value + STR_SCOPE(scope) + " while satisfying constraint " + parent->get_debug_constraint_string());
         #endif
 
         while(!parent->branch_satisfies_constraint(branch)){
@@ -37,6 +28,10 @@ Branch Rule::pick_branch(std::shared_ptr<Node> parent){
         return branch;
 
     } else {
+        #ifdef DEBUG
+        INFO(token.value + STR_SCOPE(scope) + " is an empty rule");
+        #endif
+
         return Branch();
     }
 }

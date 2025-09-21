@@ -8,10 +8,10 @@ class Float_list : public Node {
     public:
         using Node::Node;
 
-        Float_list(std::string str, U64 hash, unsigned int num_floats_in_list):
-            Node(str, hash)
+        Float_list(unsigned int num_floats_in_list):
+            Node("float_list", Token::FLOAT_LIST)
         {
-            add_constraint(Common::float_literal, num_floats_in_list);
+            add_constraint(Token::FLOAT_LITERAL, num_floats_in_list);
         }
 
     private:

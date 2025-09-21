@@ -11,9 +11,9 @@ class Disjunction : public Node {
 
     public:
         Disjunction() :
-            Node("disjunction", Common::disjunction)         
+            Node("disjunction", Token::DISJUNCTION)         
         {
-            add_constraint(Common::conjunction, 2);
+            add_constraint(Token::CONJUNCTION, 2);
         }
 
         void print(std::ostream& stream) const override {

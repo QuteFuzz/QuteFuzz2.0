@@ -1,15 +1,18 @@
 #include <resource.h>
-#include <collection.h>
 #include <dag.h>
+#include <block.h>
 
-void Dag::Dag::make_dag(const Collection<Resource::Qubit>& _qubits, const Collection<Resource::Bit>& _bits){
+void Dag::Dag::make_dag(const std::shared_ptr<Block> block){
     reset();
 
-    qubits = _qubits;
-    bits = _bits;
+    qubits = block->get_qubits();
+    qubit_defs = block->get_qubit_defs();
+
+    bits = block->get_bits();
+    bit_defs = block->get_bit_defs();
     
-    for(const Resource::Qubit& qubit : qubits){
-        qubit.add_path_to_dag(*this);
+    for(const auto& qubit : qubits){
+        qubit->add_path_to_dag(*this);
     }
 }
 
@@ -29,8 +32,6 @@ void Dag::Dag::add_edge(const Edge& edge, std::optional<int> maybe_dest_node_id,
 
     unsigned int source_node_input_port = edge.get_dest_port();
     std::shared_ptr<Qubit_op> source_node = edge.get_node();
-
-    source_node->set_from_dag();
 
     std::optional<unsigned int> maybe_pos = nodewise_data_contains(source_node);
     unsigned int pos = maybe_pos.value_or(nodewise_data.size());
@@ -70,8 +71,8 @@ void Dag::Dag::render_dag(const fs::path& current_circuit_dir){
 
     dot_string << "digraph G {\n";
 
-    for(const Resource::Qubit& qubit : qubits){
-        qubit.extend_dot_string(dot_string);
+    for(const auto& qubit : qubits){
+        qubit->extend_dot_string(dot_string);
     }
 
     dot_string << "}\n";

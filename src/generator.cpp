@@ -1,11 +1,13 @@
 #include <generator.h>
 
-void Generator::setup_builder(const std::string entry_name){
-    if(grammar->is_rule(entry_name)){
-        builder->set_entry(grammar->get_rule_pointer(entry_name));
+/// @brief TODO: make it such that user can call entry point with particular scope
+/// @param entry_name 
+void Generator::setup_builder(const std::string& entry_name, const U8& scope){
+    if(grammar->is_rule(entry_name, scope)){
+        builder->set_entry(grammar->get_rule_pointer_if_exists(entry_name, scope));
 
     } else if(builder->entry_set()){
-        WARNING("Rule " + entry_name + " is not defined for grammar " + grammar->get_name() + ". Will use previous entry instead");
+        WARNING("Rule " + entry_name + STR_SCOPE(scope) + " is not defined for grammar " + grammar->get_name() + ". Will use previous entry instead");
 
     } else {
         ERROR("Rule " + entry_name + " is not defined for grammar " + grammar->get_name());  
@@ -87,57 +89,61 @@ std::pair<Genome&, Genome&> Generator::pick_parents(){
     return { population[first], population[second] };
 }
 
-/// @brief Get all available gate names from grammar rule "gate_name", always exclude "subroutine"
-/// @return
-std::vector<Common::Rule_hash> Generator::get_available_gate_hashes(){
-    std::vector<Common::Rule_hash> gate_name_hashes;
+/// @brief Get defined gates in grammar, filtering out measure gates
+/// @return 
+std::vector<Token::Kind> Generator::get_available_gates(){
+    std::vector<Token::Kind> out;
 
-    for (Branch& b : grammar->get_rule_pointer("gate_name")->get_branches()) {
-        std::vector<Term> terms = b.get_terms();
-        for (Term& t : terms) {
-            if (t.get_string() != "subroutine" && t.get_string() != "Measure") {
-                gate_name_hashes.push_back(Common::Rule_hash(t.get_hash()));
+    std::shared_ptr<Rule> gate_name = grammar->get_rule_pointer_if_exists("gate_name");
+    
+    if(gate_name == nullptr){
+        ERROR("No gates have been defined in the grammar!");
+
+    } else {
+
+        for (const Branch& b : gate_name->get_branches()) {
+            std::vector<Term> terms = b.get_terms();
+
+            for (const Term& t : terms) {
+                if ((t.get_kind() != Token::MEASURE) && (t.get_kind() != Token::MEASURE_AND_RESET)) {
+                    out.push_back(t.get_kind());
+                }
             }
         }
     }
 
-    /*
-        I've kept this separate from get_swarm_testing_gateset in case we want to use it for something else later
-    */
-
-    return gate_name_hashes;
+    return out;
 }
 
 Node_constraint Generator::get_swarm_testing_gateset(){
-    std::vector<Common::Rule_hash> gate_name_hashes = get_available_gate_hashes();
+    std::vector<Token::Kind> gates = get_available_gates();
 
-    size_t n_gates = std::min((size_t)Common::SWARM_TESTING_GATESET_SIZE, gate_name_hashes.size());
-    std::vector<Common::Rule_hash> selected_hashes(n_gates);
+    size_t n_gates = std::min((size_t)Common::SWARM_TESTING_GATESET_SIZE, gates.size());
+
+    std::vector<Token::Kind> selected_gates(n_gates);
     
     #ifdef DEBUG
-    if (n_gates == gate_name_hashes.size()) {
+    if (n_gates == gates.size()) {
         WARNING("Requested swarm testing gateset size is larger than or equal to available gates");
     }
     #endif
 
-    // Sample directly from gate_name_hashes into selected_hashes
-    std::sample(gate_name_hashes.begin(), gate_name_hashes.end(), 
-                selected_hashes.begin(), n_gates, seed());
+    std::sample(gates.begin(), gates.end(), selected_gates.begin(), n_gates, seed());
 
     /*
         Gateset needs to be unique, there are probably many ways to do this but this is just what I've done
         Other methods could be like using a set or shuffling and taking the first n elements
     */
 
-    std::vector<unsigned int> selected_occurances(n_gates, 0);
-    return Node_constraint(selected_hashes, selected_occurances);
+    std::vector<unsigned int> occurances(n_gates, 0);
+    
+    return Node_constraint(selected_gates, occurances);
 }
 
 Dag::Dag Generator::crossover(const Dag::Dag& dag1, const Dag::Dag& dag2){
     Dag::Dag child;
 
-    child.make_dag(dag1.get_qubits(), dag1.get_bits());
-
+    UNUSED(dag1);
     UNUSED(dag2);
 
     return child;

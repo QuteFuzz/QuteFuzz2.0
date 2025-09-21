@@ -18,7 +18,7 @@ class Register_resource_definition : public Node {
         {}
 
         Register_resource_definition(const Variable& _name, const Integer& _size): 
-            Node("register_resource_def", hash_rule_name("register_resource_def")),
+            Node("register_resource_def", Token::REGISTER_RESOURCE_DEF),
             name(_name),
             size(_size)
         {}
@@ -58,9 +58,8 @@ class Register_qubit_definition : public Register_resource_definition {
         {}
 
         void make_resources(Collection<Resource::Qubit>& output, const U8& scope) const {
-            size_t reg_size = safe_stoi(size.get_string()).value();
 
-            for(size_t i = 0; i < reg_size; i++){
+            for(size_t i = 0; i < (size_t)size.get_num(); i++){
                 Register_qubit reg_qubit(name, Integer(std::to_string(i)));
 
                 output.add(Resource::Qubit(reg_qubit, scope));
@@ -89,9 +88,7 @@ class Register_bit_definition : public Register_resource_definition {
         {}
 
         void make_resources(Collection<Resource::Bit>& output, const U8& scope) const {
-            size_t reg_size = safe_stoi(size.get_string()).value();
-
-            for(size_t i = 0; i < reg_size; i++){
+            for(size_t i = 0; i < (size_t)size.get_num(); i++){
                 Register_bit reg_bit(name, Integer(std::to_string(i)));
 
                 output.add(Resource::Bit(reg_bit, scope));

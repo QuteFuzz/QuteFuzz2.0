@@ -1,0 +1,105 @@
+# guppy
+
+# WORK IN PROGRESS: Circuits will not be well-formed
+
+x = "x";
+y = "y";
+z = "z";
+cx = "cx";
+ch = "ch";
+cy = "cy";
+cz = "cz";
+rx = "rx";
+ry = "ry";
+rz = "rz";
+v = "v";
+vdg = "vdg";
+tdg = "tdg";
+t = "t";
+sdg = "sdg";
+h = "h";
+t = "t";
+s = "s";
+measure = "measure";
+cnot = "cnot";
+
+INTERNAL OWNED {
+
+qubit_defs = (qubit_def NEWLINE)*;
+
+singular_qubit_def = qubit_def_name "= qubit()";
+
+register_qubit_def = qubit_def_name "=array(qubit() for _ in range(" qubit_def_size "))";
+
+}
+
+EXTERNAL {
+
+qubit_defs = qubit_def (COMMA qubit_def)*;
+
+singular_qubit_def = qubit_def_name COLON "qubit";
+
+register_qubit_def = qubit_def_name ":array[qubit, " qubit_def_size "]";
+
+}
+
+comptime_decorator = "@guppy.comptime";
+
+guppy_decorator = "@guppy";
+
+decorator = comptime_decorator | guppy_decorator;
+
+
+
+block = circuit_def_header NEWLINE INDENT body "    return" DEDENT NEWLINE;
+
+circuit_def_header = "@guppy.comptime" NEWLINE "def " circuit_name "() -> None:";
+
+# TODO: maybe some feature like this, where different defs can be specified depending on node parent
+# circuit_def_header->program = "@guppy.comptime" NEWLINE "def " circuit_name "() -> None:";
+
+# circuit_def_header->subroutine_defs = "@guppy" NEWLINE "def " circuit_name "(" EXTERNAL::qubit_defs "):";
+
+
+body  = INTERNAL::qubit_defs NEWLINE compound_stmts;
+
+compound_stmt = qubit_op | if_stmt;
+
+float_list = "angle(" float_literal ")" (", angle(" float_literal ")")*; # override
+
+measure_and_record_qreg =  "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure_array" LPAREN qubit_def_name RPAREN RPAREN;
+
+measure_and_record_single_qubit = "result(" DOUBLE_QUOTE qubit_def_name DOUBLE_QUOTE COMMA "measure" LPAREN qubit_def_name RPAREN RPAREN;
+
+# -----------------------------------------------------------------------------------------
+
+gate_op = gate_name "(" gate_op_args ")";
+
+subroutine_op = subroutine "(" subroutine_op_args ")";
+
+gate_name += phasedxpowgate | project_z | measure_and_reset | u | barrier | toffoli | crz | cnot;
+
+
+measure_and_reset = "measure_and_reset";
+barrier = "barrier";
+phasedxpowgate = "phasedxpowgate";
+project_z = "project_z";
+toffoli = "toffoli";
+crz = "crz";
+
+singular_qubit = qubit_name;
+
+register_qubit = qubit_name "[" qubit_index "]"; 
+
+
+imports = "from guppylang.decorator import guppy " NEWLINE
+        "from guppylang.std.angles import angle, pi " NEWLINE
+        "from guppylang.std.builtins import array, owned, py, comptime, result, owned, barrier" NEWLINE
+        "from guppylang.std.quantum import * " NEWLINE
+        "from guppylang.std.qsystem import * " NEWLINE
+        "from diff_testing.lib import guppyTesting " NEWLINE
+        "from pathlib import Path " NEWLINE;
+
+compiler_call = "gt = guppyTesting()" NEWLINE testing_method;
+
+testing_method = "gt.ks_diff_test(main_circuit" COMMA circuit_id RPAREN NEWLINE;

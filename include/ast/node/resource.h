@@ -8,19 +8,6 @@
 
 namespace Resource {
 
-    #define EXTERNAL_SCOPE (1UL << 0)
-    #define INTERNAL_SCOPE (1UL << 1)
-    #define OWNED_SCOPE (1UL << 2)
-    #define ALL_SCOPES (EXTERNAL_SCOPE | INTERNAL_SCOPE | OWNED_SCOPE)
-
-    inline bool is_external(U8 scope){
-        return scope & EXTERNAL_SCOPE;
-    }
-
-    inline bool is_owned(U8 scope){
-        return scope & OWNED_SCOPE;
-    }
-
     enum Classification {
         QUBIT,
         BIT
@@ -31,19 +18,18 @@ namespace Resource {
 
             /// @brief Dummy resource
             Resource() :
-                Node("resource", hash_rule_name("resource")),
-                value(Singular_resource()),
-                scope(EXTERNAL_SCOPE)
+                Node("dummy", Token::SINGULAR_RESOURCE),
+                value(Singular_resource())
             {}
 
-            Resource(std::string str, U64 hash, const Register_resource& resource, const U8& _scope) :
-                Node(str, hash),
+            Resource(const std::string& str, const Token::Kind& kind, const Register_resource& resource, const U8& _scope) :
+                Node(str, kind),
                 value(resource),
                 scope(_scope)
             {}
 
-            Resource(std::string str, U64 hash, const Singular_resource& resource, const U8& _scope) :
-                Node(str, hash),
+            Resource(const std::string& str, const Token::Kind& kind, const Singular_resource& resource, const U8& _scope) :
+                Node(str, kind),
                 value(resource),
                 scope(_scope)
             {}
@@ -76,14 +62,6 @@ namespace Resource {
                 }, value);
             }
 
-            inline bool is_external() const {
-                return scope & EXTERNAL_SCOPE;
-            }
-
-            inline bool is_owned() const {
-                return scope & OWNED_SCOPE;
-            }
-
             inline bool is_register_def() const {
                 return std::holds_alternative<Register_resource>(value);
             }
@@ -114,15 +92,15 @@ namespace Resource {
             Qubit() : Resource() {}
 
             Qubit(const Register_qubit& qubit, const U8& scope) :
-                Resource("qubit", Common::qubit, qubit, scope)
+                Resource("qubit", Token::QUBIT, qubit, scope)
             {
-                add_constraint(Common::register_qubit, 1);
+                add_constraint(Token::REGISTER_QUBIT, 1);
             }
 
             Qubit(const Singular_qubit& qubit, const U8& scope) :
-                Resource("qubit", Common::qubit, qubit, scope)
+                Resource("qubit", Token::QUBIT, qubit, scope)
             {
-                add_constraint(Common::singular_qubit, 1);
+                add_constraint(Token::SINGULAR_QUBIT, 1);
             }
 
             void extend_flow_path(const std::shared_ptr<Qubit_op> qubit_op, unsigned int current_port);
@@ -149,15 +127,15 @@ namespace Resource {
             Bit() : Resource() {}
 
             Bit(const Register_bit& bit, const U8& scope) :
-                Resource("bit", Common::bit, bit, scope)
+                Resource("bit", Token::BIT, bit, scope)
             {
-                add_constraint(Common::register_bit, 1);
+                add_constraint(Token::REGISTER_BIT, 1);
             }
 
             Bit(const Singular_bit& bit, const U8& scope) :
-                Resource("bit", Common::bit, bit, scope)
+                Resource("bit", Token::BIT, bit, scope)
             {
-                add_constraint(Common::singular_bit, 1);
+                add_constraint(Token::SINGULAR_BIT, 1);
             }
 
         private:

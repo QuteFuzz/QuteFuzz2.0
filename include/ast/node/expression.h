@@ -12,7 +12,7 @@ class Expression : public Node {
     public:
 
         Expression():
-            Node("expression", Common::expression)
+            Node("expression", Token::EXPRESSION)
         {}
 
         void print(std::ostream& stream) const override {

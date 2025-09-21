@@ -19,45 +19,45 @@ enum Node_kind {
 struct Node_constraint {
 
     public:
-        Node_constraint(Common::Rule_hash _rule, unsigned int _occurances):
-            rules({_rule}),
+        Node_constraint(Token::Kind rule, unsigned int _occurances):
+            rule_kinds({rule}),
             occurances({_occurances})
         {}
 
-        Node_constraint(std::vector<Common::Rule_hash> _rules, std::vector<unsigned int> _occurances): 
-            rules(std::move(_rules)),
+        Node_constraint(std::vector<Token::Kind> _rule_kinds, std::vector<unsigned int> _occurances): 
+            rule_kinds(std::move(_rule_kinds)),
             occurances(std::move(_occurances))
         {}
 
         bool passed(const Branch& branch){
             // Count the number of occurances of each rule in the branch and return true if they match the expected occurances
-            for(size_t i = 0; i < rules.size(); i++){
-                if(branch.count_rule_occurances(rules[i]) != occurances[i]){
+            for(size_t i = 0; i < rule_kinds.size(); i++){
+                if(branch.count_rule_occurances(rule_kinds[i]) != occurances[i]){
                     return false;
                 }
             }
             return true;
         }
 
-        Common::Rule_hash get_rule(unsigned int index) const {
-            return rules[index];
+        Token::Kind get_rule_kind_at(unsigned int index) const {
+            return rule_kinds[index];
         }
 
-        size_t get_occurances(unsigned int index) const {
+        unsigned int get_occurances_at(unsigned int index) const {
             return occurances[index];
         }
 
-        size_t rules_size() const {
-            return rules.size();
+        unsigned int size() const {
+            return rule_kinds.size();
         }
 
-        void add(const Common::Rule_hash& rule, unsigned int n_occurances){
-            rules.push_back(rule);
+        void add(const Token::Kind& rule, unsigned int n_occurances){
+            rule_kinds.push_back(rule);
             occurances.push_back(n_occurances);    
         }
 
     private:
-        std::vector<Common::Rule_hash> rules;
+        std::vector<Token::Kind> rule_kinds;
         std::vector<unsigned int> occurances = {0};
 
 };
@@ -72,21 +72,17 @@ class Node {
 
         Node(){}
 
-        /// no hash provided => node is non-terminal
-        Node(const std::string _string, const U64 _hash = 0ULL, const std::string _indentation_str = ""):
-            string(_string),
-            hash(_hash),
-            kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
+        Node(std::string _content, Token::Kind _kind = Token::SYNTAX, const std::string _indentation_str = ""):
+            content(_content),
+            kind(_kind),
             indentation_str(_indentation_str)
         {
             id = node_counter++;
         }
 
-
-        Node(const std::string _string, const U64 _hash, const std::optional<Node_constraint>& _constraint, const std::string _indentation_str = ""):
-            string(_string),
-            hash(_hash),
-            kind((hash == 0ULL) ? TERMINAL : NON_TERMINAL),
+        Node(std::string _content, Token::Kind _kind, const std::optional<Node_constraint>& _constraint, const std::string _indentation_str = ""):
+            content(_content),
+            kind(_kind),
             indentation_str(_indentation_str),
             constraint(_constraint)
         {
@@ -107,8 +103,10 @@ class Node {
             return state;
         }
 
-        std::string get_string() const {
-            return string;
+        /// @brief Get node content, stored as a string
+        /// @return 
+        std::string get_content() const {
+            return content;
         }
 
         int get_id() const {
@@ -116,20 +114,19 @@ class Node {
         }
 
         virtual std::string resolved_name() const {
-            return string + ", id: " + std::to_string(id);
+            return content + ", id: " + std::to_string(id);
         }
 
-        Node_kind get_node_kind() const {return kind;}
+        // Node_kind get_node_kind() const {return kind;}
 
         virtual void print(std::ostream& stream) const {
-            if(kind == TERMINAL){
-                stream << string;
-
+            if(kind == Token::SYNTAX){
+                stream << content;
             } else {
 
                 for(const std::shared_ptr<Node>& child : children){
                     stream << indentation_str << *child;
-                } 
+                }
             }
         }
 
@@ -154,31 +151,31 @@ class Node {
             return children.size();
         }
 
-        bool operator==(const U64& other){
-            return hash == other;
+        bool operator==(const Token::Kind& other_kind){
+            return kind == other_kind;
         }
 
-        bool operator==(const std::string& other){
-            return string == other;
-        }
+        // bool operator==(const std::string& other){
+        //     return string == other;
+        // }
 
         bool branch_satisfies_constraint(const Branch& branch){
             return !constraint.has_value() || constraint.value().passed(branch);
         }
 
-        void set_constraint(std::vector<Common::Rule_hash> rules, std::vector<unsigned int> occurances){
-            if(rules.size() != occurances.size()){
+        void set_constraint(std::vector<Token::Kind> rule_kinds, std::vector<unsigned int> occurances){
+            if(rule_kinds.size() != occurances.size()){
                 ERROR("Hashes vector must be the same size as occurances vector!");
             }
 
-            constraint = std::make_optional<Node_constraint>(rules, occurances);
+            constraint = std::make_optional<Node_constraint>(rule_kinds, occurances);
         }
 
-        void add_constraint(const Common::Rule_hash& rule, unsigned int n_occurances){
+        void add_constraint(const Token::Kind& rule_kind, unsigned int n_occurances){
             if(constraint.has_value()){
-                constraint.value().add(rule, n_occurances);
+                constraint.value().add(rule_kind, n_occurances);
             } else {
-                constraint = std::make_optional<Node_constraint>(rule, n_occurances);
+                constraint = std::make_optional<Node_constraint>(rule_kind, n_occurances);
             }
         }
 
@@ -188,33 +185,27 @@ class Node {
 
         virtual unsigned int get_n_ports() const {return 1;}
 
-        std::shared_ptr<Node> find(const U64 _hash) const;
+        // std::shared_ptr<Node> find(const U64 _hash) const;
 
-        inline bool is_subroutine_gate() const {return hash == Common::subroutine;}
-
-        int get_next_qubit_op_target();
+        int get_next_child_target();
 
         void make_partition(int target, int n_children);
 
         void make_control_flow_partition(int target, int n_children);
 
-        inline void set_from_dag(){from_dag = true;}
-
-        inline bool is_from_dag(){return from_dag;}
-
     protected:
-        std::string string;
-        U64 hash;
-        Node_kind kind;
+        std::string content;
+        Token::Kind kind;
+
+        // Node_kind kind;
         int id;
 
         std::string indentation_str;
         std::vector<std::shared_ptr<Node>> children;
         Node_build_state state = NB_BUILD;
-        std::vector<int> qubit_op_target_partition;
-        unsigned int partition_counter = 0;
 
-        bool from_dag = false;
+        std::vector<int> child_partition;
+        unsigned int partition_counter = 0;
     
     private:
         std::optional<Node_constraint> constraint;

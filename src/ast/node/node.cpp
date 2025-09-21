@@ -7,10 +7,10 @@ std::string Node::get_debug_constraint_string() const {
     if(constraint.has_value()){
         std::string debug_string;
 
-        for(size_t i = 0; i < constraint.value().rules_size(); i++){
-            unsigned int n_occurances = constraint.value().get_occurances(i);
+        for(size_t i = 0; i < constraint.value().size(); i++){
+            unsigned int n_occurances = constraint.value().get_occurances_at(i);
             
-            debug_string += std::to_string(constraint.value().get_rule(i)) + " with occurances: " + std::to_string(n_occurances) + " ";
+            debug_string += std::to_string(constraint.value().get_rule_kind_at(i)) + " with occurances: " + std::to_string(n_occurances) + " ";
             
             if(n_occurances > (unsigned int)WILDCARD_MAX){
                 debug_string += RED("(Cannot be satisfied! Max = " + std::to_string(WILDCARD_MAX) + ")");
@@ -26,35 +26,35 @@ std::string Node::get_debug_constraint_string() const {
 }
 #endif
 
-int Node::get_next_qubit_op_target(){
-    size_t partition_size = qubit_op_target_partition.size();
+int Node::get_next_child_target(){
+    size_t partition_size = child_partition.size();
 
     if(partition_counter < partition_size){
-        return qubit_op_target_partition[partition_counter++];
+        return child_partition[partition_counter++];
     } else {
-        WARNING("Node " + string + " qubit node target partition info: Counter: " + std::to_string(partition_counter) + ", Size: " + std::to_string(partition_size));
+        WARNING("Node " + content + " qubit node target partition info: Counter: " + std::to_string(partition_counter) + ", Size: " + std::to_string(partition_size));
         return 1;
     }
 }
 
-std::shared_ptr<Node> Node::find(const U64 _hash) const {
+// std::shared_ptr<Node> Node::find(const U64 _hash) const {
 
-    std::shared_ptr<Node> node;
+//     std::shared_ptr<Node> node;
 
-    for(const std::shared_ptr<Node>& child : children){
-        if(*child == _hash){
-            return child;
-        }
+//     for(const std::shared_ptr<Node>& child : children){
+//         if(*child == _hash){
+//             return child;
+//         }
 
-        node = child->find(_hash);
+//         node = child->find(_hash);
         
-        if(node != nullptr){
-            return node;
-        }
-    }
+//         if(node != nullptr){
+//             return node;
+//         }
+//     }
 
-    return nullptr;
-}
+//     return nullptr;
+// }
 
 /// @brief Create a random partition of `target` over `n_children`. Final result contains +ve ints
 /// @param target 
@@ -62,10 +62,10 @@ std::shared_ptr<Node> Node::find(const U64 _hash) const {
 void Node::make_partition(int target, int n_children){
 
     if((n_children == 1) || (target == 1)){
-        qubit_op_target_partition = {target};
+        child_partition = {target};
     
     } else if (target == n_children){
-        qubit_op_target_partition = std::vector<int>(n_children, 1);
+        child_partition = std::vector<int>(n_children, 1);
 
     } else {
 
@@ -100,20 +100,20 @@ void Node::make_partition(int target, int n_children){
                 {0, 2, 4, 9, 10}
                 {2, 2, 5, 1} <- result
         */
-        qubit_op_target_partition.push_back(cuts[0]);
+        child_partition.push_back(cuts[0]);
 
         for(int i = 1; i < n_children-1; i++){
-            qubit_op_target_partition.push_back(cuts[i] - cuts[i-1]);
+            child_partition.push_back(cuts[i] - cuts[i-1]);
         }
 
-        qubit_op_target_partition.push_back(target - cuts[n_children-2]);
+        child_partition.push_back(target - cuts[n_children-2]);
 
     }
 
 #ifdef DEBUG
-    std::cout << "Partition at " << string << std::endl;
-    for(size_t i = 0; i < qubit_op_target_partition.size(); i++){
-        std::cout << qubit_op_target_partition[i] << " ";
+    std::cout << "Partition at " << get_content() << std::endl;
+    for(size_t i = 0; i < child_partition.size(); i++){
+        std::cout << child_partition[i] << " ";
     }
 
     std::cout << std::endl;
@@ -127,11 +127,14 @@ void Node::make_control_flow_partition(int target, int n_children){
     make_partition(target, n_children);
     
     if(n_children == 1){
-        add_constraint(Common::else_stmt, 0);
-        add_constraint(Common::elif_stmt, 0);
+        add_constraint(Token::ELSE_STMT, 0);
+        add_constraint(Token::ELIF_STMT, 0);
+
     } else if (random_int(1)) {
-        add_constraint(Common::else_stmt, 1);
+        add_constraint(Token::ELSE_STMT, 1);
+        
     } else {
-        add_constraint(Common::elif_stmt, 1);
+        add_constraint(Token::ELIF_STMT, 1);
+   
     }
 }
