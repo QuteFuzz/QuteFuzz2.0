@@ -77,11 +77,9 @@ gate_op = gate_name "(" gate_op_args ")";
 
 subroutine_op = subroutine "(" subroutine_op_args ")";
 
-gate_name += u1 | phasedxpowgate | project_z | measure_and_reset | u2 | u | barrier | toffoli | u3 | crz | cnot;
+gate_name += phasedxpowgate | project_z | measure_and_reset | u | barrier | toffoli | crz | cnot;
 
-u1 = "u1";
-u2 = "u2";
-u3 = "u3";
+
 measure_and_reset = "measure_and_reset";
 barrier = "barrier";
 phasedxpowgate = "phasedxpowgate";
