@@ -90,60 +90,6 @@ class Base():
             return True
         except Exception as e:
             return False
-        
-    def load_guppy_circuit_from_file(self, circuit_number) -> Any:
-        '''
-        Loads a guppy circuit from a given file path
-        '''
-        filepath = self.OUTPUT_DIR / f"circuit{circuit_number}" / f"circuit_cross_qss.py"
-        if not filepath.exists():
-            raise FileNotFoundError(f"Guppy circuit file not found: {filepath}")
-        
-        # Read the file content
-        with open(filepath, 'r') as file:
-            file_content = file.read()
-        
-        # Prepare a local namespace to execute the file content
-        local_namespace = {}
-        
-        try:
-            exec(file_content, {}, local_namespace)
-        except Exception as e:
-            print(f"Error executing guppy circuit file: {e}")
-            raise
-        
-        # Assuming the main circuit function is named 'main_circuit'
-        if 'main_circuit' not in local_namespace:
-            raise ValueError("The guppy circuit file does not define 'main_circuit'")
-        
-        return local_namespace['main_circuit']
-    
-    def load_pytket_circuit_from_file(self, circuit_number) -> Circuit:
-        '''
-        Loads a pytket circuit from a given file path
-        '''
-        filepath = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit_cross_qss.py"
-        if not filepath.exists():
-            raise FileNotFoundError(f"Pytket circuit file not found: {filepath}")
-        
-        # Read the file content
-        with open(filepath, 'r') as file:
-            file_content = file.read()
-        
-        # Prepare a local namespace to execute the file content
-        local_namespace = {}
-        
-        try:
-            exec(file_content, {}, local_namespace)
-        except Exception as e:
-            print(f"Error executing pytket circuit file: {e}")
-            raise
-        
-        # Assuming the main circuit variable is named 'main_circuit'
-        if 'main_circuit' not in local_namespace:
-            raise ValueError("The pytket circuit file does not define 'main_circuit'")
-        
-        return local_namespace['main_circuit']
 
     def preprocess_counts(self, counts : Counter[Tuple[str, ...], int]) -> Counter[int, int]:
         '''

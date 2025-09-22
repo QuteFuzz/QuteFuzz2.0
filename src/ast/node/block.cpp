@@ -92,7 +92,7 @@ unsigned int Block::make_register_resource_definition(unsigned int max_size, U8 
 
     if (classification == Resource::QUBIT) {
         Register_qubit_definition def(
-            Variable("qreg" + std::to_string(qubit_defs.get_total())),
+            Variable("qubit" + std::to_string(qubit_defs.get_total()) + "reg"),
             Integer(std::to_string(size))
         );
 

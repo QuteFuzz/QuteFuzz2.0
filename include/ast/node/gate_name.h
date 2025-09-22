@@ -14,12 +14,15 @@ class Gate_name : public Node {
 
             if(current_block->num_owned_qubits() == 0){
                 add_constraint(Common::measure_and_reset, 0);
-                if (current_block->total_num_bits() == 0) {
-                    add_constraint(Common::Measure, 0);
-                }
+                add_constraint(Common::Measure, 0);
+                
                 /*
                     measure_and_reset only needs owned qubits, and guppy doesn't have bit resources
                 */
+            } else {
+                if (current_block->total_num_bits() == 0) {
+                    add_constraint(Common::Measure, 0);
+                }
             }
 
             if(*parent == Common::subroutine_op){

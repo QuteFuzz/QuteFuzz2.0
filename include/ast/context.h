@@ -79,10 +79,10 @@ namespace Context {
 					current_argument_list = (current_qubit_list == nullptr) ? current_gate_op_kind->find(Common::arguments) : nullptr;
 					
 					/*
-						Weird workaround to accomodate swapped float_list and qubit_list in gate_op_kind
+						Weird workaround to accomodate swapped float_list and qubit_list positions in gate_op_kind
 						between guppy and pytket
 					*/
-					if (current_gate_op_kind != nullptr && current_float_list == nullptr) {
+					if (current_gate_op_kind != nullptr && current_float_list == nullptr && current_argument_list == nullptr) {
 						current_gate_op_kind->set_from_dag();
 						return current_gate_op_kind;
 					} else {
@@ -145,6 +145,8 @@ namespace Context {
 					std::shared_ptr<Resource_definition> qubit_def = subroutine->get_next_qubit_def(EXTERNAL_SCOPE);
 
 					current_arg = std::make_shared<Arg>(qubit_def);
+				} else {
+					ERROR("Current gate is null or not a subroutine gate!");
 				}
 
 				return current_arg;
@@ -157,6 +159,7 @@ namespace Context {
 					arguments->set_from_dag();
 					return arguments;
 				} else {
+					WARNING("Getting subroutine with no DAG " + current_gate->get_string());
 					return std::make_shared<Arguments>(get_current_gate_num_qubit_params());
 				}
 			}
@@ -184,11 +187,18 @@ namespace Context {
 			std::shared_ptr<Integer> get_current_bit_definition_size();
 
 			inline std::shared_ptr<Gate> new_gate(const std::string& str, int num_qubits, int num_bits, int num_params, U64 hash = 0ULL, int num_qubit_params = 0){
+
 				current_gate = std::make_shared<Gate>(str, hash, num_qubits, num_bits, num_params, num_qubit_params);
 
 				current_qubit_op->set_gate_node(current_gate);
 
 				return current_gate;
+
+				/*
+					Don't need to consider Common::cross_qss since gate names should be already be copied wholesale for subroutines and gate string
+					should be conforming to QSS standard by this point (upper/lower case)
+				*/
+				
 			}
 
 			int get_current_gate_num_params();
@@ -253,18 +263,31 @@ namespace Context {
 				// Gate name is one of the children of the child of the DAG qubit_op
 				if (Common::cross_qss && genome.has_value()) {
 
-					std::shared_ptr<Node> current_gate_op = current_qubit_op->find(Common::gate_op) == nullptr ? current_qubit_op->find(Common::subroutine_op) : current_qubit_op->find(Common::gate_op); 
+					bool is_subroutine = current_qubit_op->find(Common::subroutine_op) != nullptr;
+					std::shared_ptr<Node> current_gate_op = is_subroutine ? current_qubit_op->find(Common::subroutine_op) : current_qubit_op->find(Common::gate_op); 
 					/*
 						Assume only 1 child to qubit_op, which is either gate_op or subroutine_op
 					*/ 
-
-					return std::make_shared<Gate_name>(Common::Rule_hash(current_gate_op->find(Common::gate_name)->get_children().at(0)->get_hash()));
-
-					WARNING("Could not find gate_name node in qubit_op children! Generating random gate name instead");
-					return std::make_shared<Gate_name>(parent, get_current_block(), swarm_testing_gateset);
+					if (current_gate_op != nullptr && current_gate_op->find(Common::gate_name) != nullptr && !is_subroutine) {
+						return std::make_shared<Gate_name>(Common::Rule_hash(current_gate_op->find(Common::gate_name)->get_children().at(0)->get_hash()));
+						/*
+							Get the gate hash and convert to gate name since different QSSes have different upper/lower case names or even entirely different names.
+							Exceptions are subroutines since its named locally
+						*/
+					} else if (current_gate_op != nullptr && current_gate_op->find(Common::gate_name) != nullptr && is_subroutine) { 
+						std::shared_ptr<Gate_name> subroutine_gate_name = std::static_pointer_cast<Gate_name>(current_gate_op->find(Common::gate_name));
+						subroutine_gate_name->set_from_dag();
+						return subroutine_gate_name;
+						/*
+							Copy subroutine gate name directly since naming doesn't change across QSS
+						*/
+					} else {
+						WARNING("Could not find gate_op or subroutine_op in qubit_op children! Generating random gate name instead");
+						return std::make_shared<Gate_name>(parent, get_current_block(), Common::swarm_testing ? swarm_testing_gateset : std::nullopt);
+					}
 				}
 
-				return std::make_shared<Gate_name>(parent, get_current_block(), std::nullopt);
+				return std::make_shared<Gate_name>(parent, get_current_block(), Common::swarm_testing ? swarm_testing_gateset : std::nullopt);
 			};
 
 			/// @brief Is the current block being generated a subroutine?

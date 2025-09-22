@@ -32,16 +32,11 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Set LLVM environment variable for Rust packages
 ENV LLVM_SYS_140_PREFIX="/usr/lib/llvm-14"
 
-# TODO: Change tket2 to tket in future
+# Installs all required Python packages
 RUN pip install pytket qiskit pytket-qiskit matplotlib sympy z3-solver cirq pytket-quantinuum[pecos] tket pytket-qir qnexus
-RUN pip install selene-sim 
+RUN pip install selene-sim guppylang guppylang-internals hugr-qir
 
-# Install latest guppylang from main branch on GitHub
-RUN python3 -m pip install git+https://github.com/CQCL/guppylang.git@main#subdirectory=guppylang
-# Install latest hugr-qir from main branch on GitHub
-RUN python3 -m pip install git+https://github.com/CQCL/hugr-qir.git@main
-
-# Clone and build qir-runner
+# Clone and build qir-runner which is different from PyPi version
 RUN git clone https://github.com/CQCL/qir-runner.git /tmp/qir-runner
 WORKDIR /tmp/qir-runner
 RUN cargo build

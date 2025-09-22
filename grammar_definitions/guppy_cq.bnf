@@ -8,7 +8,7 @@ block = non_comptime_block
         | comptime_block;
 
 non_comptime_block = block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
-block_def   = "@guppy" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" COLON;
+block_def   = "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" COLON;
 
 comptime_block = comptime_block_def NEWLINE INDENT body discard_internal_qubits simple_stmt DEDENT NEWLINE;
 comptime_block_def =  "@guppy.comptime" NEWLINE "def " circuit_name LPAREN block_args RPAREN " -> None" COLON;
