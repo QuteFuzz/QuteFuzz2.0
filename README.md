@@ -7,6 +7,8 @@ A tool for fuzzing quantum compilers.
 
 See wiki for more details.
 
+[![Unitary Foundation](https://img.shields.io/badge/Supported%20By-UNITARY%20FOUNDATION-brightgreen.svg?style=for-the-badge)](https://unitary.foundation)
+
 ## Running
 
 ### Build with:
