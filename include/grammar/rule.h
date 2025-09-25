@@ -41,16 +41,12 @@ class Rule {
 
         Branch pick_branch(std::shared_ptr<Node> parent);
 
-        bool operator==(const Rule& other) const { 
-            bool scope_matches = (scope == NO_SCOPE) ? (scope == other.get_scope()) : (scope & other.get_scope());
-
-            return (token == other.get_token()) && scope_matches;
+        bool operator==(const Rule& other) const {
+            return (token == other.get_token()) && scope_matches(scope, other.get_scope());
         }
 
         bool matches(const std::string& name, const U8& _scope) { 
-            bool scope_matches = (scope == NO_SCOPE) ? (scope == _scope) : (scope & _scope);
-
-            return (token.value == name) && scope_matches;
+            return (token.value == name) && scope_matches(scope, _scope);
         }
 
         friend std::ostream& operator<<(std::ostream& stream, const Rule& rule){

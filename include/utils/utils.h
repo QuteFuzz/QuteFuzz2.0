@@ -82,6 +82,8 @@ std::string escape(const std::string& str);
 
 std::string random_hex_colour();
 
+bool scope_matches(const U8& a, const U8& b);
+
 template<typename T>
 std::vector<T> multiply_vector(std::vector<T> vec, int mult){
     std::vector<T> multiplied_vec;

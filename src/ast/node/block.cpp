@@ -13,7 +13,7 @@ std::shared_ptr<Resource::Qubit> Block::get_random_qubit(const U8& scope){
 
         std::shared_ptr<Resource::Qubit> qubit = qubits.at(random_int(total_qubits - 1));
 
-        while(qubit->is_used() || !(qubit->get_scope() & scope)){
+        while(qubit->is_used() || !scope_matches(qubit->get_scope(), scope)){
             qubit = qubits.at(random_int(total_qubits - 1));
         }
 
@@ -37,7 +37,7 @@ std::shared_ptr<Resource::Bit> Block::get_random_bit(const U8& scope){
 
         std::shared_ptr<Resource::Bit> bit = bits.at(random_int(total_bits - 1));
 
-        while(bit->is_used() || !(bit->get_scope() & scope)){
+        while(bit->is_used() || !scope_matches(bit->get_scope(), scope)){
             bit = bits.at(random_int(total_bits - 1));
         }
 
@@ -54,7 +54,7 @@ std::shared_ptr<Resource::Bit> Block::get_random_bit(const U8& scope){
 std::shared_ptr<Qubit_definition> Block::get_next_qubit_def(const U8& scope){
     auto maybe_def = qubit_defs.at(qubit_def_pointer++);
 
-    while((maybe_def != nullptr) && !(maybe_def->get_scope() & scope)){
+    while((maybe_def != nullptr) && !scope_matches(maybe_def->get_scope(), scope)){
         maybe_def = qubit_defs.at(qubit_def_pointer++);
     }
 
@@ -68,7 +68,7 @@ std::shared_ptr<Qubit_definition> Block::get_next_qubit_def(const U8& scope){
 std::shared_ptr<Bit_definition> Block::get_next_bit_def(const U8& scope){
     auto maybe_def = bit_defs.at(bit_def_pointer++);
 
-    while((maybe_def != nullptr) && !(maybe_def->get_scope() & scope)){
+    while((maybe_def != nullptr) && !scope_matches(maybe_def->get_scope(), scope)){
         maybe_def = bit_defs.at(bit_def_pointer++);
     }
 
