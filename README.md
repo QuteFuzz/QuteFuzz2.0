@@ -41,20 +41,7 @@ Use `cmake -DCMAKE_BUILD_TYPE=Debug ..` for debug symbols and other logging info
 
 4. Run with `./fuzzer`.
 
-### Commands
-
-- `h` : help
-- `quit`: quit program
-- `print`: print grammar if any has been set
-- `print_tokens`: print tokenisation of grammar if any has been set
-- `<grammar> <entry_point>`: set grammar. For example, `pytket program` sets the `pytket` grammar an builds AST with `program` entry point
-- `<n>`: generate n programs from the set grammar
-- `plot`: Show probability distribution of results
-- `verbose`: Verbose mode shows which python commands are being run while testing the cirucits
-- `run_tests`: Run differential testing on the circuits
-
-Grammars are written in `examples` folder.
-Outputs are in the `outputs` folder. 
+See [wiki](https://github.com/QuteFuzz/QuteFuzz2.0/wiki/Interacting-with-the-tool) for help on how to intertact with the tool
 
 ## Bugs found with the help of QuteFuzz 2.0
 
@@ -75,9 +62,5 @@ Outputs are in the `outputs` folder.
 | [Issue 1079 &#x1F41E;](https://github.com/CQCL/guppylang/issues/1079) | |
 | | |
 
-## Ideas
 
-- [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
-- Automatic test reduction
-- How to generate loops that terminate?
 
