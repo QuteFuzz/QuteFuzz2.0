@@ -129,7 +129,7 @@ class Base():
     def compare_statevectors(self, sv1 : NDArray[np.complex128], sv2 : NDArray[np.complex128], precision: int = 6) -> float:
         return np.round(abs(np.vdot(sv1, sv2)), precision)
 
-    def save_interesting_circuit(self, circuit_number: int, interesting_dir: pathlib.Path) -> None:
+    def save_interesting_circuit(self, circuit_number: int, interesting_dir: pathlib.Path, is_cross_qss: bool = False) -> None:
         '''
         Saves an interesting circuit file to the specified directory
         '''
@@ -137,11 +137,15 @@ class Base():
         interesting_dir.mkdir(parents=True, exist_ok=True)
         
         circuit_source_path = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit.py"
+        if is_cross_qss:
+            cross_qss_circuit_source_path = self.OUTPUT_DIR / f"circuit{circuit_number}" / "circuit_cross_qss.py"
         circuit_dest_path = interesting_dir / f"circuit{circuit_number}.py"
         
         if circuit_source_path.exists():
             try:
                 shutil.copy2(circuit_source_path, circuit_dest_path)
+                if is_cross_qss and cross_qss_circuit_source_path.exists():
+                    shutil.copy2(cross_qss_circuit_source_path, interesting_dir / f"circuit{circuit_number}_cross_qss.py")
                 print(f"Interesting circuit saved to: {circuit_dest_path}")
             except Exception as e:
                 print(f"Error copying circuit file: {e}")
@@ -449,7 +453,7 @@ class pytketTesting(Base):
             # Heuristic to determine if the testcase is interesting
             if ks_value < 0.05:
                 print(f"Interesting circuit found: {circuit_number}")
-                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits", is_cross_qss=True)
             
             # plot results
             if self.plot:
@@ -469,7 +473,7 @@ class pytketTesting(Base):
                 return
 
             print("Exception :", traceback.format_exc())
-            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits", is_cross_qss=True)
             
 
 class qiskitTesting(Base):
@@ -662,7 +666,7 @@ class guppyTesting(Base):
             # Running hugr on selene
             runner = build(hugr)
             results = QsysResult(
-                runner.run_shots(Quest(), n_qubits=cross_qss_circuit.n_qubits, n_shots=10000)
+                runner.run_shots(Quest(), n_qubits=cross_qss_circuit.n_qubits, n_shots=1000)
             )
             counts_guppy = results.collated_counts()
             counts_guppy = Counter({''.join([measurement[1] for measurement in key]): value for key, value in counts_guppy.items()})
@@ -672,17 +676,17 @@ class guppyTesting(Base):
             backend = AerBackend()
             cross_qss_circuit.measure_all()
             pytket_circ = backend.get_compiled_circuit(cross_qss_circuit, optimisation_level=0)
-            handle_pytket = backend.process_circuit(pytket_circ, n_shots=10000)
+            handle_pytket = backend.process_circuit(pytket_circ, n_shots=1000)
             result_pytket = backend.get_result(handle_pytket)
             counts_pytket = self.preprocess_counts(result_pytket.get_counts())
 
             # Run the kstest on the two results
-            ks_value = self.ks_test(counts_guppy, counts_pytket, 10000)
+            ks_value = self.ks_test(counts_guppy, counts_pytket, 1000)
             print(f"Guppy vs PyTket ks-test p-value: {ks_value}")
 
             if ks_value < 0.05:
                 print(f"Interesting circuit found: {circuit_number}")
-                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+                self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits", is_cross_qss=True)
 
             if self.plot:
                 self.plot_histogram(counts_guppy, "Guppy Circuit Results", 0, circuit_number)
@@ -701,5 +705,5 @@ class guppyTesting(Base):
                 return
             
             print("Exception :", traceback.format_exc())
-            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits")
+            self.save_interesting_circuit(circuit_number, self.OUTPUT_DIR / "interesting_circuits", is_cross_qss=True)
             
