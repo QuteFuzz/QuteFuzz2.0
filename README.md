@@ -73,9 +73,16 @@ Outputs are in the `outputs` folder.
 | [Issue 1079 &#x1F41E;](https://github.com/CQCL/tket2/issues/1079) | |
 | | |
 
-## Ideas
+## Manual testing procedures
 
-- [AFL](https://github.com/google/AFL): Feedback to the fuzzer on which circuits are good circuits for testing
-- Automatic test reduction
-- How to generate loops that terminate?
+After the desired tests have been executed, all the results will be stored in text form in `outputs/result.txt`. The easiest way to find errors is to search for the term: "Interesting circuit found:", and then find all the interesting circuit outputs.
 
+A circuit is determined to be interesting if one of the following occurs:
+- K-S test value falls below 0.05
+- K-S test value falls below 0.2 for 2 or more times
+- Program throws an exception
+- Program times out (only guppy ks_diff_test)
+
+These testing methods are all contained within `diff_testing/lib.py`, where the testing methods are categorized by a unique class for each frontend.
+
+Upon looking through the results text file, the corresponding interesting circuits will have been saved into an alternative directory in `outputs/interesting_circuits`. These files can then be manually ran again using `python outputs/interesting_circuits/circuit__.py` with `__` being the circuit number of interest after looking at the results text file. These test cases can then be manually tweaked by removing gates/subcircuits until the bug can be reproduced with the minimal number of gates. 
