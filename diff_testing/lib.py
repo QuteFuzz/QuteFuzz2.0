@@ -238,6 +238,7 @@ class pytketTesting(Base):
 
             # Get statevector after every optimisation level
             for i in range(3):
+                print("Optimisation level ", i+1)
                 compiled_circ = backend.get_compiled_circuit(circuit.copy(), optimisation_level=i+1)
                 pass_statevector = compiled_circ.get_statevector()
                 dot_prod = self.compare_statevectors(no_pass_statevector, pass_statevector, 6)
@@ -268,8 +269,6 @@ class pytketTesting(Base):
 
         guppy_circuit = guppy.load_pytket("guppy_circuit", circuit)
 
-        # Reordering qubits in alphebatical order like in pytket
-        qubit_defs_list_sorted =  [x[1] for x in sorted(enumerate(qubit_defs_list), key=lambda x: (x[1] == 0, x[0]))]
         # Reordering bits in alphebetical order like in pytket
         bit_defs_list_sorted = [x for x in bit_defs_list if x == 0] + [x for x in bit_defs_list if x != 0]
         # And if creg is the sole register, it will be expanded to individual bits
@@ -281,7 +280,7 @@ class pytketTesting(Base):
             qubit_variables = []
             
             # qreg are always at the front, followed by singular qubits
-            for qubit_def in qubit_defs_list_sorted:
+            for qubit_def in qubit_defs_list:
                 qubit_array = [qubit() for _ in range(qubit_def)] if qubit_def > 0 else [qubit()]
                 qubit_variables.append(qubit_array)
             # At this point, bit and qubit ordering is different. Needs to be adapted here

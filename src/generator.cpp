@@ -105,7 +105,7 @@ std::vector<Common::Rule_hash> Generator::get_available_gate_hashes(){
     for (Branch& b : grammar->get_rule_pointer("gate_name")->get_branches()) {
         std::vector<Term> terms = b.get_terms();
         for (Term& t : terms) {
-            if (t.get_string() != "subroutine" && t.get_string() != "Measure") {
+            if (t.get_string() != "subroutine") {
                 gate_name_hashes.push_back(Common::Rule_hash(t.get_hash()));
             }
         }
@@ -121,7 +121,7 @@ std::vector<Common::Rule_hash> Generator::get_available_gate_hashes(){
 Node_constraint Generator::get_swarm_testing_gateset(){
     std::vector<Common::Rule_hash> gate_name_hashes = get_available_gate_hashes();
 
-    size_t n_gates = std::min((size_t)Common::SWARM_TESTING_GATESET_SIZE, gate_name_hashes.size());
+    size_t n_gates = std::min((size_t)Common::SWARM_TESTING_GATESET_SIZE, gate_name_hashes.size()-1);
     std::vector<Common::Rule_hash> selected_hashes(n_gates);
     
     #ifdef DEBUG
@@ -135,8 +135,8 @@ Node_constraint Generator::get_swarm_testing_gateset(){
                 selected_hashes.begin(), n_gates, seed());
 
     /*
-        Gateset needs to be unique, there are probably many ways to do this but this is just what I've done
-        Other methods could be like using a set or shuffling and taking the first n elements
+        Most number of gates that Common::SWARM_TESTING_GATESET_SIZE can be is the total number of gates - 1 (excluding subroutine)
+        This is to ensure that there is always at least one gate not in the gateset
     */
 
     std::vector<unsigned int> selected_occurances(n_gates, 0);

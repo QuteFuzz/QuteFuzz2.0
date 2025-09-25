@@ -244,6 +244,9 @@ namespace Common {
         compare_op_bitwise_or_pair = 11179282617234990551ULL,
         name = 14176396743819860870ULL,
         number = 9237349086447201248ULL,
+
+        testing_method = 16965317775465738533ULL,
+        statevector = 16591517001640781181ULL
     };
 }
 

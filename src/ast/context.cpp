@@ -232,7 +232,33 @@ namespace Context {
         return std::nullopt;
     }
 
-    
+    std::shared_ptr<Gate_op_kind> Context::new_gate_op_kind_node(std::string str, U64 hash) {
+        if (Common::cross_qss && genome.has_value()) {
+            std::shared_ptr<Gate_op_kind> current_gate_op_kind = std::static_pointer_cast<Gate_op_kind>(current_qubit_op->find(Common::gate_op_kind));
+            current_qubit_list = current_gate_op_kind->find(Common::qubit_list);
+            current_float_list = current_gate_op_kind->find(Common::float_list);
+            current_argument_list = (current_qubit_list == nullptr) ? current_gate_op_kind->find(Common::arguments) : nullptr;
+            
+            /*
+                Weird workaround to accomodate swapped float_list and qubit_list positions in gate_op_kind
+                between guppy and pytket
+            */
+            if (current_gate_op_kind != nullptr && current_float_list == nullptr && current_argument_list == nullptr) {
+                current_gate_op_kind->set_from_dag();
+                return current_gate_op_kind;
+            } else {
+                #ifdef DEBUG
+                if (current_gate_op_kind == nullptr) {
+                    ERROR("Gate_op_kind not found in DAG!");
+                } 
+                #endif
+                return std::make_shared<Gate_op_kind>(str, hash, get_current_gate_num_params(), get_current_gate_num_bits(), get_current_gate_num_qubit_params());
+            }
+
+        } else {
+            return std::make_shared<Gate_op_kind>(str, hash, get_current_gate_num_params(), get_current_gate_num_bits(), get_current_gate_num_qubit_params());
+        }
+    }
 
     std::shared_ptr<Integer> Context::get_current_qubit_index(){
         if(current_qubit != nullptr){
@@ -384,6 +410,77 @@ namespace Context {
         subroutines_node = std::make_optional<std::shared_ptr<Subroutines>>(node);
 
         return node;
+    }
+
+    std::shared_ptr<Qubit_op> Context::new_qubit_op_node(){
+        reset(QUBIT_OP);
+
+        if (Common::cross_qss && genome.has_value()) {
+
+            /*
+                current_qubit_op will be set to the DAG, while a new qubit_op is passed back. This allows subsequent grammar rules
+                that are its children to also have access to the DAG without advancing to the next qubit_op
+            */
+            if (current_block_is_subroutine()) {
+                current_qubit_op = current_subroutine_dag->get_next_node();
+            } else {
+                current_qubit_op = genome.value().dag.get_next_node();
+            }
+
+            return Qubit_op::qubit_op_from_dag(current_qubit_op);
+
+        } else {
+            current_qubit_op = can_copy_dag ? genome.value().dag.get_next_node() : std::make_shared<Qubit_op>(get_current_block());
+            return current_qubit_op;
+            // current_qubit_op = std::make_shared<Qubit_op>(get_current_block());
+        }
+        
+    }
+
+    /// @brief  Make a gate_name node with constraints added based on the genome DAG's qubit_op node
+    /// @param parent
+    /// @return gate_name node straight from DAG
+    std::shared_ptr<Node> Context::make_gate_name(const std::shared_ptr<Node> parent, const std::optional<Node_constraint>& swarm_testing_gateset) {
+        // Gate name is one of the children of the child of the DAG qubit_op
+        if (Common::cross_qss && genome.has_value()) {
+
+            bool is_subroutine = current_qubit_op->find(Common::subroutine_op) != nullptr;
+            std::shared_ptr<Node> current_gate_op = is_subroutine ? current_qubit_op->find(Common::subroutine_op) : current_qubit_op->find(Common::gate_op); 
+            /*
+                Assume only 1 child to qubit_op, which is either gate_op or subroutine_op
+            */ 
+            if (current_gate_op != nullptr && current_gate_op->find(Common::gate_name) != nullptr && !is_subroutine) {
+                return std::make_shared<Gate_name>(Common::Rule_hash(current_gate_op->find(Common::gate_name)->get_children().at(0)->get_hash()));
+                /*
+                    Get the gate hash and convert to gate name since different QSSes have different upper/lower case names or even entirely different names.
+                    Exceptions are subroutines since its named locally
+                */
+            } else if (current_gate_op != nullptr && current_gate_op->find(Common::gate_name) != nullptr && is_subroutine) { 
+                std::shared_ptr<Gate_name> subroutine_gate_name = std::static_pointer_cast<Gate_name>(current_gate_op->find(Common::gate_name));
+                subroutine_gate_name->set_from_dag();
+                return subroutine_gate_name;
+                /*
+                    Copy subroutine gate name directly since naming doesn't change across QSS
+                */
+            } else {
+                WARNING("Could not find gate_op or subroutine_op in qubit_op children! Generating random gate name instead");
+                return std::make_shared<Gate_name>(parent, get_current_block(), Common::swarm_testing ? swarm_testing_gateset : std::nullopt);
+            }
+        }
+
+        return std::make_shared<Gate_name>(parent, get_current_block(), Common::swarm_testing ? swarm_testing_gateset : std::nullopt);
+    };
+
+    std::shared_ptr<Node> Context::new_testing_method_node(bool can_use_statevector_sim) {
+        std::shared_ptr<Node> testing_method_node = std::make_shared<Node>("testing_method", Common::testing_method);
+        
+        if (can_use_statevector_sim) {
+            testing_method_node->add_constraint(Common::statevector, 1);
+        } else {
+            testing_method_node->add_constraint(Common::statevector, 0);
+        }
+
+        return testing_method_node;
     }
 
 

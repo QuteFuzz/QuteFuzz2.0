@@ -51,6 +51,10 @@ struct Node_constraint {
             return rules.size();
         }
 
+        bool contains_rule(const Common::Rule_hash& rule) const {
+            return std::find(rules.begin(), rules.end(), rule) != rules.end();
+        }
+
         void add(const Common::Rule_hash& rule, unsigned int n_occurances){
             rules.push_back(rule);
             occurances.push_back(n_occurances);    

@@ -288,11 +288,15 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 		
 		case Common::Measure:
 			return context.new_gate(str, 1, 1, 0, hash);
-
-		/* Added hash to every new_gate instance. Not sure if this is intended but it is needed for swarm testing */
 		
 		case Common::barrier:
 			return context.get_barrier();
+
+		case Common::testing_method: {
+			bool can_use_statevector_sim = Common::swarm_testing && swarm_testing_gateset->contains_rule(Common::Measure);
+			return context.new_testing_method_node(can_use_statevector_sim);
+		}
+			
 
 		default:
 			return std::make_shared<Node>(str, hash);
