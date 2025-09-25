@@ -264,14 +264,14 @@ std::shared_ptr<Node> Ast::get_node_from_term(const std::shared_ptr<Node> parent
 
 		case Common::h: case Common::x: case Common::y: case Common::z: case Common::t:
 		case Common::tdg: case Common::s: case Common::sdg: case Common::project_z: case Common::measure_and_reset:
-		case Common::v: case Common::vdg:
+		case Common::v: case Common::vdg: case Common::SX: case Common::SXdg:
 			return context.new_gate(str, 1, 0, 0, hash);
 
 		case Common::cx : case Common::cy: case Common::cz: case Common::cnot:
-		case Common::ch:
+		case Common::ch: case Common::CS: case Common::CSdg: case Common::CSX: case Common::CSXdg: case Common::SWAP:
 			return context.new_gate(str, 2, 0, 0, hash);
 
-		case Common::crz:
+		case Common::crz: case Common::CRy: case Common::CRx:
 			return context.new_gate(str, 2, 0, 1, hash);
 
 		case Common::ccx: case Common::cswap: case Common::toffoli:

@@ -49,7 +49,8 @@ gate_op = circuit_name DOT gate_name gate_op_kind;
 subroutine_op = circuit_name ".add_gate(" gate_name ",[" qubit_list COMMA SPACE bit_list "])";
 
 gate_name   = X | Y | Z | CX | CZ | Rx | Ry | Rz | V | Vdg | T | Tdg | Sdg | CY
-            | H | T | S | CH | subroutine | Measure;
+            | H | T | S | CH | CSXdg | CS | CSdg | CRx | CRy | CRz | CCX | SWAP | CSWAP | subroutine | Measure;
+
 gate_op_kind =
     LPAREN qubit_list RPAREN 
     | LPAREN qubit_list COMMA bit_list RPAREN
