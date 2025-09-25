@@ -192,3 +192,11 @@ std::string random_hex_colour(){
 
     return ss.str();
 }
+
+bool scope_matches(const U8& a, const U8& b){
+    if((a == NO_SCOPE) || (b == NO_SCOPE)){
+        return a == b;
+    } else {
+        return a & b;
+    }
+}
