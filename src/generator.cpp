@@ -236,15 +236,21 @@ void Generator::run_genetic(fs::path output_dir, int population_size){
 
 }
 
+
+
+/// @brief Using DAG generation pipeline, random circuits are generated in the base language first,
+/// then the associated DAGs are traversed or passed wholly by reference at the necessary points to generate semantically equivalent cross-QSS programs
+/// @param output_dir output directory 
+/// @param n_programs number of programs to generate
 void Generator::generate_cross_qss(fs::path output_dir, int n_programs) {
     
     /*
-    Reset population
+    Reset population from any previous runs
     */
     population.clear();
 
     /*
-        Fill initial DAG population
+        Fill initial DAG population in base language
     */
     for(int i = 0; i < n_programs; i++){
         
