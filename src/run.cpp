@@ -1,24 +1,27 @@
-#include "../include/run.h"
+#include <run.h>
+#include <ast.h>
+#include <lex.h>
+
 
 Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
+
+    std::vector<Token::Token> meta_grammar_tokens;
+    
     // build all grammars
     try{
 
         if(fs::exists(grammars_dir) && fs::is_directory(grammars_dir)){
-            Grammar commons_grammar;
-
             /*
-                find tokens grammar and parse that first
+                find meta grammar
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().stem() == TOKENS_GRAMMAR_NAME)){
-                    Grammar grammar(file);
-                    grammar.build_grammar();
-
-                    commons_grammar = grammar;
-                    commons_grammar.mark_as_commons_grammar();
-
+                if(file.is_regular_file() && (file.path().stem() == Common::META_GRAMMAR_NAME)){                    
+                    Lexer::Lexer lexer(file.path().string());
+                    meta_grammar_tokens = std::move(lexer.get_tokens());
+                    
+                    // remove EOF from meta grammar's tokens
+                    meta_grammar_tokens.pop_back();
                     break;
                 }
             }
@@ -28,46 +31,22 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             */
             for(auto& file : fs::directory_iterator(grammars_dir)){
 
-                if(file.is_regular_file() && (file.path().extension() == ".bnf") && (file.path().stem() != TOKENS_GRAMMAR_NAME)){
+                if(file.is_regular_file() && (file.path().extension() == ".qf") && (file.path().stem() != Common::META_GRAMMAR_NAME)){
 
-                    Grammar grammar(file);
-                    grammar += commons_grammar;
+                    Grammar grammar(file, meta_grammar_tokens);
                     grammar.build_grammar();
 
                     std::string name = grammar.get_name();
                     std::cout << "Built " << name << std::endl;
-             
-                    Program_Spec spec;
                     
-                    spec.grammar = std::make_shared<Grammar>(grammar);
-                    
-                    if(name == "pytket"){
-                        spec.builder = std::make_shared<Pytket>();
-                        spec.extension = ".py";
-
-                    } else if(name == "qiskit"){
-                        spec.builder = std::make_shared<Qiskit>();
-                        spec.extension = ".py";
-
-                    } else if(name == "cirq"){
-                        spec.builder = std::make_shared<Cirq>();
-                        spec.extension = ".py";
-                        
-                    } else {
-                        spec.builder = std::make_shared<Ast>();
-                        spec.extension = ".txt";
-                    }
-
-                    specs[name] = std::make_shared<Program_Spec>(spec);
-                    
+                    generators[name] = std::make_shared<Generator>(grammar);
                 }
-
             }
 
             /* 
                 prepare directories
             */
-            output_dir = grammars_dir.parent_path() / OUTPUTS_FOLDER_NAME;
+            output_dir = grammars_dir.parent_path() / Common::OUTPUTS_FOLDER_NAME;
             
             if(!fs::exists(output_dir)){
                 fs::create_directory(output_dir);
@@ -76,7 +55,6 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
             }
 
         }
-        set_possible_qubit_combinations();
 
     } catch (const fs::filesystem_error& error) {
         std::cout << error.what() << std::endl;
@@ -86,25 +64,36 @@ Run::Run(const std::string& _grammars_dir) : grammars_dir(_grammars_dir) {
 
 void Run::set_grammar(){
 
-    std::string grammar_name = tokens[0], entry_name = tokens[1];
+    std::string grammar_name = tokens[0], entry_name;
+    tokenise(tokens[1], ',');
+
+    entry_name = tokens[0];
+
+    U8 scope = 0;
+
+    for(const auto& t : tokens){
+        scope |= ((t == "E") & EXTERNAL_SCOPE);
+        scope |= ((t == "I") & INTERNAL_SCOPE);
+        scope |= ((t == "O") & OWNED_SCOPE);
+    }
 
     if(is_grammar(grammar_name)){
-        current_spec = specs[grammar_name];
-        current_spec->setup_builder(entry_name);
+        current_generator = generators[grammar_name];
+        current_generator->setup_builder(entry_name, scope);
 
     } else {
         std::cout << grammar_name << " is not a known grammar!" << std::endl;
     }
 }
 
-void Run::tokenise(const std::string& command){
+void Run::tokenise(const std::string& command, const char& delim){
 
     std::stringstream ss(command);
     std::string token;
 
     tokens.clear();
 
-    while(std::getline(ss, token, ' ')){
+    while(std::getline(ss, token, delim)){
         tokens.push_back(token);
     }
 }
@@ -118,88 +107,126 @@ void Run::remove_all_in_dir(const fs::path& dir){
 }
 
 // Prints a progress bar to the terminal
-void Run::print_progress_bar(int current, int n) {
+void Run::print_progress_bar(unsigned int current) {
     const int bar_width = 40;
+    unsigned int n = n_programs.value_or(0);
+
     float progress = (n > 0) ? float(current) / n : 0.0f;
     int pos = static_cast<int>(bar_width * progress);
+
     std::cout << "[";
+
     for (int i = 0; i < bar_width; ++i) {
         if (i < pos) std::cout << "#";
         else std::cout << "-";
     }
+
     std::cout << "] " << std::setw(3) << int(progress * 100.0) << "%  (" << current << "/" << n << ")\r";
     std::cout.flush();
+
     if (current == n) std::cout << std::endl;
+}
+
+void Run::help(){
+    std::cout << "-> Type enter to write to a file" << std::endl;
+    std::cout << "-> \"grammar_name grammar_entry\" : command to set grammar " << std::endl;
+    std::cout << "  These are the known grammar rules: " << std::endl;
+
+    for(const auto& generator : generators){
+        std::cout << generator.second << std::endl;
+    }
+}
+
+void Run::run_tests(){
+    int current = 0;
+    std::string results_path = (output_dir / "results.txt").string();
+    std::ofstream results_file(results_path);
+
+    for(auto& entry : fs::directory_iterator(output_dir)){
+
+        // check for directories to avoid running the results.txt file and interesting_circuits
+        if(entry.is_directory() && entry.path().filename() != "interesting_circuits"){
+
+            current++;
+
+            results_file << "Running test: " << entry.path().filename() << std::endl;
+            
+            fs::path program_path = entry.path() / ("circuit.py");
+            std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "") + " 2>&1";
+            
+            results_file << pipe_from_command(command) << std::endl;
+
+            print_progress_bar(current);                       
+        }              
+    }
+
+    results_file.close();
+
+    INFO("Test results written to " + results_path);
 }
 
 void Run::loop(){
 
     std::string current_command;
-    std::optional<int> n;
 
-    while(run){
+    while(true){
         std::cout << "> ";
 
         std::getline(std::cin, current_command);
-        tokenise(current_command);
+        tokenise(current_command, ' ');
 
-        if(current_command == "quit"){
-            run = false;
-
-        } else if (current_command == "h"){
-            help();
-            
-        } else if ((current_command == "print") && (current_spec != nullptr)){
-            current_spec->grammar->print_grammar();
-        
-        } else if ((current_command == "print_tokens") && (current_spec != nullptr)){
-            current_spec->grammar->print_tokens();
-
-        } else if ((current_command == "plot") && (current_spec != nullptr)) {
-            Common::plot = !Common::plot;
-            std::cout << "Plot mode is now " << (Common::plot ? "enabled" : "disabled") << std::endl;
-        
-        } else if ((current_command == "verbose") && (current_spec != nullptr)){
-            Common::verbose = !Common::verbose;
-            std::cout << "Vetbose mode is now " << (Common::verbose ? "enabled" : "disabled") << std::endl;
-
-        } else if ((current_command == "run_tests") && (current_spec != nullptr)){
-            // Initialize progress bar variables and results file
-            int current = 0;
-            int total = n.value();
-            std::ofstream results_file((output_dir / "results.txt").string());
-
-            for(auto& entry : fs::directory_iterator(output_dir)){
-
-                // check for directories to avoid running the results.txt file
-                if(entry.is_directory()){
-
-                    current++;
-
-                    results_file << "Running test: " << entry.path().filename() << std::endl;
-                    
-                    fs::path program_path = entry.path() / ("circuit.py");
-                    std::string command = "python3 " + program_path.string() + (Common::plot ? " --plot" : "");
-                    
-                    results_file << pipe_from_command(command);
-
-                    print_progress_bar(current, total);                       
-                }              
-            }
-
-            results_file.close();
-
-            std::cout << std::endl;
-            INFO("Test results written to results.txt");
-
-        } else if (tokens.size() == 2){
+        if(tokens.size() == 2){
             set_grammar();
 
-        } else if ((current_spec != nullptr) && (n = safe_stoi(current_command)) && (n.has_value())){ 
-            // Clear the outputs and plots directory first before generating new outputs
-            remove_all_in_dir(output_dir);
-            remove_all_in_dir(results_dir);
-            current_spec->builder->ast_to_program(output_dir, current_spec->extension, n.value());
+        } else if(current_command == "h"){
+            help();
+
+        } else if (current_command == "quit"){
+            break;
+
+        } else if(current_generator != nullptr){
+
+            if(current_command == "print"){
+                current_generator->print_grammar();
+            
+            } else if (current_command == "print_tokens"){
+                current_generator->print_tokens();
+            
+            } else if (current_command == "plot"){
+                Common::plot = !Common::plot;
+                INFO("Plot mode is now " + FLAG_STATUS(Common::plot));
+            
+            } else if (current_command == "verbose"){
+                Common::verbose = !Common::verbose;
+                INFO("Verbose mode is now " + FLAG_STATUS(Common::verbose));
+
+            } else if (current_command == "render_dags"){
+                Common::render_dags = !Common::render_dags;
+                INFO("DAG render " + FLAG_STATUS(Common::render_dags));
+
+            } else if (current_command == "run_tests"){
+                run_tests();
+                
+            } else if (current_command == "swarm_testing") {
+                Common::swarm_testing = !Common::swarm_testing;
+                INFO("Swarm testing mode " + FLAG_STATUS(Common::swarm_testing));
+
+            } else if (current_command == "genetic"){
+                Common::run_genetic = !Common::run_genetic;
+                INFO("Genetic generation mode " + FLAG_STATUS(Common::run_genetic));
+
+            } else if ((n_programs = safe_stoi(current_command))){
+                remove_all_in_dir(output_dir);
+
+                if(Common::run_genetic){
+                    current_generator->run_genetic(output_dir, n_programs.value_or(0));
+
+                } else {
+                    current_generator->generate_random_programs(output_dir, n_programs.value_or(0));
+
+                }
+
+            }
 
         } else {
             std::cout << current_command << " = " << hash_rule_name(current_command) << "ULL," << std::endl;
